@@ -1,0 +1,20 @@
+{
+  "title": " الوصائط محمل",
+  "enter_url": " الرابط أدخل ",
+  "clear": "الخلايا مسح",
+  "download": "تحميل",
+  "download_complete": "التحميل اكتمل",
+  "error": "خطأ",
+  "please_enter_url": ".رابط إدخال يرجى",
+  "paste" : "لصق",
+  "please_install_ffmpeg": "تنصيب الرجاء FFmpeg.",
+  "select_directory": "المجلد اختر",
+  "download_subtitles": "الترجمة تحميل",
+  "stop_download": "التحميل إيقاف",
+  "download_stopped": ".التحميل إيقاف تم",
+  "info": "معلومات",
+  "fetching_info": "الفيديوهات معلومات جلب جاري...",
+  "ask_to_stop_download": "؟ التنزيل إيقاف من متأكد أنت هل",
+  "no_videos_found": "فيديوهات على العثور يتم لم.",
+  "all_downloaded": "الفيديوهات جميع تحميل تم!"
+}

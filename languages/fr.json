@@ -1,0 +1,20 @@
+{
+  "title": "Téléchargeur Média",
+  "enter_url": "Entrez l'URL De Média",
+  "clear": "effacer l'entrée",
+  "download": "Télécharger",
+  "download_complete": "Téléchargement terminé",
+  "error": "Erreur",
+  "please_enter_url": "Veuillez entrer une URL.",
+  "paste":"Coller",
+  "please_install_ffmpeg": "Veuillez installer FFmpeg.",
+  "select_directory": "Sélectionner le dossier",
+  "download_subtitles": "Télécharger les sous-titres",
+  "stop_download": "Arrêter le téléchargement",
+  "download_stopped": "Téléchargement arrêté.",
+  "info": "Info",
+  "fetching_info": "Récupération des informations des vidéos...",
+  "ask_to_stop_download": "Êtes-vous sûr de vouloir arrêter le téléchargement ?",
+  "no_videos_found": "Aucune vidéo trouvée.",
+  "all_downloaded": "Toutes les vidéos ont été téléchargées !"
+}

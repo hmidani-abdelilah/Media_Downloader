@@ -1,0 +1,20 @@
+{
+  "title": "Media Downloader",
+  "enter_url": "Enter Media URL",
+  "clear":"Clear",
+  "download": "Download",
+  "download_complete": "Download Complete",
+  "error": "Error",
+  "please_enter_url": "Please enter a URL.",
+  "paste": "Paste",
+  "please_install_ffmpeg": "Please install FFmpeg.",
+  "select_directory": "Select Directory",
+  "download_subtitles": "Download Subtitles",
+  "stop_download": "Stop Download",
+  "download_stopped": "Download stopped.",
+  "info": "Info",
+  "fetching_info": "Fetching videos info...",
+  "ask_to_stop_download": "Are you sure to stop the download?",
+  "no_videos_found": "No videos found.",
+  "all_downloaded": "All videos downloaded!"
+}
