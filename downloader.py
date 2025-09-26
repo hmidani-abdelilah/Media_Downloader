@@ -103,18 +103,31 @@ def sanitize_filename(filename):
         filename = filename[:97] + "..."
     return filename.strip()
 
-def download_video(url, download_dir, quality, file_type, download_subtitles, progress_hook=None, playlist_title=None):
+def download_video(url, download_dir, quality, file_type, download_subtitles, progress_hook=None, playlist_title=None, use_aria2=False):
     """
-    تحميل فيديو من يوتيوب
+
+    تحميل فيديو من يوتيوب باستخدام yt-dlp و Aria2 (اختياري)
+
+    
 
     Args:
+
         url: رابط الفيديو
+
         download_dir: مجلد التحميل
+
         quality: جودة الفيديو ('low', 'medium', 'high')
+
         file_type: نوع الملف ('mp3', 'mp4')
+
         download_subtitles: هل يجب تحميل الترجمة
+
         progress_hook: دالة لتتبع التقدم
+
         playlist_title: عنوان قائمة التشغيل (إن وجد)
+
+        use_aria2: هل سيتم استخدام Aria2 كأداة تحميل خارجية (اختياري)
+
     """
     # إعادة تعيين حدث الإيقاف قبل بدء التحميل
     reset_stop_event()
@@ -143,6 +156,24 @@ def download_video(url, download_dir, quality, file_type, download_subtitles, pr
         'quiet': False,
         'progress_hooks': [custom_progress_hook]
     }
+        # إذا كان سيتم استخدام Aria2 كأداة تنزيل خارجية
+
+    if use_aria2:
+
+        options['external_downloader'] = 'aria2c'  # استخدام Aria2 كأداة تحميل خارجية
+
+        options['external_downloader_args'] = [
+
+            '--min-split-size=1M', 
+
+            '--max-connection-per-server=16', 
+
+            '--max-concurrent-downloads=16', 
+
+            '--split=16'
+
+        ]
+
     
     if file_type == 'mp3':
         # تحويل إلى MP3 بعد التحميل
