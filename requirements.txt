@@ -1,4 +1,4 @@
 customtkinter
 ctkmessagebox
 yt-dlp
-
+aria2
