@@ -5,6 +5,7 @@ from customtkinter import filedialog  # لفتح مربع حوار اختيار 
 from CTkMessagebox import CTkMessagebox  # لعرض رسائل منبثقة للمستخدم
 from downloader import download_video, stop_download, reset_stop_event, get_videos_info  # استيراد وظائف التحميل
 from ffmpeg_check import check_ffmpeg_installed  # للتحقق من تثبيت FFmpeg
+from aria2_check import check_aria2_installed # للتحقق من تثبيت Aria2c
 import threading  # للتنفيذ المتزامن للمهام
 import json  # للتعامل مع ملفات اللغة
 import os  # للتعامل مع نظام الملفات
@@ -187,6 +188,15 @@ class YouTubeDownloaderApp:
         )
         self.sub_checkbox.grid(row=0, column=4, padx=5, pady=5)
         
+        # خيار تحميل بادات Aria2c
+        self.aria2c = ctk.BooleanVar(value=False)
+        self.aria2_checkbox = ctk.CTkCheckBox(
+            self.settings_frame, 
+            text=self.lang.get("use_aria2", "Download with aria2"), 
+            variable=self.aria2c
+        )
+        self.aria2_checkbox.grid(row=0, column=5, padx=5, pady=5)
+
         # ===== قسم اختيار مجلد الحفظ =====
         self.directory_frame = ctk.CTkFrame(self.main_frame)
         self.directory_frame.pack(fill="x", padx=20, pady=5)
@@ -254,9 +264,10 @@ class YouTubeDownloaderApp:
         self.title_label.configure(text=self.lang.get("title", "YouTube Downloader"))
         self.url_entry.configure(placeholder_text=self.lang.get("enter_url", "Enter YouTube URL"))
         self.clear_button.configure(text=self.lang.get("clear", "Clear"))
-        self.sub_checkbox.configure(text=self.lang.get("download_subtitles", "Download Subtitles"))
-        self.select_button.configure(text=self.lang.get("select_directory", "Select Directory"))
         self.download_button.configure(text=self.lang.get("download", "Download"))
+        self.sub_checkbox.configure(text=self.lang.get("download_subtitles", "Download Subtitles"))
+        self.aria2_checkbox.configure(text=self.lang.get("use_aria2", "Download with aria2"))
+        self.select_button.configure(text=self.lang.get("select_directory", "Select Directory"))
         self.stop_button.configure(text=self.lang.get("stop_download", "Stop Download"))
 
     # دالة للّصق من الحافظة إلى الحقل
@@ -301,6 +312,10 @@ class YouTubeDownloaderApp:
         """
         # التحقق من وجود FFmpeg المطلوب للتحويل
         ffmeg = check_ffmpeg_installed()
+
+        # التحقق من وجود Aria2c المطلوب للتحويل
+        aria2c = check_aria2_installed()
+
         url = self.url_entry.get().strip()
                 
         if not url:
@@ -311,12 +326,20 @@ class YouTubeDownloaderApp:
                 icon="warning"
             )
             return
+        
         elif not ffmeg:
              # إظهار خطأ إذا لم يتم تثبيت FFmpeg
              CTkMessagebox(
                 title=self.lang.get("error", "Error"), 
                 message=self.lang.get("please_install_ffmpeg", "Please install FFmpeg."), 
                 icon="cancel"
+            )
+        elif self.aria2c.get() == True  and not aria2c:
+             # إظهار خطأ إذا لم يتم تثبيت Aria2c
+             CTkMessagebox(
+                title=self.lang.get("Warning Message!", "Error"), 
+                message=self.lang.get("please_install_Aria2c", "Please install Aria2."), 
+                icon="warning", option_1="Cancel", option_2="Retry"
             )
         else:    
             # تعطيل زر التحميل وتفعيل زر الإيقاف أثناء عملية التحميل
@@ -451,7 +474,8 @@ class YouTubeDownloaderApp:
                 file_type=self.file_type.get(),
                 download_subtitles=self.subtitles.get(),
                 progress_hook=progress_hook,
-                playlist_title=playlist_title
+                playlist_title=playlist_title,
+                use_aria2=self.aria2c.get()
             )
         except Exception as e:
             raise e  # إعادة رفع الاستثناء للتعامل معه في الدالة الأعلى
