@@ -26,9 +26,11 @@ class YouTubeDownloaderApp:
         self.root = root
         
         # تحميل أيقونة التطبيق من المسار الصحيح
-        icon_image = Image.open(os.path.join("asset", "Icon.ico"))
-        icon_tk = ImageTk.PhotoImage(icon_image)
-        self.root.wm_iconphoto(True, icon_tk)
+        #icon_image = Image.open(os.path.join("asset", "Icon.ico"))
+        #icon_tk = ImageTk.PhotoImage(icon_image)
+        #self.root.wm_iconphoto(True, icon_tk)
+        icon_path = self.resource_path(os.path.join("asset", "Icon.ico"))
+        self.root.iconbitmap(icon_path)
         
         # تهيئة متغيرات اللغة والحالة
         self.lang = self.load_language(lang_code)
