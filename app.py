@@ -11,7 +11,8 @@ def check_required_directories():
     """
     # التأكد من وجود مجلد اللغات (languages) الذي يحتوي على ملفات ترجمة واجهة المستخدم
     if not os.path.exists("languages"):
-        os.makedirs("languages")  # إنشاء المجلد إذا لم يكن موجوداً
+        pass
+        #os.makedirs("languages")  # إنشاء المجلد إذا لم يكن موجوداً
 
 def main():
     """
@@ -64,4 +65,5 @@ def main():
 
 # التحقق مما إذا كان هذا الملف يتم تشغيله مباشرة (وليس استيراده كوحدة)
 if __name__ == "__main__":
+
     main()  # استدعاء الدالة الرئيسية لبدء التطبيق
