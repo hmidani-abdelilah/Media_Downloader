@@ -10,6 +10,10 @@ import threading  # للتنفيذ المتزامن للمهام
 import json  # للتعامل مع ملفات اللغة
 import os  # للتعامل مع نظام الملفات
 import sys  # للوصول إلى معلومات النظام
+from utils import resource_path
+
+#pyinstaller --onefile --windowed  --add-data=languages;languages --add-data=asset/Icon.ico;asset --add-data=aria2;aria2 --add-data=ffmpeg;ffmpeg --icon=asset/Icon.ico app.py -n MediaDownloader.exe
+
 
 class YouTubeDownloaderApp:
     """
@@ -36,6 +40,7 @@ class YouTubeDownloaderApp:
         self.lang = self.load_language(lang_code)
         self.lang_code = lang_code
         self.save_dir = os.path.expanduser("~")  # مجلد المستخدم الافتراضي كمسار حفظ
+        self.cookiefile_dir = "\U0001F36A" # مسار ملف cookies 
         self.current_download_thread = None  # خيط التنزيل الحالي
         self.is_downloading = False  # مؤشر على حالة التنزيل
     
@@ -56,7 +61,7 @@ class YouTubeDownloaderApp:
             base_path = sys._MEIPASS  # في حالة التشغيل من ملف تنفيذي مجمع
         except Exception:
             base_path = os.path.abspath(".")  # في حالة التشغيل العادي
-        return os.path.join(base_path, relative_path)    
+        return os.path.join(base_path, relative_path)    #full_path = os.path.join(base_path, relative_path)
 
     def load_language(self, lang_code):
         """
@@ -138,10 +143,13 @@ class YouTubeDownloaderApp:
         
         # إنشاء قائمة منبثقة (Popup menu) بدون حافة علوية
         self.menu = tk.Menu(self.url_frame, tearoff=0)
-        
+
+        # إضافة عنصر "قص" إلى القائمة وربطه بالدالة copy_to_clipboard
+        self.menu.add_command(label=self.lang.get("cut", "Cut"),command=self.copy_to_clipboard)  # إضافة أمر "قص" للقائمة
         # إضافة عنصر "لصق" إلى القائمة وربطه بالدالة paste
         self.menu.add_command(label=self.lang.get("paste", "Paste"), command=self.paste)  # إضافة أمر "لصق" للقائمة
-       
+        # إضافة عنصر "مسح" الى القائمة و ربطه بالدالة clear_url
+        self.menu.add_command(label=self.lang.get("clear", "clear"),command=self.clear_url)   # إضافة أمر "مسح" للقائمة
         # ربط حدث النقر بزر الفأرة الأيمن (الزر رقم 3) بالحقل لعرض القائمة
         self.url_entry.bind("<Button-3>", self.show_menu)
 
@@ -212,7 +220,21 @@ class YouTubeDownloaderApp:
             command=self.select_directory
         )
         self.select_button.pack(side="right", padx=5)
-        
+
+        # ===== قسم اختيار ملف COOKIES =====
+        self.cookies_frame = ctk.CTkFrame(self.main_frame)
+        self.cookies_frame.pack(fill="x", padx=20, pady=5)
+
+        self.cookiefile_label = ctk.CTkLabel(self.cookies_frame, text=f"File PATH: {self.cookiefile_dir}")
+        self.cookiefile_label.pack(side="left", padx=5, fill="x", expand=True)
+
+        self.select_cookies_button = ctk.CTkButton(
+            self.cookies_frame, 
+            text=self.lang.get("select_file", "Select Cookies File"), 
+            command=self.select_file
+        )
+        self.select_cookies_button.pack(side="right", padx=5)
+
         # ===== قسم عرض حالة التحميل والتقدم =====
         self.status_frame = ctk.CTkFrame(self.main_frame)
         self.status_frame.pack(fill="x", padx=20, pady=10)
@@ -266,10 +288,14 @@ class YouTubeDownloaderApp:
         self.title_label.configure(text=self.lang.get("title", "YouTube Downloader"))
         self.url_entry.configure(placeholder_text=self.lang.get("enter_url", "Enter YouTube URL"))
         self.clear_button.configure(text=self.lang.get("clear", "Clear"))
+        self.menu.entryconfig(0, label=self.lang.get("cut", "Cut"))
+        self.menu.entryconfig(1, label=self.lang.get("paste", "Paste"))
+        self.menu.entryconfig(2, label=self.lang.get("clearing", "Clear"))
         self.download_button.configure(text=self.lang.get("download", "Download"))
         self.sub_checkbox.configure(text=self.lang.get("download_subtitles", "Download Subtitles"))
         self.aria2_checkbox.configure(text=self.lang.get("use_aria2", "Download with aria2"))
         self.select_button.configure(text=self.lang.get("select_directory", "Select Directory"))
+        self.select_cookies_button.configure(text=self.lang.get("select_file", "Select Cookies File"))
         self.stop_button.configure(text=self.lang.get("stop_download", "Stop Download"))
 
     # دالة للّصق من الحافظة إلى الحقل
@@ -280,7 +306,24 @@ class YouTubeDownloaderApp:
             return                                       # إذا فشلت (لا يوجد شيء في الحافظة)، لا تفعل شيئًا
         self.url_entry.delete(0, ctk.END)              # مسح ما بداخل الحقل
         self.url_entry.insert("end", url)             # إدراج النص في نهاية حقل الإدخال
+    
+    # دالة مسح الخانة الخاصة بالرابط
+    def clear_url(self):
+        self.url_entry.delete(0, ctk.END)              # مسح ما بداخل الحقل
+    
+    # دالة قص الخانة الخاصة بالرابط 
+    def copy_to_clipboard(self):
+            # الحصول على النص من حقل الإدخال
+            url = self.url_entry.get()
 
+            # محاولة نسخ النص إلى الحافظة
+            try:
+                self.root.clipboard_clear()  # مسح الحافظة أولاً
+                self.root.clipboard_append(url)  # نسخ النص إلى الحافظة
+            except Exception:
+                return
+            self.url_entry.delete(0, ctk.END)
+    
     # دالة لإظهار القائمة عند النقر بزر الفأرة الأيمن
     def show_menu(self,event):
         try:
@@ -307,6 +350,15 @@ class YouTubeDownloaderApp:
         if selected:
             self.save_dir = selected
             self.directory_label.configure(text=f"Directory: {self.save_dir}")
+
+    def select_file(self):
+        """
+        تح مربع حوار لاختيار مجلف cookies  
+        """
+        selectedfile = filedialog.askopenfilename()
+        if selectedfile:
+            self.cookiefile_dir = selectedfile
+            self.cookiefile_label.configure(text=f"Cookies file: {self.cookiefile_dir}")
 
     def start_download(self):
         """
@@ -381,11 +433,12 @@ class YouTubeDownloaderApp:
         تحضير وتحميل الفيديوهات من الرابط (قد يكون فيديو واحد أو قائمة تشغيل)
         
         المعلمات:
-            url: رابط الفيديو أو قائمة التشغيل
+                 url: رابط الفيديو أو قائمة التشغيل
+        cookies_path: استخدام cookies لحل مشاكل الفيديوهات المحمية 
         """
         try:
             # جلب معلومات الفيديوهات من الرابط
-            result = get_videos_info(url)
+            result = get_videos_info(url,cookies_path=self.cookiefile_dir)
             videos = result["videos"]
             playlist_title = result["playlist_title"]
             
@@ -430,12 +483,55 @@ class YouTubeDownloaderApp:
                 )
         except Exception as e:
             # التعامل مع الأخطاء العامة
-            self.status_label.configure(text=str(e))
+            '''self.status_label.configure(text=str(e))
             CTkMessagebox(
                 title=self.lang.get("error", "Error"), 
                 message=str(e), 
                 icon="cancel"
-            )
+            )'''
+            #except Exception as e:
+            error_message = str(e)
+            self.status_label.configure(text=error_message)
+
+            # 👇 الكشف عن الفيديوهات الخاصة أو المحمية
+            if "Private video" in error_message or "Sign in" in error_message or "cookies" in error_message:
+                response = CTkMessagebox(
+                    title=self.lang.get("private_video", "Private Video Detected"),
+                    message=self.lang.get(
+                        "private_video_msg",
+                        "This video is private or requires login.\nPlease select a cookies file to continue."
+                    ),
+                    icon="warning",
+                    option_1="Cancel",
+                    option_2="Select File"
+                ).get()
+
+                if response == "Select File":
+                    # فتح نافذة اختيار ملف cookies
+                    selected_file = filedialog.askopenfilename(
+                        title="Select your cookies.txt file",
+                        filetypes=[("Text files", "*.txt"), ("All files", "*.*")]
+                    )
+                    if selected_file:
+                        self.cookiefile_dir = selected_file
+                        self.cookiefile_label.configure(text=f"Cookies file: {self.cookiefile_dir}")
+                        # إعادة المحاولة بعد اختيار الملف
+                        self.prepare_and_download(url)
+                        return
+
+                # في حال إلغاء المستخدم
+                self.status_label.configure(
+                    text=self.lang.get("download_cancelled", "Download cancelled by user.")
+                )
+
+            else:
+                # 👇 التعامل مع باقي الأخطاء العادية
+                CTkMessagebox(
+                    title=self.lang.get("error", "Error"),
+                    message=error_message,
+                    icon="cancel"
+                )
+                
         finally:
             # إعادة تعيين حالة التطبيق بغض النظر عن نتيجة التحميل
             self.download_button.configure(state="normal")
@@ -477,7 +573,8 @@ class YouTubeDownloaderApp:
                 download_subtitles=self.subtitles.get(),
                 progress_hook=progress_hook,
                 playlist_title=playlist_title,
-                use_aria2=self.aria2c.get()
+                use_aria2=self.aria2c.get(),
+                cookies_path=self.cookiefile_dir
             )
         except Exception as e:
             raise e  # إعادة رفع الاستثناء للتعامل معه في الدالة الأعلى
