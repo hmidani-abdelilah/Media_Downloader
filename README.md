@@ -4,7 +4,7 @@
 
 ## 🌐 English
 
-A graphical application for downloading videos and audio from YouTube and other platforms (Facebook, Instagram, X.com) using `yt-dlp`, with quality control, subtitle support, language switching, and dark/light themes.
+A graphical application for downloading videos and audio from YouTube and other platforms (Facebook, Instagram, X.com , TikTok ... ) and more using `yt-dlp`, with quality control, subtitle support, language switching, and dark/light themes.
 
 ### 🚀 Features
 
@@ -79,7 +79,7 @@ pyinstaller --onefile --windowed --add-data=languages;languages --add-data=asset
 
 ### ✅ المميزات
 
-- يدعم التحميل من **يوتيوب**، **فيسبوك**، **إنستغرام** و **X.com (تويتر)**
+- يدعم التحميل من **يوتيوب**، **فيسبوك**، **إنستغرام** و **X.com (تويتر)** و **تيك توك** وغرهم الكثير 
 - تحميل الفيديوهات بصيغة `mp4` أو الصوت فقط بصيغة `mp3`
 - اختيار الجودة: منخفضة (360p)، متوسطة (720p)، عالية (1080p)
 - إمكانية تحميل الترجمة (عربي، إنجليزي، فرنسي)
