@@ -19,6 +19,7 @@ A graphical application for downloading videos and audio from YouTube and other 
 - Checks for **FFmpeg** and **Aria2c** availability (local or system)
 - Supports **Aria2c** as external downloader for faster downloads
 - Cookies file support for private/protected videos
+- Export cookies from browser use [Get cookies LOCALLY](https://chromewebstore.google.com/detail/cclelndahbckbenkjhflpdbgdldlbecc?utm_source=item-share-cb)
 - Context menu for URL input (cut, paste, clear)
 - Cross-platform (Windows/Linux/macOS)
 
@@ -89,6 +90,7 @@ pyinstaller --onefile --windowed --add-data=languages;languages --add-data=asset
 - يتحقق من وجود برنامج **FFmpeg** و **Aria2c** (محلي أو من النظام)
 - دعم التحميل السريع عبر **Aria2c**
 - دعم ملفات الكوكيز للفيديوهات الخاصة أو المحمية
+- لإستخراج ملف الكوكيز من المتصفح استخدم [Get cookies LOCALLY](https://chromewebstore.google.com/detail/cclelndahbckbenkjhflpdbgdldlbecc?utm_source=item-share-cb)
 - قائمة سياق لحقل الرابط (قص، لصق، مسح)
 - يعمل على Windows وLinux وmacOS
 
