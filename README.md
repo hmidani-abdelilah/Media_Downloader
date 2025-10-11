@@ -42,6 +42,10 @@ To build an executable (optional):
 ```bash
 pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset/Icon.ico:asset --icon=asset/Icon.ico app.py -n MediaDownloader.exe
 ```
+or 
+```bash
+pyinstaller --onefile --windowed  --add-data=languages;languages --add-data=asset/Icon.ico;asset --add-data=aria2;aria2 --add-data=ffmpeg;ffmpeg --icon=asset/Icon.ico app.py -n MediaDownloader.exe
+```
 
 ### 📁 Project Structure
 
