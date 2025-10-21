@@ -1,6 +1,6 @@
 # Media Downloader GUI
 
-![Alt text](https://raw.githubusercontent.com/hmidani-abdelilah/Media_Downloader/refs/heads/main/141522.png "Media Downloader GUI")
+![Media Downloader GUI Screenshot Application ](https://raw.githubusercontent.com/hmidani-abdelilah/Media_Downloader/refs/heads/main/152342.png "Media Downloader GUI")
 
 ## 🌐 English
 
