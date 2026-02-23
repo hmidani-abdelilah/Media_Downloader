@@ -3,6 +3,7 @@ from PIL import Image, ImageTk # لتضمين أيقونة للتطبيق مهم
 import tkinter as tk  # استيراد مكتبة tkinter لإنشاء قائمة السياق
 from customtkinter import filedialog  # لفتح مربع حوار اختيار الملفات
 from CTkMessagebox import CTkMessagebox  # لعرض رسائل منبثقة للمستخدم 
+from CTkMenuBar import * #  استيراد مكتبة القوائم الافقية 
 from downloader import download_video, get_videos_info, get_gpu_encoders, stop_download # استيراد وظائف التحميل
 from ffmpeg_check import check_ffmpeg_installed  # للتحقق من تثبيت FFmpeg
 from aria2_check import check_aria2_installed # للتحقق من تثبيت Aria2c
@@ -11,6 +12,7 @@ import json  # للتعامل مع ملفات اللغة
 import os  # للتعامل مع نظام الملفات
 import sys  # للوصول إلى معلومات النظام
 from utils import resource_path
+import subprocess
 
 #pyinstaller --onefile --windowed --add-data=languages;languages --add-data=asset/Icon.ico;asset --add-data=aria2;aria2 --add-data=ffmpeg;ffmpeg --icon=asset/Icon.ico app.py -n MediaDownloader.exe
 
@@ -29,11 +31,25 @@ class YouTubeDownloaderApp:
         """
         self.root = root # تعيين نافذة الجذر
         
+        # Initialize the menu bar
+        # --- UI ELEMENTS ---
+        self.menu_bar = CTkMenuBar(master=self.root)
+        # Add top-level buttons
+        self.file_button = self.menu_bar.add_cascade("Options")
+        #self.edit_button = self.menu_bar.add_cascade("Edit")
+        
+        # Create dropdown content
+        self.dropdown = CustomDropdownMenu(widget=self.file_button)
+        self.dropdown.add_option(option="Check for Updates", command=self.run_update)
+        self.dropdown.add_separator()
+        self.dropdown.add_option(option="Exit", command=self.root.destroy)
+        
+        
         # تحميل أيقونة التطبيق من المسار الصحيح
-        icon_image = Image.open(os.path.join("asset", "Icon.ico")) # فتح صورة الأيقونة
-        icon_tk = ImageTk.PhotoImage(icon_image) # تحويل الصورة إلى تنسيق يمكن لـ Tkinter استخدامه
+        #icon_image = Image.open(os.path.join("asset", "Icon.ico")) # فتح صورة الأيقونة
+        #icon_tk = ImageTk.PhotoImage(icon_image) # تحويل الصورة إلى تنسيق يمكن لـ Tkinter استخدامه
         # تعيين الأيقونة لنافذة التطبيق
-        self.root.wm_iconphoto(True, icon_tk)
+        #self.root.wm_iconphoto(True, icon_tk)
         # windows os exe 
         #icon_path = self.resource_path(os.path.join("asset", "Icon.ico"))
         #self.root.iconbitmap(icon_path)
@@ -97,6 +113,17 @@ class YouTubeDownloaderApp:
         """
         إنشاء وتنظيم عناصر واجهة المستخدم الرسومية
         """
+        # Loading Frame (Hidden by default)
+        self.loading_frame = ctk.CTkFrame(self.root)
+        self.loading_label = ctk.CTkLabel(self.loading_frame, text="Updating dependencies, please wait...")
+        self.loading_label.pack(pady=5)
+        self.current_package_label = ctk.CTkLabel(self.loading_frame, text="")
+        self.current_package_label.pack(pady=2)
+        self.progress_bar = ctk.CTkProgressBar(self.loading_frame, orientation="horizontal", mode="determinate")
+        self.progress_bar.set(0)
+        self.progress_bar.pack(pady=10, padx=20, fill="x")
+        
+        
         # إنشاء الإطارات الرئيسية
         self.top_frame = ctk.CTkFrame(self.root) # إطار علوي لإعدادات المظهر واللغة
         self.top_frame.pack(fill="x", padx=10, pady=5) # تعبئة العرض بالكامل مع حواف
@@ -327,6 +354,8 @@ class YouTubeDownloaderApp:
         )
         self.stop_button.pack(side="right", padx=5, expand=True, fill="x")
 
+        #self.loading_frame.pack(pady=10, padx=20, fill="x")
+
     # دالة لتغيير مظهر التطبيق
     def change_appearance_mode_event(self, new_appearance_mode: str):
         """
@@ -362,6 +391,148 @@ class YouTubeDownloaderApp:
         self.select_cookies_button.configure(text=self.lang.get("select_file", "Select Cookies File")) # تحديث نص زر اختيار ملف COOKIES
         self.stop_button.configure(text=self.lang.get("stop_download", "Stop Download")) # تحديث نص زر إيقاف التحميل
 
+    def get_installed_packages(self):
+        result = subprocess.run(
+            [sys.executable, "-m", "pip", "list", "--format=json"],
+            capture_output=True,
+            text=True
+        )
+
+        packages = json.loads(result.stdout)
+        return {pkg["name"]: pkg["version"] for pkg in packages}
+
+
+    # ==============================
+    # UPDATE DEPENDENCIES
+    # ==============================
+
+    def run_update(self):
+        # Show loading UI (this runs in main thread already)
+        self.loading_frame.pack(pady=20, fill="x", padx=20)
+        self.progress_bar.set(0)
+        self.current_package_label.configure(text="")
+
+        # Run update in background thread
+        threading.Thread(target=self.update_task, daemon=True).start()
+
+
+    def update_task(self):
+        try:
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            requirements_path = os.path.join(base_dir, "requirements.txt")
+
+            if not os.path.exists(requirements_path):
+                raise Exception("requirements.txt not found.")
+
+            # Read packages
+            with open(requirements_path, "r", encoding="utf-8") as f:
+                packages = [
+                    line.strip()
+                    for line in f.readlines()
+                    if line.strip() and not line.startswith("#")
+                ]
+
+            total_packages = len(packages)
+            if total_packages == 0:
+                raise Exception("requirements.txt is empty.")
+
+            # Versions before update
+            before_update = self.get_installed_packages()
+            upgraded = []
+
+            for index, package in enumerate(packages, start=1):
+
+                pkg_name = package.split("==")[0].split(">=")[0].strip()
+
+                # SAFE UI UPDATE
+                self.root.after(
+                    0,
+                    lambda name=pkg_name, i=index: 
+                    self.current_package_label.configure(
+                        text=f"Updating: {name} ({i}/{total_packages})"
+                    )
+                )
+
+                result = subprocess.run(
+                    [sys.executable, "-m", "pip", "install", package, "--upgrade"],
+                    capture_output=True,
+                    text=True
+                )
+
+                if result.returncode != 0:
+                    raise Exception(result.stderr)
+
+                progress_value = index / total_packages
+                self.root.after(0, self.progress_bar.set, progress_value)
+
+            # Versions after update
+            after_update = self.get_installed_packages()
+
+            for pkg in packages:
+                pkg_name = pkg.split("==")[0].split(">=")[0].strip()
+                old_version = before_update.get(pkg_name)
+                new_version = after_update.get(pkg_name)
+
+                if old_version and new_version and old_version != new_version:
+                    upgraded.append(f"{pkg_name}: {old_version} → {new_version}")
+
+            self.root.after(0, lambda: self.show_update_results(upgraded))
+
+        except Exception as e:
+            self.root.after(0, lambda: self.update_finished(f"error: {str(e)}"))
+
+
+    def show_update_results(self, upgraded):
+        self.current_package_label.configure(text="")
+        self.progress_bar.set(1)
+        self.loading_frame.pack_forget()
+
+        if upgraded:
+            # يوجد تحديثات
+            message = "Updated Packages:\n\n" + "\n".join(upgraded)
+
+            msg = CTkMessagebox(
+                title="Update Complete",
+                message=message + "\n\nRestart application to apply changes.",
+                icon="check",
+                option_1="Restart Now",
+                option_2="Later"
+            )
+
+            if msg.get() == "Restart Now":
+                self.root.destroy()
+
+        else:
+            # لا يوجد أي تحديث
+            CTkMessagebox(
+                title="Up To Date",
+                message="All packages are already up to date.",
+                icon="info"
+            )
+
+
+    def update_finished(self, status):
+        self.progress_bar.stop()
+        self.loading_frame.pack_forget()
+
+        if "error" in status:
+            CTkMessagebox(
+                title="Error",
+                message=f"Update failed: {status}",
+                icon="cancel"
+            )
+        else:
+            msg = CTkMessagebox(
+                title="Finished",
+                message="Update complete! You must reload the application for changes to take effect.",
+                icon="check",
+                option_1="Close App"
+            )
+
+            if msg.get() == "Close App":
+                self.root.destroy()
+
+    
     # دالة للّصق من الحافظة إلى الحقل
     def paste(self):
         try:
@@ -370,10 +541,6 @@ class YouTubeDownloaderApp:
             return                                       # إذا فشلت (لا يوجد شيء في الحافظة)، لا تفعل شيئًا
         self.url_entry.delete(0, ctk.END)              # مسح ما بداخل الحقل
         self.url_entry.insert("end", url)             # إدراج النص في نهاية حقل الإدخال
-    
-    # دالة مسح الخانة الخاصة بالرابط
-    def clear_url(self):
-        self.url_entry.delete(0, ctk.END)              # مسح ما بداخل الحقل
     
     # دالة قص الخانة الخاصة بالرابط 
     def copy_to_clipboard(self):
@@ -573,12 +740,12 @@ class YouTubeDownloaderApp:
                 )
         except Exception as e:
             # التعامل مع الأخطاء العامة
-            '''self.status_label.configure(text=str(e))
-            CTkMessagebox(
-                title=self.lang.get("error", "Error"), 
-                message=str(e), 
-                icon="cancel"
-            )'''
+            #'''self.status_label.configure(text=str(e))
+            #CTkMessagebox(
+            #    title=self.lang.get("error", "Error"), 
+            #    message=str(e), 
+            #    icon="cancel"
+            #)'''
             #except Exception as e:
             error_message = str(e)
             self.status_label.configure(text=error_message) # تحديث حالة التحميل بالخطأ
