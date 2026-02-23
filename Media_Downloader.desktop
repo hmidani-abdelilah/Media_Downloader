@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Media Downloader
+Comment=Download any video from any site
+Exec=/home/xq/Media_Downloader/bin/python3.13 /home/xq/Media_Downloader/app.py
+Icon=/home/xq/Media_Downloader/icon.png
+Terminal=false
+Categories=Utility;Network;
+
