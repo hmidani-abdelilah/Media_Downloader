@@ -141,4 +141,7 @@ pyinstaller --onefile --windowed --add-data=languages;languages --add-data=asset
 │   └── aria2c.exe
 └── README.md
 ```
+```bash 
+sudo update-desktop-database
+``` 
 
