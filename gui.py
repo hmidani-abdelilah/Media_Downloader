@@ -696,7 +696,9 @@ class YouTubeDownloaderApp:
         """
         إغلاق الحاسوب بعد اكتمال التحميل
         """
-        if sys.platform == "win32":
+        if self.stop_current_download:
+             return  # إذا تم إيقاف التحميل، لا تقم بإغلاق الحاسوب  
+        elif sys.platform == "win32":
             os.system("shutdown /s /t 1")  # أمر إغلاق الحاسوب في ويندوز
         elif sys.platform == "darwin":
             os.system("sudo shutdown -h now")  # أمر إغلاق الحاسوب في ماك (قد يتطلب صلاحيات)
