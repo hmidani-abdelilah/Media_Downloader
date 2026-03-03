@@ -3,4 +3,5 @@ ctkmessagebox
 CTkMenuBar
 yt-dlp
 aria2
+CTKFileDialog-plus
 #ffmpeg-python

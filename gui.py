@@ -2,6 +2,8 @@ import customtkinter as ctk  # استيراد مكتبة واجهة المستخ
 from PIL import Image, ImageTk # لتضمين أيقونة للتطبيق مهما كان نوع نظام التشغيل
 import tkinter as tk  # استيراد مكتبة tkinter لإنشاء قائمة السياق
 from customtkinter import filedialog  # لفتح مربع حوار اختيار الملفات
+from CTkFileDialog import askdirectory , askopenfilename # لفتح مربع حوار اختيار المجلدات
+from CTkFileDialog.Constants import HOME
 from CTkMessagebox import CTkMessagebox  # لعرض رسائل منبثقة للمستخدم 
 from CTkMenuBar import * #  استيراد مكتبة القوائم الافقية 
 from downloader import download_video, get_videos_info, get_gpu_encoders, stop_download # استيراد وظائف التحميل
@@ -378,7 +380,7 @@ class YouTubeDownloaderApp:
         self.lang = self.load_language(lang_code) # تحميل ملف اللغة الجديد
         
         # تحديث نصوص جميع عناصر الواجهة بالترجمة الجديدة
-        self.title_label.configure(text=self.lang.get("title", "YouTube Downloader")) # تحديث عنوان التطبيق
+        self.root.after(0,self.title_label.configure(text=self.lang.get("title", "Media Downloader"))) # تحديث عنوان التطبيق
         self.url_entry.configure(placeholder_text=self.lang.get("enter_url", "Enter YouTube URL")) # تحديث نص الحقل
         self.clear_button.configure(text=self.lang.get("clear", "Clear")) # تحديث نص زر المسح
         self.menu.entryconfig(0, label=self.lang.get("cut", "Cut")) # تحديث نص أمر "قص" في القائمة
@@ -579,22 +581,29 @@ class YouTubeDownloaderApp:
         """
         فتح مربع حوار لاختيار مجلد حفظ الملفات
         """
-        selected = filedialog.askdirectory() # فتح مربع حوار لاختيار المجلد
+        selected = askdirectory(autocomplete=True,initial_dir=HOME,style='Mini') # فتح مربع حوار لاختيار المجلد
         # تحديث مسار الحفظ إذا تم اختيار مجلد
         if selected:
             self.save_dir = selected
-            self.directory_label.configure(text=f"Directory: {self.save_dir}")
+            # schedule UI update on main thread
+            self.root.after(0, self.directory_label.configure, {"text": f"Directory: {self.save_dir}"})
 
     # دالة لفتح مربع حوار لاختيار مجلف cookies
     def select_file(self):
         """
         تح مربع حوار لاختيار مجلف cookies  
         """
-        selectedfile = filedialog.askopenfilename() # فتح مربع حوار لاختيار الملف
+        selectedfile = askopenfilename(autocomplete=True ,style='Mini',
+                                       title="Select your cookies.txt file",
+                                        initial_dir=HOME,
+                                        filetypes=[("Text files", "*.txt")]
+                                       
+                                       ) # فتح مربع حوار لاختيار الملف
         # تحديث مسار ملف cookies إذا تم اختيار ملف  
         if selectedfile:
             self.cookiefile_dir = selectedfile
-            self.cookiefile_label.configure(text=f"Cookies file: {self.cookiefile_dir}")
+            # schedule UI update on main thread
+            self.root.after(0, self.cookiefile_label.configure, {"text": f"Cookies file: {self.cookiefile_dir}"})
 
     # دالة لبدء عملية تحميل الفيديو أو قائمة التشغيل
     def start_download(self):
@@ -766,8 +775,9 @@ class YouTubeDownloaderApp:
 
                 if response == "Select File": # إذا اختار المستخدم تحديد ملف
                     # فتح نافذة اختيار ملف cookies
-                    selected_file = filedialog.askopenfilename(
+                    selected_file = askopenfilename(
                         title="Select your cookies.txt file",
+                        initial_dir=HOME,
                         filetypes=[("Text files", "*.txt"), ("All files", "*.*")]
                     )
                     if selected_file: # إذا تم اختيار ملف
