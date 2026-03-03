@@ -251,6 +251,24 @@ class YouTubeDownloaderApp:
         )
         self.aria2_checkbox.grid(row=0, column=5, padx=5, pady=5)
 
+        # اغلاق البرنامج بعد اكتمال التحميل 
+        self.close_after_download = ctk.BooleanVar(value=False)
+        self.close_after_checkbox = ctk.CTkCheckBox(
+            self.settings_frame, 
+            text=self.lang.get("close_after_download", "Close after download"), 
+            variable=self.close_after_download
+        )
+        self.close_after_checkbox.grid(row=0, column=6, padx=5, pady=5)
+
+        # اطفاء الحاسوب بعد اكتمال التحميل 
+        self.shutdown_after_download = ctk.BooleanVar(value=False)
+        self.shutdown_after_download_checkbox = ctk.CTkCheckBox(
+            self.settings_frame, 
+            text=self.lang.get("shutdown_after_download", "Shutdown after download"), 
+            variable=self.shutdown_after_download
+        )
+        self.shutdown_after_download_checkbox.grid(row=0, column=7, padx=5, pady=5)
+
         # ===== قسم اختيار مجلد الحفظ =====
         self.directory_frame = ctk.CTkFrame(self.main_frame)
         self.directory_frame.pack(fill="x", padx=20, pady=5)
@@ -656,6 +674,35 @@ class YouTubeDownloaderApp:
             self.current_download_thread = threading.Thread(target=self.prepare_and_download, args=(url,))
             self.current_download_thread.daemon = True  # الخيط ينتهي عند إنهاء البرنامج الرئيسي
             self.current_download_thread.start()
+            if self.current_download_thread.is_alive():
+                # كي لا تتجمد الواجهة أثناء الانتظار، نستخدم after للتحقق بشكل دوري من حالة الخيط
+                self.root.after(100, self.check_download_thread)
+
+    def check_download_thread(self):
+        if self.current_download_thread.is_alive():
+            # إذا كان الخيط لا يزال يعمل، نتحقق مرة أخرى بعد 100 ميلي ثانية
+            self.root.after(100, self.check_download_thread)
+        else:
+            # إذا انتهى الخيط، نعيد تفعيل زر التحميل وتعطيل زر الإيقاف
+            self.download_button.configure(state="normal")
+            self.stop_button.configure(state="disabled")
+            self.is_downloading = False
+            if self.shutdown_after_download.get():
+                self.root.after(1000, self.shutdown_computer)  # إغلاق الحاسوب بعد 1 ثانية
+            elif self.close_after_download.get():
+                self.root.after(1000, self.root.destroy)  # إغلاق التطبيق بعد 1 ثانية  
+
+    def shutdown_computer(self):
+        """
+        إغلاق الحاسوب بعد اكتمال التحميل
+        """
+        if sys.platform == "win32":
+            os.system("shutdown /s /t 1")  # أمر إغلاق الحاسوب في ويندوز
+        elif sys.platform == "darwin":
+            os.system("sudo shutdown -h now")  # أمر إغلاق الحاسوب في ماك (قد يتطلب صلاحيات)
+        else:
+            os.system("shutdown -h now")  # أمر إغلاق الحاسوب في لينكس (قد يتطلب صلاحيات)   
+             
 
     # دالة لإيقاف عملية التحميل الحالية
     def stop_current_download(self):
