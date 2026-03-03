@@ -603,7 +603,7 @@ class YouTubeDownloaderApp:
         if selectedfile:
             self.cookiefile_dir = selectedfile
             # schedule UI update on main thread
-            self.root.after(0, self.cookiefile_label.configure, {"text": f"Cookies file: {self.cookiefile_dir}"})
+            self.cookiefile_label.configure(text=f"Cookies file: {self.cookiefile_dir}")
 
     # دالة لبدء عملية تحميل الفيديو أو قائمة التشغيل
     def start_download(self):
@@ -759,8 +759,17 @@ class YouTubeDownloaderApp:
             error_message = str(e)
             self.status_label.configure(text=error_message) # تحديث حالة التحميل بالخطأ
 
+            # ERROR: '/home/xq/password.txt' does not look like a Netscape format cookies file
+            if "does not look like a Netscape format cookies file" in str(error_message):
+                CTkMessagebox(
+                    title=self.lang.get("error", "Error"),
+                    message=self.lang.get("invalid_cookies_file", "The selected file is not a valid cookies.txt file. Please select a correct file."),
+                    icon="cancel"
+                )
+                return
+
             # 👇 الكشف عن الفيديوهات الخاصة أو المحمية
-            if "Private video" in error_message or "Sign in" in error_message or "cookies" in error_message: # التحقق من وجود رسائل خاصة بالفيديو الخاص أو المحمي
+            elif "Private video" in error_message or "Sign in" in error_message or "cookies" in error_message: # التحقق من وجود رسائل خاصة بالفيديو الخاص أو المحمي
                 # طلب من المستخدم اختيار ملف cookies
                 response = CTkMessagebox(
                     title=self.lang.get("private_video", "Private Video Detected"),
@@ -773,16 +782,32 @@ class YouTubeDownloaderApp:
                     option_2="Select File"
                 ).get()
 
+                
+                    
                 if response == "Select File": # إذا اختار المستخدم تحديد ملف
-                    # فتح نافذة اختيار ملف cookies
-                    selected_file = askopenfilename(
-                        title="Select your cookies.txt file",
-                        initial_dir=HOME,
-                        filetypes=[("Text files", "*.txt"), ("All files", "*.*")]
-                    )
+                    # the dialog must run on the main thread; use Event to wait
+                    file_event = threading.Event()
+                    result = {"path": None}
+
+                    def choose_file():
+                        result["path"] = askopenfilename(
+                            autocomplete=True,
+                            style='Mini',
+                            title="Select your cookies.txt file",
+                            initial_dir=HOME,
+                            filetypes=[("Text files", "*.txt")]
+                        )
+                        file_event.set()
+
+                    self.root.after(0, choose_file)
+                    file_event.wait()
+                    selected_file = result.get("path")
+
                     if selected_file: # إذا تم اختيار ملف
                         self.cookiefile_dir = selected_file
+                        # update label on main thread as well
                         self.cookiefile_label.configure(text=f"Cookies file: {self.cookiefile_dir}")
+                        
                         # إعادة المحاولة بعد اختيار الملف
                         self.prepare_and_download(url)
                         return
