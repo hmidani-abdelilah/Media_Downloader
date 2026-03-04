@@ -3,7 +3,7 @@ from PIL import Image, ImageTk # لتضمين أيقونة للتطبيق مهم
 import tkinter as tk  # استيراد مكتبة tkinter لإنشاء قائمة السياق
 from customtkinter import filedialog  # لفتح مربع حوار اختيار الملفات
 from CTkFileDialog import askdirectory , askopenfilename # لفتح مربع حوار اختيار المجلدات
-from CTkFileDialog.Constants import HOME
+from CTkFileDialog.Constants import HOME # مسار مجلد المستخدم الافتراضي
 from CTkMessagebox import CTkMessagebox  # لعرض رسائل منبثقة للمستخدم 
 from CTkMenuBar import * #  استيراد مكتبة القوائم الافقية 
 from downloader import download_video, get_videos_info, get_gpu_encoders, stop_download # استيراد وظائف التحميل
@@ -13,8 +13,9 @@ import threading  # للتنفيذ المتزامن للمهام
 import json  # للتعامل مع ملفات اللغة
 import os  # للتعامل مع نظام الملفات
 import sys  # للوصول إلى معلومات النظام
-from utils import resource_path
-import subprocess
+from utils import resource_path # لمعالجة مسارات الملفات بشكل صحيح
+import subprocess # لتنفيذ أوامر النظام لتحديث الحزم
+
 
 #pyinstaller --onefile --windowed --add-data=languages;languages --add-data=asset/Icon.ico;asset --add-data=aria2;aria2 --add-data=ffmpeg;ffmpeg --icon=asset/Icon.ico app.py -n MediaDownloader.exe
 
@@ -398,7 +399,7 @@ class YouTubeDownloaderApp:
         self.lang = self.load_language(lang_code) # تحميل ملف اللغة الجديد
         
         # تحديث نصوص جميع عناصر الواجهة بالترجمة الجديدة
-        self.root.after(0,self.title_label.configure(text=self.lang.get("title", "Media Downloader"))) # تحديث عنوان التطبيق
+        self.title_label.configure(text=self.lang.get("title", "Media Downloader",)) # تحديث عنوان التطبيق
         self.url_entry.configure(placeholder_text=self.lang.get("enter_url", "Enter YouTube URL")) # تحديث نص الحقل
         self.clear_button.configure(text=self.lang.get("clear", "Clear")) # تحديث نص زر المسح
         self.menu.entryconfig(0, label=self.lang.get("cut", "Cut")) # تحديث نص أمر "قص" في القائمة
@@ -423,19 +424,19 @@ class YouTubeDownloaderApp:
 
 
     # ==============================
-    # UPDATE DEPENDENCIES
+    # قسم تحديث الحزم المطلوبة للتطبيق
     # ==============================
 
     def run_update(self):
-        # Show loading UI (this runs in main thread already)
+        # إظهار إطار التحميل وإعادة تعيين مؤشرات التقدم والحالة
         self.loading_frame.pack(pady=20, fill="x", padx=20)
         self.progress_bar.set(0)
         self.current_package_label.configure(text="")
 
-        # Run update in background thread
+        # بدء خيط جديد لتحديث الحزم لمنع تجميد واجهة المستخدم
         threading.Thread(target=self.update_task, daemon=True).start()
 
-
+    # دالة لتنفيذ مهمة تحديث الحزم المطلوبة للتطبيق
     def update_task(self):
         try:
             base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -444,27 +445,27 @@ class YouTubeDownloaderApp:
             if not os.path.exists(requirements_path):
                 raise Exception("requirements.txt not found.")
 
-            # Read packages
+            # قراءة الحزم المطلوبة من ملف requirements.txt
             with open(requirements_path, "r", encoding="utf-8") as f:
                 packages = [
                     line.strip()
                     for line in f.readlines()
                     if line.strip() and not line.startswith("#")
                 ]
-
+            # عدد الحزم المطلوبة للتحديث
             total_packages = len(packages)
             if total_packages == 0:
                 raise Exception("requirements.txt is empty.")
 
-            # Versions before update
+            # اصدارات الحزم المثبتة قبل التحديث
             before_update = self.get_installed_packages()
             upgraded = []
-
+            # تحديث كل حزمة على حدة مع تحديث واجهة المستخدم بشكل آمن
             for index, package in enumerate(packages, start=1):
 
                 pkg_name = package.split("==")[0].split(">=")[0].strip()
 
-                # SAFE UI UPDATE
+                # تحديث تسمية الحزمة الحالية في واجهة المستخدم
                 self.root.after(
                     0,
                     lambda name=pkg_name, i=index: 
@@ -472,41 +473,41 @@ class YouTubeDownloaderApp:
                         text=f"Updating: {name} ({i}/{total_packages})"
                     )
                 )
-
+                # تنفيذ أمر تحديث الحزمة باستخدام pip
                 result = subprocess.run(
                     [sys.executable, "-m", "pip", "install", package, "--upgrade"],
                     capture_output=True,
                     text=True
                 )
-
+                # التحقق من نجاح عملية التحديث
                 if result.returncode != 0:
                     raise Exception(result.stderr)
-
+                # تحديث شريط التقدم في واجهة المستخدم بشكل آمن
                 progress_value = index / total_packages
                 self.root.after(0, self.progress_bar.set, progress_value)
 
-            # Versions after update
+            # الحصول على إصدارات الحزم المثبتة بعد التحديث
             after_update = self.get_installed_packages()
-
+            # مقارنة الإصدارات قبل وبعد التحديث لتحديد الحزم التي تم تحديثها
             for pkg in packages:
                 pkg_name = pkg.split("==")[0].split(">=")[0].strip()
                 old_version = before_update.get(pkg_name)
                 new_version = after_update.get(pkg_name)
-
+                # إذا تم تحديث الحزمة (الإصدار القديم مختلف عن الإصدار الجديد)، إضافة معلومات التحديث إلى القائمة
                 if old_version and new_version and old_version != new_version:
                     upgraded.append(f"{pkg_name}: {old_version} → {new_version}")
-
+            # عرض نتائج التحديث في واجهة المستخدم بشكل آمن
             self.root.after(0, lambda: self.show_update_results(upgraded))
 
         except Exception as e:
             self.root.after(0, lambda: self.update_finished(f"error: {str(e)}"))
 
-
+    # دالة لعرض نتائج تحديث الحزم في واجهة المستخدم
     def show_update_results(self, upgraded):
         self.current_package_label.configure(text="")
         self.progress_bar.set(1)
         self.loading_frame.pack_forget()
-
+        # إذا كانت هناك حزم تم تحديثها، عرض قائمة الحزم المحدثة مع خيار إعادة تشغيل التطبيق لتطبيق التغييرات
         if upgraded:
             # يوجد تحديثات
             message = "Updated Packages:\n\n" + "\n".join(upgraded)
@@ -530,11 +531,11 @@ class YouTubeDownloaderApp:
                 icon="info"
             )
 
-
+    # دالة لإنهاء عملية التحديث وعرض رسالة في حالة حدوث خطأ أثناء التحديث
     def update_finished(self, status):
         self.progress_bar.stop()
         self.loading_frame.pack_forget()
-
+        # إذا كان هناك خطأ أثناء التحديث، عرض رسالة خطأ للمستخدم. وإلا، عرض رسالة نجاح مع خيار إعادة تشغيل التطبيق لتطبيق التغييرات
         if "error" in status:
             CTkMessagebox(
                 title="Error",
@@ -604,7 +605,7 @@ class YouTubeDownloaderApp:
         if selected:
             self.save_dir = selected
             # schedule UI update on main thread
-            self.root.after(0, self.directory_label.configure, {"text": f"Directory: {self.save_dir}"})
+            self.directory_label.configure(text=f"Directory: {self.save_dir}")
 
     # دالة لفتح مربع حوار لاختيار مجلف cookies
     def select_file(self):
@@ -674,10 +675,8 @@ class YouTubeDownloaderApp:
             self.current_download_thread = threading.Thread(target=self.prepare_and_download, args=(url,))
             self.current_download_thread.daemon = True  # الخيط ينتهي عند إنهاء البرنامج الرئيسي
             self.current_download_thread.start()
-            if self.current_download_thread.is_alive():
-                # كي لا تتجمد الواجهة أثناء الانتظار، نستخدم after للتحقق بشكل دوري من حالة الخيط
-                self.root.after(100, self.check_download_thread)
-
+            
+    # دالة للتحقق من حالة خيط التحميل وإعادة تفعيل الواجهة عند الانتهاء
     def check_download_thread(self):
         if self.current_download_thread.is_alive():
             # إذا كان الخيط لا يزال يعمل، نتحقق مرة أخرى بعد 100 ميلي ثانية
@@ -691,7 +690,7 @@ class YouTubeDownloaderApp:
                 self.root.after(1000, self.shutdown_computer)  # إغلاق الحاسوب بعد 1 ثانية
             elif self.close_after_download.get():
                 self.root.after(1000, self.root.destroy)  # إغلاق التطبيق بعد 1 ثانية  
-
+    # دالة لإغلاق الحاسوب بعد اكتمال التحميل
     def shutdown_computer(self):
         """
         إغلاق الحاسوب بعد اكتمال التحميل
@@ -796,6 +795,11 @@ class YouTubeDownloaderApp:
                     message=self.lang.get("all_downloaded", "All videos downloaded!"), 
                     icon="check"
                 )
+                # التحقق من خيار إغلاق التطبيق أو الحاسوب بعد التحميل
+                if self.current_download_thread.is_alive():
+                # كي لا تتجمد الواجهة أثناء الانتظار، نستخدم after للتحقق بشكل دوري من حالة الخيط
+                    self.root.after(100, self.check_download_thread)
+
         except Exception as e:
             # التعامل مع الأخطاء العامة
             #'''self.status_label.configure(text=str(e))
