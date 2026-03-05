@@ -1,12 +1,22 @@
 import customtkinter as ctk  # استيراد مكتبة واجهة المستخدم المخصصة
 from gui import YouTubeDownloaderApp  # استيراد فئة التطبيق الرئيسية من وحدة gui
 import os  # استيراد مكتبة التعامل مع نظام الملفات
+# -*- coding: utf-8 -*-
+import sys
+import io
+
+# Set UTF-8 encoding for stdout and stderr
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+if sys.stderr.encoding != 'utf-8':
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+# لضمان أن يتم التعامل مع النصوص العربية بشكل صحيح في واجهة المستخدم وفي ملفات اللغة، تأكد من أن جميع ملفات اللغة (مثل en.json, ar.json, fr.json) محفوظة بترميز UTF-8. هذا يضمن أن الأحرف العربية ستظهر بشكل صحيح في التطبيق دون مشاكل ترميز.
 
 def check_required_directories():
     """
     التأكد من وجود المجلدات المطلوبة للتطبيق وإنشائها إذا لم تكن موجودة
     
-    هذه الدالة تتحقق من وجود مجلد اللغات الذي يحتوي على ملفات الترجمة،
+    هذه الدالة تتحقق من وجود مجلد اللغات الذي يحتوي على ملفات الترجمة，
     وتقوم بإنشائه إذا لم يكن موجوداً لتجنب أخطاء عند تشغيل التطبيق
     """
     # التأكد من وجود مجلد اللغات (languages) الذي يحتوي على ملفات ترجمة واجهة المستخدم
