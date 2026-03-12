@@ -15,7 +15,13 @@ import os  # للتعامل مع نظام الملفات
 import sys  # للوصول إلى معلومات النظام
 from utils import resource_path # لمعالجة مسارات الملفات بشكل صحيح
 import subprocess # لتنفيذ أوامر النظام لتحديث الحزم
+# -*- coding: utf-8 -*-
+import io
 
+# Ensure UTF-8 encoding
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+# لضمان أن يتم التعامل مع النصوص العربية بشكل صحيح في واجهة المستخدم وفي ملفات اللغة، تأكد من أن جميع ملفات اللغة (مثل en.json, ar.json, fr.json) محفوظة بترميز UTF-8. هذا يضمن أن الأحرف العربية ستظهر بشكل صحيح في التطبيق دون مشاكل ترميز. 
 
 #pyinstaller --onefile --windowed --add-data=languages;languages --add-data=asset/Icon.ico;asset --add-data=aria2;aria2 --add-data=ffmpeg;ffmpeg --icon=asset/Icon.ico app.py -n MediaDownloader.exe
 
@@ -52,10 +58,12 @@ class YouTubeDownloaderApp:
         #icon_image = Image.open(os.path.join("asset", "Icon.ico")) # فتح صورة الأيقونة
         #icon_tk = ImageTk.PhotoImage(icon_image) # تحويل الصورة إلى تنسيق يمكن لـ Tkinter استخدامه
         # تعيين الأيقونة لنافذة التطبيق
-        #self.root.wm_iconphoto(True, icon_tk)
+        #self.root.wm_iconphoto(True, icon_tk) # تعيين الأيقونة لنافذة التطبيق (متوافق مع معظم أنظمة التشغيل)
         # windows os exe 
-        #icon_path = self.resource_path(os.path.join("asset", "Icon.ico"))
-        #self.root.iconbitmap(icon_path)
+        #icon_path = self.resource_path(os.path.join("asset", "Icon.ico")) # الحصول على المسار الصحيح للأيقونة
+        #self.root.iconbitmap(icon_path) # تعيين الأيقونة لنافذة التطبيق (خاص بنظام Windows)
+
+        
         
         # تهيئة متغيرات اللغة والحالة
         self.lang = self.load_language(lang_code) # تحميل ملف اللغة المناسب
@@ -67,6 +75,20 @@ class YouTubeDownloaderApp:
     
         # إنشاء عناصر واجهة المستخدم
         self.create_widgets()
+
+        # تحديت التيم تلقائيا 
+        self.sync_appearance()
+
+    # دالة تحديت الوضع تلقائي ان كانت system 
+    def sync_appearance(self):
+        #
+        current_app_mode = ctk.get_appearance_mode().lower()
+        if self.appearance_mode_menu.get().lower() != "system" and current_app_mode is not None:
+            pass
+        elif current_app_mode != self.appearance_mode_menu.get().lower():
+            ctk.set_appearance_mode("system")
+
+        self.root.after(1000, self.sync_appearance)
 
     # دالة لمعالجة مسارات الملفات بشكل صحيح
     def resource_path(self, relative_path):
@@ -142,7 +164,7 @@ class YouTubeDownloaderApp:
         
         self.appearance_mode_menu = ctk.CTkOptionMenu(
             self.top_frame, 
-            values=["Light", "Dark", "System"],
+            values=["System", "Light", "Dark"],
             command=self.change_appearance_mode_event
         )
         self.appearance_mode_menu.pack(side="left", padx=5) # تعبئة على اليسار مع حواف
@@ -400,7 +422,7 @@ class YouTubeDownloaderApp:
         
         # تحديث نصوص جميع عناصر الواجهة بالترجمة الجديدة
         self.title_label.configure(text=self.lang.get("title", "Media Downloader",)) # تحديث عنوان التطبيق
-        self.url_entry.configure(placeholder_text=self.lang.get("enter_url", "Enter YouTube URL")) # تحديث نص الحقل
+        self.url_entry.configure(placeholder_text=self.lang.get("enter_url", "Enter Media URL")) # تحديث نص الحقل
         self.clear_button.configure(text=self.lang.get("clear", "Clear")) # تحديث نص زر المسح
         self.menu.entryconfig(0, label=self.lang.get("cut", "Cut")) # تحديث نص أمر "قص" في القائمة
         self.menu.entryconfig(1, label=self.lang.get("paste", "Paste")) # تحديث نص أمر "لصق" في القائمة
