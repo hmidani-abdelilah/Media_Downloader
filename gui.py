@@ -543,7 +543,12 @@ class YouTubeDownloaderApp:
             )
 
             if msg.get() == "Restart Now":
+                
+                # إغلاق نافذة البرنامج الحالية وتدمير جميع الكائنات
                 self.root.destroy()
+                
+                # إعادة تشغيل العملية من جديد
+                os.execl(sys.executable, sys.executable, *sys.argv)
 
         else:
             # لا يوجد أي تحديث
