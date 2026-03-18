@@ -2,7 +2,7 @@ import customtkinter as ctk  # استيراد مكتبة واجهة المستخ
 from PIL import Image, ImageTk # لتضمين أيقونة للتطبيق مهما كان نوع نظام التشغيل
 import tkinter as tk  # استيراد مكتبة tkinter لإنشاء قائمة السياق
 from customtkinter import filedialog  # لفتح مربع حوار اختيار الملفات
-from CTkFileDialog import askdirectory , askopenfilename # لفتح مربع حوار اختيار المجلدات
+import CTkFileDialog  # لفتح مربع حوار اختيار المجلدات
 from CTkFileDialog.Constants import HOME # مسار مجلد المستخدم الافتراضي
 from CTkMessagebox import CTkMessagebox  # لعرض رسائل منبثقة للمستخدم 
 from CTkMenuBar import * #  استيراد مكتبة القوائم الافقية 
@@ -15,6 +15,7 @@ import os  # للتعامل مع نظام الملفات
 import sys  # للوصول إلى معلومات النظام
 from utils import resource_path # لمعالجة مسارات الملفات بشكل صحيح
 import subprocess # لتنفيذ أوامر النظام لتحديث الحزم
+import platform # للحصول على معلومات حول نظام التشغيل
 # -*- coding: utf-8 -*-
 import io
 
@@ -197,7 +198,8 @@ class YouTubeDownloaderApp:
         self.url_frame.pack(fill="x", padx=20, pady=5)
         # حقل إدخال رابط الفيديو
         self.url_entry = ctk.CTkEntry(
-            self.url_frame, 
+            self.url_frame,
+            justify='center', 
             placeholder_text=self.lang.get("enter_url", "Enter Media URL"), 
             width=400
         )
@@ -543,12 +545,12 @@ class YouTubeDownloaderApp:
             )
 
             if msg.get() == "Restart Now":
-                
-                # إغلاق نافذة البرنامج الحالية وتدمير جميع الكائنات
                 self.root.destroy()
-                
-                # إعادة تشغيل العملية من جديد
-                os.execl(sys.executable, sys.executable, *sys.argv)
+                os.execl(
+                    sys.executable,
+                    sys.executable,
+                    *sys.argv
+                )
 
         else:
             # لا يوجد أي تحديث
@@ -627,7 +629,7 @@ class YouTubeDownloaderApp:
         """
         فتح مربع حوار لاختيار مجلد حفظ الملفات
         """
-        selected = askdirectory(autocomplete=True,initial_dir=HOME,style='Mini') # فتح مربع حوار لاختيار المجلد
+        selected = CTkFileDialog.askdirectory(autocomplete=True,initial_dir=HOME,style='Mini') # فتح مربع حوار لاختيار المجلد
         # تحديث مسار الحفظ إذا تم اختيار مجلد
         if selected:
             self.save_dir = selected
@@ -639,10 +641,11 @@ class YouTubeDownloaderApp:
         """
         تح مربع حوار لاختيار مجلف cookies  
         """
-        selectedfile = askopenfilename(autocomplete=True ,style='Mini',
+        selectedfile = CTkFileDialog.askopenfilename(style='Mini',
                                        title="Select your cookies.txt file",
-                                        initial_dir=HOME,
-                                        filetypes=[("Text files", "*.txt")]
+                                       autocomplete=True ,
+                                       initial_dir=HOME,
+                                       filetypes=[("Text files", "*.txt")]
                                        
                                        ) # فتح مربع حوار لاختيار الملف
         # تحديث مسار ملف cookies إذا تم اختيار ملف  
@@ -870,15 +873,16 @@ class YouTubeDownloaderApp:
                     result = {"path": None}
 
                     def choose_file():
-                        result["path"] = askopenfilename(
-                            autocomplete=True,
-                            style='Mini',
-                            title="Select your cookies.txt file",
-                            initial_dir=HOME,
-                            filetypes=[("Text files", "*.txt")]
-                        )
+                        
+                        result["path"] = CTkFileDialog.askopenfilename(
+                                autocomplete=True,
+                                style='Mini',
+                                title="Select your cookies.txt file",
+                                initial_dir=HOME,
+                                filetypes=[("Text files", "*.txt")]
+                            )
                         file_event.set()
-
+                        
                     self.root.after(0, choose_file)
                     file_event.wait()
                     selected_file = result.get("path")
