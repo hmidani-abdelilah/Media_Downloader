@@ -21,5 +21,18 @@
   "fetching_info": "Fetching videos info...",
   "ask_to_stop_download": "Are you sure to stop the download?",
   "no_videos_found": "No videos found.",
-  "all_downloaded": "All videos downloaded!"
+  "all_downloaded": "All videos downloaded!",
+  "close_after_download": "Close after download",
+  "shutdown_after_download": "Shutdown after download",
+  "copy_codec": "Copy Codec\n(No compression)",
+  "gpu_encoding": "GPU Encoding GPU/CPU :",
+  "crf": "CRF (Quality 0-51):",
+  "preset": "Preset (speed):",
+  "directory": "Directory:",
+  "file_path": "File PATH:",
+  "format": "Format:",
+  "quality": "Quality:",
+  "appearance_mode": "Theme:",
+  "language": "Language:",
+  "options": "Options"
 }

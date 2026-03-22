@@ -21,5 +21,18 @@
   "fetching_info": "الفيديوهات معلومات جلب جاري...",
   "ask_to_stop_download": "؟ التنزيل إيقاف من متأكد أنت هل",
   "no_videos_found": "فيديوهات على العثور يتم لم.",
-  "all_downloaded": "الفيديوهات جميع تحميل تم!"
+  "all_downloaded": "الفيديوهات جميع تحميل تم!",
+  "close_after_download": "تحميل بعد إغلاق",
+  "shutdown_after_download": "تحميل بعد إيقاف التشغيل",
+  "copy_codec": "نسخ الترميز\n(بدون ضغط)",
+  "gpu_encoding": "ترميز GPU/CPU :",
+  "crf": "CRF (الجودة 0-51):",
+  "preset": "الإعداد المسبق (السرعة):",
+  "directory": "المجلد:",
+  "file_path": "مسار الملف:",
+  "format": "الصيغة:",
+  "quality": "الجودة:",
+  "appearance_mode": "المظهر:",
+  "language": "اللغة:",
+  "options": "خيارات"
 }

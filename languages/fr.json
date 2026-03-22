@@ -21,5 +21,18 @@
   "fetching_info": "Récupération des informations des vidéos...",
   "ask_to_stop_download": "Êtes-vous sûr de vouloir arrêter le téléchargement ?",
   "no_videos_found": "Aucune vidéo trouvée.",
-  "all_downloaded": "Toutes les vidéos ont été téléchargées !"
+  "all_downloaded": "Toutes les vidéos ont été téléchargées !",
+  "close_after_download": "Fermer après le téléchargement",
+  "shutdown_after_download": "Arrêter après le téléchargement",
+  "copy_codec": "Copier le Codec\n(Sans compression)",
+  "gpu_encoding": "Encodage GPU/CPU :",
+  "crf": "CRF (Qualité 0-51) :",
+  "preset": "Préréglage (vitesse) :",
+  "directory": "Dossier :",
+  "file_path": "Chemin du fichier :",
+  "format": "Format :",
+  "quality": "Qualité :",
+  "appearance_mode": "Thème :",
+  "language": "Langue :",
+  "options": "Options"
 }
