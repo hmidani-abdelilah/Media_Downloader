@@ -1,3 +1,5 @@
+from ssl import Options
+
 import customtkinter as ctk  # استيراد مكتبة واجهة المستخدم المخصصة
 from PIL import Image, ImageTk # لتضمين أيقونة للتطبيق مهما كان نوع نظام التشغيل
 import tkinter as tk  # استيراد مكتبة tkinter لإنشاء قائمة السياق
@@ -45,7 +47,7 @@ class YouTubeDownloaderApp:
         # --- UI ELEMENTS ---
         self.menu_bar = CTkMenuBar(master=self.root)
         # Add top-level buttons
-        self.file_button = self.menu_bar.add_cascade("Options")
+        self.file_button = self.menu_bar.add_cascade("Options") # إضافة زر "خيارات" إلى شريط القائمة
         #self.edit_button = self.menu_bar.add_cascade("Edit")
         
         # Create dropdown content
@@ -158,7 +160,7 @@ class YouTubeDownloaderApp:
         self.main_frame.pack(fill="both", expand=True, padx=10, pady=5) # تعبئة العرض والارتفاع بالكامل مع حواف
         
         # ===== قسم إعدادات المظهر في الأعلى =====
-        self.appearance_mode_label = ctk.CTkLabel(self.top_frame, text="Theme:") # تسمية إعدادات المظهر
+        self.appearance_mode_label = ctk.CTkLabel(self.top_frame, text=self.lang.get("appearance_mode", "Theme:")) # تسمية إعدادات المظهر
         self.appearance_mode_label.pack(side="left", padx=5) # تعبئة على اليسار مع حواف
         
          # قائمة منبثقة لاختيار وضع المظهر (فاتح/داكن/نظام)     
@@ -182,7 +184,7 @@ class YouTubeDownloaderApp:
         
         # تسمية إعدادات اللغة
         
-        self.language_label = ctk.CTkLabel(self.top_frame, text="Language:") # تسمية إعدادات اللغة
+        self.language_label = ctk.CTkLabel(self.top_frame, text=self.lang.get("language", "Language:")) # تسمية إعدادات اللغة
         self.language_label.pack(side="right", padx=5) # تعبئة على اليمين مع حواف
         
         # ===== عنوان التطبيق =====
@@ -326,7 +328,7 @@ class YouTubeDownloaderApp:
         self.gpu_fram = ctk.CTkFrame(self.main_frame)
         self.gpu_fram.pack(fill="x",padx=20, pady=5)
         # 
-        self.gpu_label = ctk.CTkLabel(self.gpu_fram, text="Video Encoder (GPU/CPU):")
+        self.gpu_label = ctk.CTkLabel(self.gpu_fram, text=self.lang.get("gpu_encoding", "GPU Encoding GPU/CPU :")) # تسمية إعدادات ترميز GPU
         self.gpu_label.grid(row=1, column=0, padx=10, pady=10, sticky="NSEW")
         # متغير لتخزين مشفر الفيديو المختار
         self.encoder_var = ctk.StringVar()
@@ -336,7 +338,7 @@ class YouTubeDownloaderApp:
         self.encoder_var.set("libx264")  # افتراضي
 
         # خيارات الضغط
-        self.crf_label = ctk.CTkLabel(self.gpu_fram, text="CRF (Quality 0-51):") # تسمية إعدادات CRF
+        self.crf_label = ctk.CTkLabel(self.gpu_fram, text=self.lang.get("crf", "CRF (Quality 0-51):")) # تسمية إعدادات CRF
         self.crf_label.grid(row=1, column=2, padx=10, pady=10, sticky="NSEW") # وضع في الشبكة
  
         # حقل إدخال قيمة CRF   
@@ -346,7 +348,7 @@ class YouTubeDownloaderApp:
         self.crf_entry.grid(row=1, column=3, padx=10, pady=10, sticky="NSEW")
        
         # قائمة منبثقة لاختيار الإعداد المسبق (السرعة)
-        self.preset_label = ctk.CTkLabel(self.gpu_fram, text="Preset (speed):")
+        self.preset_label = ctk.CTkLabel(self.gpu_fram, text=self.lang.get("preset", "Preset (speed):"))
         self.preset_label.grid(row=1, column=4, padx=10, pady=10, sticky="NSEW")
         self.preset_var = ctk.StringVar(value="medium") # متغير لتخزين الإعداد المسبق المختار
         
@@ -357,8 +359,8 @@ class YouTubeDownloaderApp:
        
         # مربع اختيار لنسخ الترميز بدون ضغط
         self.copy_codec_var = ctk.BooleanVar(value=True)
-        self.copy_codec_check = ctk.CTkCheckBox(self.gpu_fram, text="Copy Codec\n(No compression)", variable=self.copy_codec_var)
-        self.copy_codec_check.grid(row=0, column=2, padx=10, pady=10, sticky="NSEW")
+        self.copy_codec_check = ctk.CTkCheckBox(self.gpu_fram, text=self.lang.get("copy_codec", "Copy Codec\n(No compression)"), variable=self.copy_codec_var)
+        self.copy_codec_check.grid(row=0, column=3, padx=10, pady=10, sticky="NSEW")
 
         # Configure frame's internal grid to handle expansion
         #self.gpu_fram.grid_columnconfigure(0, weight=1)
@@ -435,14 +437,30 @@ class YouTubeDownloaderApp:
         self.select_button.configure(text=self.lang.get("select_directory", "Select Directory")) # تحديث نص زر اختيار المجلد
         self.select_cookies_button.configure(text=self.lang.get("select_file", "Select Cookies File")) # تحديث نص زر اختيار ملف COOKIES
         self.stop_button.configure(text=self.lang.get("stop_download", "Stop Download")) # تحديث نص زر إيقاف التحميل
+        self.close_after_checkbox.configure(text=self.lang.get("close_after_download", "Close after download")) # تحديث نص مربع اختيار إغلاق بعد التحميل
+        self.shutdown_after_download_checkbox.configure(text=self.lang.get("shutdown_after_download", "Shutdown after download")) # تحديث نص مربع اختيار إيقاف التشغيل بعد التحميل
+        self.copy_codec_check.configure(text=self.lang.get("copy_codec", "Copy Codec\n(No compression)")) # تحديث نص مربع اختيار نسخ الترميز بدون ضغط   
+        self.gpu_label.configure(text=self.lang.get("gpu_encoding", "GPU Encoding GPU/CPU :")) # تحديث نص تسمية إعدادات ترميز GPU
+        self.crf_label.configure(text=self.lang.get("crf", "CRF (Quality 0-51):")) # تحديث نص تسمية إعدادات CRF
+        self.preset_label.configure(text=self.lang.get("preset", "Preset (speed):")) # تحديث نص تسمية إعدادات الإعداد المسبق (السرعة)
+        self.filetype_label.configure(text=self.lang.get("format", "Format:")) # تحديث نص تسمية إعدادات نوع الملف
+        self.quality_label.configure(text=self.lang.get("quality", "Quality:")) # تحديث نص تسمية إعدادات الجودة
+        self.directory_label.configure(text=self.lang.get("directory", "Directory:") + f" {self.save_dir}") # تحديث نص تسمية إعدادات المجلد
+        self.cookiefile_label.configure(text=self.lang.get("file_path", "File PATH:") + f" {self.cookiefile_dir}") # تحديث نص تسمية إعدادات ملف COOKIES
+        self.appearance_mode_label.configure(text=self.lang.get("appearance_mode", "Theme:")) # تحديث نص تسمية إعدادات المظهر
+        self.language_label.configure(text=self.lang.get("language", "Language:")) # تحديث نص تسمية إعدادات اللغة
+        #self.file_button.configure(str(self.lang.get("options", "Options"))) # تحديث نص زر "خيارات" في شريط القائمة
 
+
+    # دالة للحصول على الحزم المثبتة وإصداراتها في النظام
     def get_installed_packages(self):
+        # تنفيذ أمر pip list للحصول على قائمة الحزم المثبتة بصيغة JSON
         result = subprocess.run(
             [sys.executable, "-m", "pip", "list", "--format=json"],
             capture_output=True,
             text=True
         )
-
+        # تحليل النتيجة وتحويلها إلى قاموس يحتوي على أسماء الحزم وإصداراتها
         packages = json.loads(result.stdout)
         return {pkg["name"]: pkg["version"] for pkg in packages}
 
@@ -462,15 +480,21 @@ class YouTubeDownloaderApp:
 
     # دالة لتنفيذ مهمة تحديث الحزم المطلوبة للتطبيق
     def update_task(self):
+        # الحزم التي سيتم تحديثها
         try:
+            # الحصول على المسار الصحيح لملف requirements.txt
             base_dir = os.path.dirname(os.path.abspath(__file__))
+            # في حالة التشغيل من ملف تنفيذي، يتم تعديل المسار ليتناسب مع بنية الملفات في PyInstaller
             requirements_path = os.path.join(base_dir, "requirements.txt")
 
+            # التحقق من وجود ملف requirements.txt في المسار المحدد
             if not os.path.exists(requirements_path):
+                # إذا لم يتم العثور على الملف، رفع استثناء مع رسالة توضح المشكلة
                 raise Exception("requirements.txt not found.")
 
             # قراءة الحزم المطلوبة من ملف requirements.txt
             with open(requirements_path, "r", encoding="utf-8") as f:
+                # تصفية الحزم من الملف، مع تجاهل الأسطر الفارغة والأسطر التي تبدأ بتعليق (#)
                 packages = [
                     line.strip()
                     for line in f.readlines()
@@ -478,6 +502,7 @@ class YouTubeDownloaderApp:
                 ]
             # عدد الحزم المطلوبة للتحديث
             total_packages = len(packages)
+            # إذا كان ملف requirements.txt فارغًا (لا يحتوي على أي حزم)، رفع استثناء مع رسالة توضح المشكلة
             if total_packages == 0:
                 raise Exception("requirements.txt is empty.")
 
@@ -486,7 +511,7 @@ class YouTubeDownloaderApp:
             upgraded = []
             # تحديث كل حزمة على حدة مع تحديث واجهة المستخدم بشكل آمن
             for index, package in enumerate(packages, start=1):
-
+                # استخراج اسم الحزمة من السطر (مع تجاهل أي قيود للإصدار مثل == أو >=)
                 pkg_name = package.split("==")[0].split(">=")[0].strip()
 
                 # تحديث تسمية الحزمة الحالية في واجهة المستخدم
@@ -514,22 +539,29 @@ class YouTubeDownloaderApp:
             after_update = self.get_installed_packages()
             # مقارنة الإصدارات قبل وبعد التحديث لتحديد الحزم التي تم تحديثها
             for pkg in packages:
+                # استخراج اسم الحزمة من السطر (مع تجاهل أي قيود للإصدار مثل == أو >=)
                 pkg_name = pkg.split("==")[0].split(">=")[0].strip()
+                # الحصول على الإصدار القديم والجديد للحزمة من القواميس قبل وبعد التحديث
                 old_version = before_update.get(pkg_name)
                 new_version = after_update.get(pkg_name)
                 # إذا تم تحديث الحزمة (الإصدار القديم مختلف عن الإصدار الجديد)، إضافة معلومات التحديث إلى القائمة
                 if old_version and new_version and old_version != new_version:
+                    # إضافة الحزمة المحدثة إلى قائمة الحزم المحدثة مع عرض الإصدار القديم والجديد
                     upgraded.append(f"{pkg_name}: {old_version} → {new_version}")
             # عرض نتائج التحديث في واجهة المستخدم بشكل آمن
             self.root.after(0, lambda: self.show_update_results(upgraded))
-
+        # إذا حدث أي خطأ أثناء عملية التحديث، عرض رسالة خطأ في واجهة المستخدم بشكل آمن
         except Exception as e:
+            # عرض رسالة خطأ في واجهة المستخدم مع تفاصيل الخطأ الذي حدث أثناء التحديث
             self.root.after(0, lambda: self.update_finished(f"error: {str(e)}"))
 
     # دالة لعرض نتائج تحديث الحزم في واجهة المستخدم
     def show_update_results(self, upgraded):
+        # إعادة تعيين مؤشرات التقدم والحالة في واجهة المستخدم
         self.current_package_label.configure(text="")
+        # تعيين شريط التقدم إلى 100% لإظهار اكتمال العملية
         self.progress_bar.set(1)
+        # إخفاء إطار التحميل بعد الانتهاء من تحديث الحزم
         self.loading_frame.pack_forget()
         # إذا كانت هناك حزم تم تحديثها، عرض قائمة الحزم المحدثة مع خيار إعادة تشغيل التطبيق لتطبيق التغييرات
         if upgraded:
@@ -543,9 +575,11 @@ class YouTubeDownloaderApp:
                 option_1="Restart Now",
                 option_2="Later"
             )
-
+            # إذا اختار المستخدم إعادة التشغيل الآن، يتم إعادة تشغيل التطبيق لتطبيق التغييرات. إذا اختار لاحقًا، لا يتم فعل أي شيء والسماح له بإعادة التشغيل يدويًا في وقت لاحق.
             if msg.get() == "Restart Now":
+                # إعادة تشغيل التطبيق لتطبيق التغييرات
                 self.root.destroy()
+                # إعادة تشغيل التطبيق باستخدام نفس الأمر الذي تم تشغيله به
                 os.execl(
                     sys.executable,
                     sys.executable,
@@ -566,19 +600,21 @@ class YouTubeDownloaderApp:
         self.loading_frame.pack_forget()
         # إذا كان هناك خطأ أثناء التحديث، عرض رسالة خطأ للمستخدم. وإلا، عرض رسالة نجاح مع خيار إعادة تشغيل التطبيق لتطبيق التغييرات
         if "error" in status:
+            # عرض رسالة خطأ في واجهة المستخدم مع تفاصيل الخطأ الذي حدث أثناء التحديث
             CTkMessagebox(
                 title="Error",
                 message=f"Update failed: {status}",
                 icon="cancel"
             )
         else:
+            # عرض رسالة نجاح في واجهة المستخدم مع خيار إعادة تشغيل التطبيق لتطبيق التغييرات
             msg = CTkMessagebox(
                 title="Finished",
                 message="Update complete! You must reload the application for changes to take effect.",
                 icon="check",
                 option_1="Close App"
             )
-
+            # إذا اختار المستخدم إغلاق التطبيق، يتم إغلاق التطبيق. وإلا، لا يتم فعل أي شيء والسماح له بإعادة التشغيل يدويًا في وقت لاحق.
             if msg.get() == "Close App":
                 self.root.destroy()
 
@@ -634,7 +670,7 @@ class YouTubeDownloaderApp:
         if selected:
             self.save_dir = selected
             # schedule UI update on main thread
-            self.directory_label.configure(text=f"Directory: {self.save_dir}")
+            self.directory_label.configure(text=self.lang.get("directory", "Directory:") + f" {self.save_dir}")
 
     # دالة لفتح مربع حوار لاختيار مجلف cookies
     def select_file(self):
@@ -652,7 +688,7 @@ class YouTubeDownloaderApp:
         if selectedfile:
             self.cookiefile_dir = selectedfile
             # schedule UI update on main thread
-            self.cookiefile_label.configure(text=f"Cookies file: {self.cookiefile_dir}")
+            self.cookiefile_label.configure(text=self.lang.get("file_path", "File PATH:") + f" {self.cookiefile_dir}")
 
     # دالة لبدء عملية تحميل الفيديو أو قائمة التشغيل
     def start_download(self):
@@ -890,7 +926,7 @@ class YouTubeDownloaderApp:
                     if selected_file: # إذا تم اختيار ملف
                         self.cookiefile_dir = selected_file
                         # update label on main thread as well
-                        self.cookiefile_label.configure(text=f"Cookies file: {self.cookiefile_dir}")
+                        self.cookiefile_label.configure(text=self.lang.get("file_path", "File PATH:") + f" {self.cookiefile_dir}")
                         
                         # إعادة المحاولة بعد اختيار الملف
                         self.prepare_and_download(url)
