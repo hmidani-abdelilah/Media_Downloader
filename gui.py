@@ -49,6 +49,8 @@ class YouTubeDownloaderApp:
         # Add top-level buttons
         self.file_button = self.menu_bar.add_cascade("Options") # إضافة زر "خيارات" إلى شريط القائمة
         #self.edit_button = self.menu_bar.add_cascade("Edit")
+        self.menu_bar.add_cascade("Help", command=self.show_help) # إضافة زر "مساعدة" إلى شريط القائمة وربطه بدالة show_help
+        
         
         # Create dropdown content
         self.dropdown = CustomDropdownMenu(widget=self.file_button)
@@ -82,6 +84,12 @@ class YouTubeDownloaderApp:
         # تحديت التيم تلقائيا 
         self.sync_appearance()
 
+    def show_help(self):
+        """
+        عرض رسالة مساعدة للمستخدم
+        """
+        help_message = self.lang.get("help_message", "To use this application, enter the media URL, select your desired options, and click the Download button. For more information, visit our GitHub page.\nhttps://github.com/hmidani-abdelilah/Media_Downloader")
+        CTkMessagebox(title=self.lang.get("help", "Help"), message=help_message, icon="info") # عرض رسالة منبثقة للمساعدة
     # دالة تحديت الوضع تلقائي ان كانت system 
     def sync_appearance(self):
         #
