@@ -17,6 +17,9 @@ import os  # للتعامل مع نظام الملفات
 import sys  # للوصول إلى معلومات النظام
 from utils import resource_path # لمعالجة مسارات الملفات بشكل صحيح
 import subprocess # لتنفيذ أوامر النظام لتحديث الحزم
+import ctypes # دوال من نظام التشغيل (Windows API)
+from winotify import Notification # Notifications حقيقية ديال Windows pip install winotify
+# from pystray import Icon, Menu, MenuItem # System Tray
 import platform # للحصول على معلومات حول نظام التشغيل
 # -*- coding: utf-8 -*-
 import io
@@ -27,7 +30,7 @@ if sys.stdout.encoding != 'utf-8':
 # لضمان أن يتم التعامل مع النصوص العربية بشكل صحيح في واجهة المستخدم وفي ملفات اللغة، تأكد من أن جميع ملفات اللغة (مثل en.json, ar.json, fr.json) محفوظة بترميز UTF-8. هذا يضمن أن الأحرف العربية ستظهر بشكل صحيح في التطبيق دون مشاكل ترميز. 
 
 #pyinstaller --onefile --windowed --add-data=languages;languages --add-data=asset/Icon.ico;asset --add-data=aria2;aria2 --add-data=ffmpeg;ffmpeg --icon=asset/Icon.ico app.py -n MediaDownloader.exe
-
+# pyinstaller --onedir --windowed --add-data "languages;languages" --add-data "asset/Icon.ico;asset" --add-data "aria2;aria2" --add-data "ffmpeg;ffmpeg" --icon "asset/Icon.ico" -n MediaDownloader app.py
 # الفئة الرئيسية لتطبيق تحميل فيديوهات يوتيوب مع واجهة مستخدم رسومية
 class YouTubeDownloaderApp:
     """
@@ -59,14 +62,18 @@ class YouTubeDownloaderApp:
         self.dropdown.add_option(option="Exit", command=self.root.destroy)
         
         
-        # تحميل أيقونة التطبيق من المسار الصحيح
-        #icon_image = Image.open(os.path.join("asset", "Icon.ico")) # فتح صورة الأيقونة
-        #icon_tk = ImageTk.PhotoImage(icon_image) # تحويل الصورة إلى تنسيق يمكن لـ Tkinter استخدامه
-        # تعيين الأيقونة لنافذة التطبيق
-        #self.root.wm_iconphoto(True, icon_tk) # تعيين الأيقونة لنافذة التطبيق (متوافق مع معظم أنظمة التشغيل)
-        # windows os exe 
-        #icon_path = self.resource_path(os.path.join("asset", "Icon.ico")) # الحصول على المسار الصحيح للأيقونة
-        #self.root.iconbitmap(icon_path) # تعيين الأيقونة لنافذة التطبيق (خاص بنظام Windows)
+        if platform.system() == "Windows" :
+            # وضع الايقونة في شريط المهام windows 
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("media.downloader.app")
+            # windows os exe 
+            icon_path = self.resource_path(os.path.join("asset", "Icon.ico")) # الحصول على المسار الصحيح للأيقونة
+            self.root.iconbitmap(icon_path) # تعيين الأيقونة لنافذة التطبيق (خاص بنظام Windows)
+        else:
+            # تحميل أيقونة التطبيق من المسار الصحيح
+            icon_image = Image.open(os.path.join("asset", "Icon.ico")) # فتح صورة الأيقونة
+            icon_tk = ImageTk.PhotoImage(icon_image) # تحويل الصورة إلى تنسيق يمكن لـ Tkinter استخدامه
+            # تعيين الأيقونة لنافذة التطبيق
+            self.root.wm_iconphoto(True, icon_tk) # تعيين الأيقونة لنافذة التطبيق (متوافق مع معظم أنظمة التشغيل)
 
         
         
@@ -83,6 +90,36 @@ class YouTubeDownloaderApp:
 
         # تحديت التيم تلقائيا 
         self.sync_appearance()
+
+    # دالة ارسال اشعار بانهاء التحميل في windows
+    def notification(self):
+        system = platform.system()
+        if system == "Windows":
+
+            def show():
+                icon_path = os.path.abspath("asset/Icon.ico")
+                toast = Notification(
+                    app_id="Media Downloader",
+                    title="Download Complete",
+                    msg="Your video is ready!",
+                    icon=icon_path
+                )
+                toast.show()
+            threading.Thread(target=show).start()
+
+        elif system == "Linux":
+            import subprocess
+            import time
+            for i in range(0, 101, 10):
+                subprocess.run([
+                    "notify-send",
+                    "Download Complete",
+                    "Your video is ready!",
+                    "-i", os.path.abspath("asset/Icon.png"),
+                    "-h", f"int:value:{i}",
+                    "-r", "9999"  # replace نفس notification
+                ])
+                time.sleep(0.5)
 
     def show_help(self):
         """
@@ -750,6 +787,7 @@ class YouTubeDownloaderApp:
             self.current_download_thread.daemon = True  # الخيط ينتهي عند إنهاء البرنامج الرئيسي
             self.current_download_thread.start()
             
+            
     # دالة للتحقق من حالة خيط التحميل وإعادة تفعيل الواجهة عند الانتهاء
     def check_download_thread(self):
         if self.current_download_thread.is_alive():
@@ -869,6 +907,11 @@ class YouTubeDownloaderApp:
                     message=self.lang.get("all_downloaded", "All videos downloaded!"), 
                     icon="check"
                 )
+                if platform.system() == "Windows":
+                    # ارسال الاشعار باكتمل التحميل ل windows 
+                    self.notification()
+                else:
+                    pass
                 # التحقق من خيار إغلاق التطبيق أو الحاسوب بعد التحميل
                 if self.current_download_thread.is_alive():
                 # كي لا تتجمد الواجهة أثناء الانتظار، نستخدم after للتحقق بشكل دوري من حالة الخيط

@@ -8,7 +8,7 @@ def check_ffmpeg_installed():
     # تأكد أن الدالة ترجع المسار الصحيح سواء كنت تشغل السكريبت أو بعد تحويله لـ EXE
     # ffmpeg_path = resource_path("ffmpeg/bin/ffmpeg.exe")
     ffmpeg_path = os.path.join("ffmpeg", "bin", "ffmpeg.exe") # مثال للمسار
-    print(ffmpeg_path)
+
     if current_platform == "Windows":
         # الحالة 1: البحث في المجلد المحلي أولاً
         if os.path.exists(ffmpeg_path):
