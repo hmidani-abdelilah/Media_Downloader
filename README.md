@@ -21,6 +21,11 @@ A graphical application for downloading videos and audio from YouTube and other 
 - Cookies file support for private/protected videos
 - Export cookies from browser use [Get cookies LOCALLY](https://chromewebstore.google.com/detail/cclelndahbckbenkjhflpdbgdldlbecc?utm_source=item-share-cb)
 - Context menu for URL input (cut, paste, clear)
+- Notification on download completion
+- Automatic update checker for dependencies
+- Option to shutdown computer after download
+- Ability to stop ongoing downloads
+- Menu bar with help and options
 - Cross-platform (Windows/Linux/macOS)
 
 ### 🧰 Requirements
@@ -42,9 +47,13 @@ python app.py
 ```
 
 To build an executable (optional):
-
+**For Windows:**
 ```bash
 pyinstaller --onefile --windowed --add-data=languages;languages --add-data=asset/Icon.ico;asset --add-data=aria2;aria2 --add-data=ffmpeg;ffmpeg --icon=asset/Icon.ico app.py -n MediaDownloader.exe
+```
+**For Linux/macOS:**
+```bash
+pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset/Icon.png:asset --add-data=bin/aria2c:aria2 --add-data=bin/ffmpeg:ffmpeg --icon=asset/Icon.png app.py -n MediaDownloader
 ```
 
 ### 📁 Project Structure
@@ -52,17 +61,20 @@ pyinstaller --onefile --windowed --add-data=languages;languages --add-data=asset
 ```
 ├── app.py                  # Main entry point
 ├── downloader.py           # Core download logic using yt-dlp & Aria2c
-├── gui.py                  # GUI logic
+├── gui.py                  # GUI logic and interface
+├── notification.py         # Notification system for download completion
 ├── ffmpeg_check.py         # FFmpeg presence checker
 ├── aria2_check.py          # Aria2c presence checker
 ├── utils.py                # Resource path utility
+├── Media_Downloader.desktop # Desktop file for Linux integration
 ├── requirements.txt        # Python dependencies
 ├── languages/              # Language files (en/ar/fr)
 │   ├── en.json
 │   ├── ar.json
 │   └── fr.json
 ├── asset/                  # Icons and visuals
-│   └── Icon.ico
+│   ├── Icon.ico
+│   └── Icon.png
 ├── ffmpeg/                 # FFmpeg binaries (Windows)
 │   └── bin/
 │       └── ffmpeg.exe
@@ -92,6 +104,11 @@ pyinstaller --onefile --windowed --add-data=languages;languages --add-data=asset
 - دعم ملفات الكوكيز للفيديوهات الخاصة أو المحمية
 - لإستخراج ملف الكوكيز من المتصفح استخدم [Get cookies LOCALLY](https://chromewebstore.google.com/detail/cclelndahbckbenkjhflpdbgdldlbecc?utm_source=item-share-cb)
 - قائمة سياق لحقل الرابط (قص، لصق، مسح)
+- إشعارات عند اكتمال التحميل
+- فاحص تحديثات تلقائي للاعتماديات
+- خيار إغلاق الحاسوب بعد التحميل
+- إمكانية إيقاف التحميلات الجارية
+- شريط قوائم مع المساعدة والخيارات
 - يعمل على Windows وLinux وmacOS
 
 ### 🧰 المتطلبات
@@ -114,8 +131,14 @@ python app.py
 
 لتحويل البرنامج إلى ملف تنفيذي:
 
+**لويندوز:**
 ```bash
 pyinstaller --onefile --windowed --add-data=languages;languages --add-data=asset/Icon.ico;asset --add-data=aria2;aria2 --add-data=ffmpeg;ffmpeg --icon=asset/Icon.ico app.py -n MediaDownloader.exe
+```
+
+**للينكس/macOS:**
+```bash
+pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset/Icon.png:asset --add-data=bin/aria2c:aria2 --add-data=bin/ffmpeg:ffmpeg --icon=asset/Icon.png app.py -n MediaDownloader
 ```
 
 ### 📁 هيكل المشروع
@@ -123,7 +146,8 @@ pyinstaller --onefile --windowed --add-data=languages;languages --add-data=asset
 ```
 ├── app.py                  # نقطة التشغيل الرئيسية
 ├── downloader.py           # منطق التحميل باستخدام yt-dlp و Aria2c
-├── gui.py                  # واجهة المستخدم
+├── gui.py                  # واجهة المستخدم والمنطق
+├── notification.py         # نظام الإشعارات عند اكتمال التحميلواجهة المستخدم
 ├── ffmpeg_check.py         # التحقق من FFmpeg
 ├── aria2_check.py          # التحقق من Aria2c
 ├── utils.py                # دوال المسارات
@@ -133,7 +157,8 @@ pyinstaller --onefile --windowed --add-data=languages;languages --add-data=asset
 │   ├── ar.json
 │   └── fr.json
 ├── asset/                  # الأيقونات والمظهر
-│   └── Icon.ico
+│   ├── Icon.ico
+│   └── Icon.png
 ├── ffmpeg/                 # ملفات FFmpeg (ويندوز)
 │   └── bin/
 │       └── ffmpeg.exe
