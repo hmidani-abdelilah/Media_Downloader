@@ -18,7 +18,9 @@ import sys  # للوصول إلى معلومات النظام
 from utils import resource_path # لمعالجة مسارات الملفات بشكل صحيح
 import subprocess # لتنفيذ أوامر النظام لتحديث الحزم
 import ctypes # دوال من نظام التشغيل (Windows API)
-from winotify import Notification # Notifications حقيقية ديال Windows pip install winotify
+
+from notification import Notifier # لإرسال إشعارات عند اكتمال التحميل   
+
 # from pystray import Icon, Menu, MenuItem # System Tray
 import platform # للحصول على معلومات حول نظام التشغيل
 # -*- coding: utf-8 -*-
@@ -94,8 +96,9 @@ class YouTubeDownloaderApp:
     # دالة ارسال اشعار بانهاء التحميل في windows
     def notification(self):
         system = platform.system()
+        
         if system == "Windows":
-
+            from winotify import Notification # Notifications حقيقية ديال Windows pip install winotify
             def show():
                 icon_path = os.path.abspath("asset/Icon.ico")
                 toast = Notification(
@@ -107,27 +110,81 @@ class YouTubeDownloaderApp:
                 toast.show()
             threading.Thread(target=show).start()
 
-        elif system == "Linux":
+        elif system == "Linux" or system == "Darwin": # دعم نظام ماك و لينكس    
             import subprocess
-            import time
-            for i in range(0, 101, 10):
-                subprocess.run([
-                    "notify-send",
-                    "Download Complete",
-                    "Your video is ready!",
-                    "-i", os.path.abspath("asset/Icon.png"),
-                    "-h", f"int:value:{i}",
-                    "-r", "9999"  # replace نفس notification
-                ])
-                time.sleep(0.5)
+            # test notify-send is insttaled or not
+            try:
+                subprocess.run(["notify-send", "--version"], check=True, capture_output=True)
+                notify_send_installed = True
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                notify_send_installed = False
+                # print("Erreur : notify-send n'est pas installé. 'sudo apt install libnotify-bin'")
+                # return
+            
+            if notify_send_installed:
+                import subprocess
+                import time
+                for i in range(0, 101, 10):
+                    subprocess.run([
+                        "notify-send",
+                        "Download Complete",
+                        "Your video is ready!",
+                        "-i", os.path.abspath("asset/Icon.png"),
+                        "-h", f"int:value:{i}",
+                        "-r", "9999"  # replace نفس notification
+                    ])
+                    time.sleep(0.3)
+            else:
+
+                import asyncio
+                from desktop_notifier import DesktopNotifier, Urgency, DEFAULT_SOUND
+                notifier = DesktopNotifier(app_name="Media Downloader")
+                async def main():
+                    await notifier.send(
+                        title="Download Complete",
+                        message="Your video is ready!",
+                        sound=DEFAULT_SOUND,
+                        urgency=Urgency.Normal
+                        )
+
+                asyncio.run(main())
 
     def show_help(self):
         """
         عرض رسالة مساعدة للمستخدم
         """
-        help_message = self.lang.get("help_message", "To use this application, enter the media URL, select your desired options, and click the Download button. For more information, visit our GitHub page.\nhttps://github.com/hmidani-abdelilah/Media_Downloader")
-        CTkMessagebox(title=self.lang.get("help", "Help"), message=help_message, icon="info") # عرض رسالة منبثقة للمساعدة
+        # help_message = self.lang.get("help_message", "To use this application, enter the media URL, select your desired options, and click the Download button.\nGPU Encoding [ libx264: CPU-based H.264 encoder; best compatibility and quality-to-size ratio but high CPU usage\nlibx265: CPU-based HEVC (H.265) encoder; '50%' better compression than x264 but much slower to encode\nhevc_vaapi: Linux hardware-accelerated HEVC encoder for Intel/AMD GPUs; extremely fast with low CPU impact\nh264_vaapi: Linux hardware-accelerated H.264 encoder for Intel/AMD GPUs; standard for fast Linux video processing\nhevc_qsv: Intel Quick Sync HEVC encoder for Windows/Linux; optimized for Intel iGPUs to provide fast 4K encoding\nh264_qsv: Intel Quick Sync H.264 encoder; high-speed hardware encoding for Intel systems with good stability ] \n[ CRF : Constant Rate Factor between 0-51 \n CRF 0: Lossless (huge files) \n CRF 18: Visually transparent (indistinguishable from source) \n CRF 23: Default (great balance) \n CRF 28: Good for web/mobile (small files, slight quality loss) \n CRF 30-35: You will start seeing 'blocking' (pixelated squares) in dark areas or fast-moving scenes. Fine details (like hair or grass) will look blurry \n CRF 40+: The video becomes very 'muddy.' Colors might look washed out, and the image will look significantly worse than the original  ]\n[ ultrafast: Minimal compression, largest file size, nearly zero CPU impact; best for instant local recording \n superfast: Very low compression, large file size, extremely fast encoding for older hardware \n veryfast: Good balance for live streaming; low CPU usage with acceptable file size \n faster: Slightly better compression than veryfast; ideal for fast downloads on mid-range CPUs \n fast: Slightly better than medium; a good trade-off between encoding speed and file weight \n medium (default): The standard balance; recommended for most general video encoding tasks \n slow: High compression, smaller file size, requires significant CPU power; best for high-quality archiving \n slower: Very high compression, tiny file size, very slow encoding; used for professional master files \n veryslow: Maximum compression, smallest possible file size, extremely slow; only for perfectionists with powerful CPUs ] For more information, visit our GitHub page.\nhttps://github.com/hmidani-abdelilah/Media_Downloader")
+        # CTkMessagebox(title=self.lang.get("help", "Help"), message=help_message, icon="info") # عرض رسالة منبثقة للمساعدة
+        help_message = self.lang.get("help_message", 
+                                        "To use this application, enter the media URL, select your options, and click Download.\n\n"
+                                        "--- ENCODERS ---\n"
+                                        "• libx264: CPU-based H.264; Best compatibility/quality.\n"
+                                        "• libx265: CPU-based HEVC; 50% better compression (slower).\n"
+                                        "• hevc_vaapi: Linux hardware HEVC (Intel/AMD); Very fast.\n"
+                                        "• h264_vaapi: Linux hardware H.264 (Intel/AMD); Very fast.\n"
+                                        "• hevc_qsv: Intel Quick Sync HEVC; Optimized for Intel iGPUs.\n"
+                                        "• h264_qsv: Intel Quick Sync H.264; Fast and stable.\n\n"
+                                        "--- QUALITY (CRF: 0-51) ---\n"
+                                        "• 0: Lossless (Huge files).\n"
+                                        "• 18: Visually transparent (High quality).\n"
+                                        "• 23: Default (Great balance).\n"
+                                        "• 28: Acceptable (Small files, mobile use).\n"
+                                        "• 30-35: Visible pixelation (Blurry details).\n"
+                                        "• 40+: Very poor quality (Muddy image).\n\n"
+                                        "--- PRESETS (Speed vs Compression) ---\n"
+                                        "• ultrafast/superfast: Instant encoding, very large files.\n"
+                                        "• veryfast/faster: Good for live streaming or mid-range CPUs.\n"
+                                        "• medium: Default standard balance.\n"
+                                        "• slow/slower: High compression, small files (Needs high CPU).\n"
+                                        "• veryslow: Best compression, extremely slow.\n\n"
+                                        "For more info: https://github.com/hmidani-abdelilah/Media_Downloader"
+                                            )
+
+        CTkMessagebox(title=self.lang.get("help", "Help"), message=help_message, icon="info")
+   
+
     # دالة تحديت الوضع تلقائي ان كانت system 
+
     def sync_appearance(self):
         #
         current_app_mode = ctk.get_appearance_mode().lower()
@@ -907,12 +964,10 @@ class YouTubeDownloaderApp:
                     message=self.lang.get("all_downloaded", "All videos downloaded!"), 
                     icon="check"
                 )
-                if platform.system() == "Windows":
-                    # ارسال الاشعار باكتمل التحميل ل windows 
-                    self.notification()
-                else:
-                    pass
-                # التحقق من خيار إغلاق التطبيق أو الحاسوب بعد التحميل
+                # إظهار إشعار سطح المكتب عند اكتمال التحميل
+                notify = Notifier()
+                notify.notification()
+                
                 if self.current_download_thread.is_alive():
                 # كي لا تتجمد الواجهة أثناء الانتظار، نستخدم after للتحقق بشكل دوري من حالة الخيط
                     self.root.after(100, self.check_download_thread)
