@@ -5,12 +5,13 @@ import threading
 import asyncio
 from utils import resource_path # لمعالجة مسارات الملفات بشكل صحيح
 
+
 class Notifier:
     def notification(self):
         system = platform.system()
-        icon_path_ico = resource_path("asset/Icon.ico")
+        icon_path_ico =resource_path("asset/Icon.ico")
         icon_path_png = resource_path("asset/Icon.png")
-
+        
         if system == "Windows":
             try:
                 from winotify import Notification
