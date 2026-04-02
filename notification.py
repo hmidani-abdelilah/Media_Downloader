@@ -26,7 +26,7 @@ class Notifier:
                 print("winotify n'est pas installé.")
 
         elif system in ["Linux", "Darwin"]:
-            # Priorité à notify-send (souvent présent par défaut sur Linux)
+            # Priorité à notify-send (souvent présent par défaut sur Linux) sudo apt install libnotify-bin
             notify_send_exists = subprocess.run(["which", "notify-send"], capture_output=True).returncode == 0
             
             if notify_send_exists:
