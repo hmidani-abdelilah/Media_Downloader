@@ -399,6 +399,112 @@ def download_video(url, download_dir, quality, file_type, download_subtitles, pr
     elif file_type == 'mp4':
         # دمج الفيديو والصوت إلى صيغة MP4
         options['merge_output_format'] = 'mp4'
+    
+    elif file_type == 'mkv':
+        # دمج الفيديو والصوت إلى صيغة MKV
+        options['merge_output_format'] = 'mkv'
+
+    ##
+    elif file_type == 'avi':
+        # دمج الفيديو والصوت إلى صيغة AVI
+        # mkv هو الحاوية التي تدعم معظم الترميزات، بينما avi قد يواجه مشاكل توافق مع بعض الترميزات الحديثة، لذا نستخدم mkv كحاوية وسيتم تحويلها لاحقاً إلى avi
+        options['merge_output_format'] = 'mkv'
+        options['postprocessors'] = [{
+                                        'key': 'FFmpegVideoConvertor',
+                                        'preferedformat': 'avi',  # avi 
+                                        }]
+        # إعدادات ترميز الفيديو لملفات AVI (لتحسين التوافق)
+        options['postprocessor_args'] = [
+                                            '-c:v', 'libx264',   # كودك حديث
+                                            '-crf', '18',        # جودة عالية (كلما قل الرقم زادت الجودة)
+                                            '-preset', 'slow',   # ضغط أفضل
+                                        ]
+
+    ##
+    elif file_type == 'flv':
+        # دمج الفيديو والصوت إلى صيغة FLV
+        options['merge_output_format'] = 'flv'
+        options['postprocessors'] = [{
+                                        'key': 'FFmpegVideoConvertor',
+                                        'preferedformat': 'flv', # flv
+                                        }]
+        # إعدادات ترميز الفيديو لملفات FLV (لتحسين التوافق)
+        options['postprocessor_args'] = [
+                                            '-c:v', 'libx264',   # كودك حديث
+                                            '-crf', '18',        # جودة عالية (كلما قل الرقم زادت الجودة)
+                                            '-preset', 'slow',   # ضغط أفضل
+                                        ]
+        
+    elif file_type == 'webm':
+        # دمج الفيديو والصوت إلى صيغة WEBM
+        options['merge_output_format'] = 'webm'
+    
+    elif file_type == 'opus':
+        # تحويل إلى OPUS بعد التحميل
+        options['postprocessors'] = [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'opus',
+            'preferredquality': '192',
+        }]
+        # حذف الملف الأصلي بعد التحويل
+        #options['keepvideo'] = False   
+
+    elif file_type == 'aac':
+        # تحويل إلى AAC بعد التحميل
+        options['postprocessors'] = [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'aac',
+            'preferredquality': '192',
+        }]
+        # حذف الملف الأصلي بعد التحويل
+        #options['keepvideo'] = False
+    
+    elif file_type == 'flac':
+        # تحويل إلى FLAC بعد التحميل
+        options['postprocessors'] = [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'flac',
+            'preferredquality': '192',
+        }]
+        # حذف الملف الأصلي بعد التحويل
+        #options['keepvideo'] = False
+    
+    elif file_type == 'wav':
+        # تحويل إلى WAV بعد التحميل
+        options['postprocessors'] = [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'wav',
+            'preferredquality': '192',
+        }]
+        # حذف الملف الأصلي بعد التحويل
+        #options['keepvideo'] = False
+    
+    elif file_type == 'alac':
+        # تحويل إلى ALAC بعد التحميل
+        options['postprocessors'] = [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'alac',
+            'preferredquality': '192',
+        }]
+        # حذف الملف الأصلي بعد التحويل
+        #options['keepvideo'] = False
+    
+    elif file_type == 'm4a':
+        # دمج الفيديو والصوت إلى صيغة M4A
+        options['merge_output_format'] = 'm4a'
+    
+    elif file_type == 'ogg':
+        # تحويل إلى OGG بعد التحميل
+        options['postprocessors'] = [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'vorbis',
+            'preferredquality': '192',
+        }]
+        # حذف الملف الأصلي بعد التحويل
+        #options['keepvideo'] = False   
+
+    
+    
 
     # ✅ التحقق من وجود ترجمات قبل التحميل
     preferred_langs = ['en', 'ar', 'fr']

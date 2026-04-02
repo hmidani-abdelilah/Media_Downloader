@@ -351,7 +351,7 @@ class YouTubeDownloaderApp:
         # قائمة منبثقة لاختيار نوع الملف
         self.type_menu = ctk.CTkOptionMenu(
             self.settings_frame, 
-            values=["best","mp4", "mp3"],  # أنواع الملفات المتاحة
+            values=["best","mp4", "mkv" , "avi", "flv" , "webm" , "mp3", "aac", "flac", "wav", "opus", "alac", "m4a", "ogg"],  # أنواع الملفات المتاحة
             variable=self.file_type
         )
         self.type_menu.grid(row=0, column=1, padx=5, pady=5) # وضع في الشبكة
