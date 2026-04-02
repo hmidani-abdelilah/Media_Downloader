@@ -9,7 +9,7 @@ A graphical application for downloading videos and audio from YouTube and other 
 ### 🚀 Features
 
 - Download from **YouTube**, **Facebook**, **Instagram**, and **X.com (Twitter)**
-- Download video (`mp4`) or audio (`mp3`)
+- Download video (`mp4` `mkv` , `avi`, `flv` , `webm` ) or audio (`mp3`, `aac` , `flac` , `wav` , `opus` , `alac` , `m4a` , `ogg` )
 - Select quality: Low (360p), Medium (720p), High (1080p)
 - Optional **subtitles** download (supports English, Arabic, French)
 - Full **GUI** using `customtkinter`
@@ -97,7 +97,7 @@ pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset
 ### ✅ المميزات
 
 - يدعم التحميل من **يوتيوب**، **فيسبوك**، **إنستغرام** و **X.com (تويتر)** و **تيك توك** وغرهم الكثير 
-- تحميل الفيديوهات بصيغة `mp4` أو الصوت فقط بصيغة `mp3`
+- تحميل الفيديوهات بصيغة (`mp4` `mkv` , `avi`, `flv` , `webm` ) أو الصوت فقط بصيغة (`mp3`, `aac` , `flac` , `wav` , `opus` , `alac` , `m4a` , `ogg` )
 - اختيار الجودة: منخفضة (360p)، متوسطة (720p)، عالية (1080p)
 - إمكانية تحميل الترجمة (عربي، إنجليزي، فرنسي)
 - واجهة رسومية تفاعلية باستخدام `customtkinter`
