@@ -80,7 +80,8 @@ class YouTubeDownloaderApp:
             self.root.iconbitmap(icon_path) # تعيين الأيقونة لنافذة التطبيق (خاص بنظام Windows)
         else:
             # تحميل أيقونة التطبيق من المسار الصحيح
-            icon_image = Image.open(os.path.join("asset", "Icon.ico")) # فتح صورة الأيقونة
+            base_dir = os.path.dirname(os.path.abspath(__file__)) # الحصول على الدليل الأساسي للتطبيق   
+            icon_image = Image.open(os.path.join(base_dir,"asset", "Icon.png")) # فتح صورة الأيقونة
             icon_tk = ImageTk.PhotoImage(icon_image) # تحويل الصورة إلى تنسيق يمكن لـ Tkinter استخدامه
             # تعيين الأيقونة لنافذة التطبيق
             self.root.wm_iconphoto(True, icon_tk) # تعيين الأيقونة لنافذة التطبيق (متوافق مع معظم أنظمة التشغيل)
