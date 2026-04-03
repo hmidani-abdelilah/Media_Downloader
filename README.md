@@ -31,8 +31,8 @@ A graphical application for downloading videos and audio from YouTube and other 
 ### 🧰 Requirements
 
 - Python 3.8+
-- FFmpeg (included in `ffmpeg` folder or installed on system)
-- Aria2c (included in `aria2` folder or installed on system)
+- FFmpeg (included in `ffmpeg` folder or installed on system) [FFmpeg _Windows](https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip)
+- Aria2c (included in `aria2` folder or installed on system) [Aria2c_Windows](https://github.com/aria2/aria2/releases/download/release-1.37.0/aria2-1.37.0-win-64bit-build1.zip)
 
 Install dependencies using:
 
