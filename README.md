@@ -111,7 +111,7 @@ pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset
 - دعم تحميل قوائم التشغيل وإنشاء مجلد تلقائي لها
 - يتحقق من وجود برنامج **FFmpeg** و **Aria2c** (محلي أو من النظام)
 - دعم التحميل السريع عبر **Aria2c**
-- دعم ملفات الكوكيز للفيديوهات الخاصة أو المحمية
+- دعم ملفات الكوكيز للفيديوهات الخاصة أو المحمية [FFmpeg _Windows](https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip)
 - لإستخراج ملف الكوكيز من المتصفح استخدم [Get cookies LOCALLY](https://chromewebstore.google.com/detail/cclelndahbckbenkjhflpdbgdldlbecc?utm_source=item-share-cb)
 - قائمة سياق لحقل الرابط (قص، لصق، مسح)
 - إشعارات عند اكتمال التحميل
@@ -125,7 +125,7 @@ pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset
 
 - Python 3.8 أو أحدث
 - FFmpeg (موجود في مجلد ffmpeg أو مثبت على النظام)
-- Aria2c (موجود في مجلد aria2 أو مثبت على النظام)
+- Aria2c (موجود في مجلد aria2 أو مثبت على النظام) [Aria2c_Windows](https://github.com/aria2/aria2/releases/download/release-1.37.0/aria2-1.37.0-win-64bit-build1.zip)
 
 لتثبيت جميع المتطلبات:
 
