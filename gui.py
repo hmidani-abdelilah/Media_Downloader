@@ -70,6 +70,9 @@ class YouTubeDownloaderApp:
         self.dropdown.add_option(option="Check for Updates", command=self.run_update)
         self.dropdown.add_separator()
         self.dropdown.add_option(option="Exit", command=self.root.destroy)
+        # ربط المفاتيح لتكبير الشاشة والخروج من ملء الشاشة
+        self.root.bind("<F11>", self.toggle_fullscreen) # ربط مفتاح F11 لتبديل وضع ملء الشاشة
+        self.root.bind("<Escape>", self.exit_fullscreen) # ربط مفتاح Escape للخروج من وضع ملء الشاشة
         
         
         if platform.system() == "Windows" :
@@ -523,6 +526,28 @@ class YouTubeDownloaderApp:
             new_appearance_mode: المظهر الجديد المحدد
         """
         ctk.set_appearance_mode(new_appearance_mode)
+
+    # تفعيل وضع ملء الشاشة عند الضغط على زر "F11"
+    def toggle_fullscreen(self, event=None):
+        """
+        تبديل وضع ملء الشاشة عند الضغط على زر "F11"
+        
+        المعلمات:
+            event: الحدث الذي يسبب التبديل (اختياري)
+        """
+        self.root.attributes("-fullscreen", not self.root.attributes("-fullscreen"))
+    
+    # الخروج من وضع ملء الشاشة بالضغط على "Escape"
+    def exit_fullscreen(self, event=None):
+        """
+        الخروج من وضع ملء الشاشة عند الضغط على "Escape"
+        
+        المعلمات:
+            event: الحدث الذي يسبب الخروج (اختياري)
+        """
+        self.root.attributes("-fullscreen", False)
+    
+
 
     # دالة لتغيير لغة التطبيق
     def change_language(self, lang_code: str):
