@@ -305,7 +305,7 @@ def download_video(url, download_dir, quality, file_type, download_subtitles, pr
 
         quality: جودة الفيديو ('low', 'medium', 'high')
 
-        file_type: نوع الملف ('mp3', 'mp4')
+        file_type: نوع الملف ('mp3', 'mp4', 'mkv', 'avi', 'flv', 'webm', 'opus', 'aac', 'flac', 'wav', 'alac', 'm4a', 'ogg')
 
         download_subtitles: هل يجب تحميل الترجمة
 
@@ -423,7 +423,7 @@ def download_video(url, download_dir, quality, file_type, download_subtitles, pr
     ##
     elif file_type == 'flv':
         # دمج الفيديو والصوت إلى صيغة FLV
-        options['merge_output_format'] = 'flv'
+        options['merge_output_format'] = 'mkv'
         options['postprocessors'] = [{
                                         'key': 'FFmpegVideoConvertor',
                                         'preferedformat': 'flv', # flv
