@@ -1,18 +1,32 @@
 # path_ffmpeg.py
 
-# تحديد مسار ffmpeg بناءً على نظام التشغيل
-import subprocess  # استيراد مكتبة subprocess لتشغيل أوامر النظام من داخل بايثون
-from utils import resource_path  # استيراد الدالة resource_path من ملف utils
-import os # استيراد مكتبة التعامل مع نظام الملفات
-import platform # استيراد مكتبة platform لمعرفة نظام التشغيل الحالي
+import subprocess  
+import os 
+import platform 
+from utils import resource_path  
 
-current_platform = platform.system() # الحصول على نظام التشغيل الحالي
-ffmpeg_path = resource_path("ffmpeg/bin/ffmpeg.exe")  # تحديد مسار ffmpeg في المجلد المحلي
+current_platform = platform.system() 
+
 def ffmpeg_find_path():
-    if current_platform == "Windows": # التحقق إذا كان النظام ويندوز
-        if os.path.exists(resource_path("ffmpeg/bin/ffmpeg.exe")):  # التحقق من وجود ffmpeg في المسار المحلي
-            return resource_path("ffmpeg/bin/ffmpeg.exe") # تحديد مسار ffmpeg في المجلد المحلي 
-        else:
-            return "ffmpeg.exe"  # إذا لم يكن موجودًا في المجلد المحلي، نفترض أنه في PATH 
+    if current_platform == "Windows": 
+        # 1. تحديد المسار المحلي الصحيح داخل مجلد البرنامج
+        local_path = resource_path(os.path.join("ffmpeg", "bin", "ffmpeg.exe"))
+        
+        # 2. التحقق إذا كان ffmpeg موجوداً في المسار المحلي
+        if os.path.exists(local_path):  
+            return local_path 
+        
+        # 3. إذا لم يكن محلياً، نتحقق إذا كان معرفاً في متغيرات البيئة PATH للنظام
+        try:
+            subprocess.run(["ffmpeg", "-version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            return "ffmpeg"  
+        except FileNotFoundError:
+            # 4. مسار احتياطي في القرص C إذا فشلت الحلول السابقة
+            fallback_path = r"C:\ffmpeg\bin\ffmpeg.exe"
+            if os.path.exists(fallback_path):
+                return fallback_path
+            
+            return None # لم يتم العثور عليه
     else:
-        return "ffmpeg"  # إذا لم يكن موجودًا في المجلد المحلي، نفترض أنه في PATH 
+        # لأنظمة لينكس وماك الاعتماد الافتراضي على PATH
+        return "ffmpeg"  
