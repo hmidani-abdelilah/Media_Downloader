@@ -31,8 +31,13 @@ A graphical application for downloading videos and audio from YouTube and other 
 ### 🧰 Requirements
 
 - Python 3.8+
-- FFmpeg (included in `ffmpeg` folder or installed on system) [FFmpeg _Windows](https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip)
-- Aria2c (included in `aria2` folder or installed on system) [Aria2c_Windows](https://github.com/aria2/aria2/releases/download/release-1.37.0/aria2-1.37.0-win-64bit-build1.zip)
+- FFmpeg (included in `ffmpeg` folder or installed on system) [FFmpeg _Windows](https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip) or install by command CMD by package manager
+
+```bash
+winget install ffmpeg
+```
+
+- Aria2c (included in `aria2` folder or installed on system) [Aria2c_Windows](https://github.com/aria2/aria2/releases/download/release-1.37.0/aria2-1.37.0-win-64bit-build1.zip) 
 
 Install dependencies using:
 
@@ -124,7 +129,11 @@ pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset
 ### 🧰 المتطلبات
 
 - Python 3.8 أو أحدث
-- FFmpeg (موجود في مجلد ffmpeg أو مثبت على النظام) [FFmpeg _Windows](https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip)
+- FFmpeg (موجود في مجلد ffmpeg أو مثبت على النظام) [FFmpeg _Windows](https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip) او نصب الاداة عبر CMD بواسطة مدير الحزم في  Windows 
+
+```bash
+winget install ffmpeg
+```
 - Aria2c (موجود في مجلد aria2 أو مثبت على النظام) [Aria2c_Windows](https://github.com/aria2/aria2/releases/download/release-1.37.0/aria2-1.37.0-win-64bit-build1.zip)
 
 لتثبيت جميع المتطلبات:
