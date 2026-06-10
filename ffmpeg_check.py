@@ -1,33 +1,18 @@
 import subprocess
-import os
-import platform
+from path_ffmpeg import ffmpeg_find_path
 from utils import resource_path  # استيراد الدالة resource_path من ملف utils
 
 def check_ffmpeg_installed():
-    current_platform = platform.system()
-    # تأكد أن الدالة ترجع المسار الصحيح سواء كنت تشغل السكريبت أو بعد تحويله لـ EXE
-    # ffmpeg_path = resource_path("ffmpeg/bin/ffmpeg.exe")
-    ffmpeg_path = os.path.join("ffmpeg", "bin", "ffmpeg.exe") # مثال للمسار
-
-    if current_platform == "Windows":
-        # الحالة 1: البحث في المجلد المحلي أولاً
-        if os.path.exists(ffmpeg_path):
-            try:
-                res = subprocess.run([ffmpeg_path, "-version"], capture_output=True)
-                if res.returncode == 0: return True
-            except: pass
-
-        # الحالة 2: إذا لم يوجد محلياً أو فشل، نبحث في النظام (PATH)
-        try:
-            res = subprocess.run(["ffmpeg", "-version"], capture_output=True)
-            return res.returncode == 0
-        except FileNotFoundError:
-            return False
-
-    # الأنظمة الأخرى (Linux / Mac)
-    else:
-        try:
-            res = subprocess.run(["ffmpeg", "-version"], capture_output=True)
-            return res.returncode == 0
-        except FileNotFoundError:
-            return False
+    """تتحقق من عمل ffmpeg بنسبة 100% وتعيد True أو False"""
+    # استدعاء دالة البحث لجلب أفضل مسار متاح
+    target_path = ffmpeg_find_path()
+    
+    if not target_path:
+        return False
+        
+    try:
+        # فحص المسار المستخرج للتأكد من أنه يعمل ويستجيب للأوامر
+        res = subprocess.run([target_path, "-version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return res.returncode == 0
+    except Exception:
+        return False
