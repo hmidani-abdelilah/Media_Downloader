@@ -79,6 +79,7 @@ pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset
 ├── gui.py                  # GUI logic and interface
 ├── notification.py         # Notification system for download completion
 ├── ffmpeg_check.py         # FFmpeg presence checker
+├── path_ffmpeg.py          # Find FFmpeg and return the PATH 
 ├── aria2_check.py          # Aria2c presence checker
 ├── utils.py                # Resource path utility
 ├── Media_Downloader.desktop # Desktop file for Linux integration
@@ -168,6 +169,7 @@ pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset
 ├── gui.py                  # واجهة المستخدم والمنطق
 ├── notification.py         # نظام الإشعارات عند اكتمال التحميلواجهة المستخدم
 ├── ffmpeg_check.py         # التحقق من FFmpeg
+├── path_ffmpeg.py          # ايجاد مسار تشغيل FFmpeg وارجاعه
 ├── aria2_check.py          # التحقق من Aria2c
 ├── utils.py                # دوال المسارات
 ├── requirements.txt        # ملف الاعتماديات
