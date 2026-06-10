@@ -801,7 +801,7 @@ class YouTubeDownloaderApp:
         """
         فتح مربع حوار لاختيار مجلد حفظ الملفات
         """
-        selected = CTkFileDialog.askdirectory(autocomplete=True,initial_dir=HOME,style='Mini') # فتح مربع حوار لاختيار المجلد
+        selected = CTkFileDialog.askdirectory(autocomplete=True,initial_dir=HOME,style='Mini',title="Select Directory") # فتح مربع حوار لاختيار المجلد
         # تحديث مسار الحفظ إذا تم اختيار مجلد
         if selected:
             self.save_dir = selected
