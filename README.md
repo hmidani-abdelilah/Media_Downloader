@@ -1,4 +1,4 @@
-# Media Downloader GUI
+# Media Downloader
 
 ![Media Downloader GUI Screenshot Application ](https://raw.githubusercontent.com/hmidani-abdelilah/Media_Downloader/refs/heads/main/Screenshot%20From%202026-03-31%2013-45-22.png "Media Downloader GUI")
 
@@ -47,10 +47,54 @@ pip install -r requirements.txt
 
 ### 💻 How to Run
 
+#### **Option 1: Using Python (All Platforms)**
+
 ```bash
 python app.py
 ```
 
+#### **Option 2: Using Windows Batch Scripts**
+
+**For Windows Users**, two convenient batch scripts are provided:
+
+##### **`installer-windows.bat`** 🔧
+This script automates the setup process for Windows users:
+
+**What it does:**
+- ✅ Checks if Python 3.8+ is installed on your system
+- ✅ Installs all required Python dependencies from `requirements.txt`
+- ✅ Verifies that FFmpeg and Aria2c are available (either locally in the project folders or system-wide)
+- ✅ Sets up the environment for first-time users
+- ✅ Displays status messages for each step of the installation
+- ✅ Creat shotcut in Desktop to run the application
+
+**How to use:**
+1. Simply double-click `installer-windows.bat` 
+2. Wait for the installation process to complete
+3. Follow any on-screen prompts if dependencies need to be installed manually
+
+**Note:** You must have Python installed and added to your system PATH. If you see an error about Python not being found, download and install Python from [python.org](https://www.python.org/downloads/) and make sure to check "Add Python to PATH" during installation.
+
+---
+
+##### **`run-it.bat`** ▶️
+This script starts the application after installation:
+
+**What it does:**
+- ✅ Launches the Media Downloader GUI application
+- ✅ Handles any environment setup needed
+- ✅ Displays helpful error messages if something goes wrong
+
+**How to use:**
+1. Double-click `run-it.bat`
+2. The application GUI will open
+
+---
+
+#### **Quick Start for Windows Users:**
+1. **First time only:** Run `installer-windows.bat` to set up everything
+2. **To launch the app:** Run `run-it.bat` (or double-click it)
+   
 To build an executable (optional):
 **For Windows:**
 ```bash
@@ -82,6 +126,8 @@ pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset
 ├── path_ffmpeg.py          # Find FFmpeg and return the PATH 
 ├── aria2_check.py          # Aria2c presence checker
 ├── utils.py                # Resource path utility
+├── installer-windows.bat   # Windows setup script (automated installation)
+├── run-it.bat              # Windows batch script to run the application
 ├── Media_Downloader.desktop # Desktop file for Linux integration
 ├── requirements.txt        # Python dependencies
 ├── languages/              # Language files (en/ar/fr)
@@ -145,9 +191,54 @@ pip install -r requirements.txt
 
 ### 🖥️ طريقة التشغيل
 
+#### **الطريقة 1: استخدام Python (جميع الأنظمة)**
+
+
 ```bash
 python app.py
 ```
+#### **الخيار 2: استخدام سكربتات Windows Batch**
+
+**لمستخدمي نظام Windows**، تم توفير سكربتين Batch مريحين للاستخدام:
+
+##### **`installer-windows.bat`** 🔧
+يقوم هذا السكربت بأتمتة عملية الإعداد لمستخدمي Windows:
+
+**ماذا يفعل:**
+- ✅ يتحقق مما إذا كان Python 3.8+ مثبتًا على نظامك
+- ✅ يثبت جميع مكتبات Python المطلوبة من ملف `requirements.txt`
+- ✅ يتأكد من توفر FFmpeg و Aria2c (إما محليًا في مجلدات المشروع أو على مستوى النظام بالكامل)
+- ✅ يجهز البيئة للمستخدمين الجدد لأول مرة
+- ✅ يعرض رسائل حالة لكل خطوة من خطوات التثبيت
+- ✅ ينشئ اختصار على سطح المكتب لتشغيل البرنامج
+
+
+**كيفية الاستخدام:**
+1. ما عليك سوى النقر المزدوج فوق ملف `installer-windows.bat`
+2. انتظر حتى تكتمل عملية التثبيت
+3. اتبع أي إرشادات تظهر على الشاشة إذا كانت هناك مكتبات تحتاج إلى تثبيت يدوي
+
+**ملاحظة:** يجب أن يكون Python مثبتًا ومضافًا إلى مسار النظام (System PATH). إذا ظهر لك خطأ يفيد بعدم العثور على Python، فقم بتحميل وتثبيت Python من موقع [python.org](https://python.org) وتأكد من تفعيل خيار "Add Python to PATH" أثناء التثبيت.
+
+---
+
+##### **`run-it.bat`** ▶️
+يقوم هذا السكربت بتشغيل التطبيق بعد انتهاء التثبيت:
+
+**ماذا يفعل:**
+- ✅ يطلق واجهة المستخدم الرسومية (GUI) لبرنامج Media Downloader
+- ✅ يتعامل مع أي إعدادات بيئة مطلوبة للتشغيل
+- ✅ يعرض رسائل خطأ مفيدة في حال حدوث أي مشكلة
+
+**كيفية الاستخدام:**
+1. انقر نقرًا مزدوجًا فوق ملف `run-it.bat`
+2. ستفتح واجهة المستخدم الرسومية للتطبيق فورًا
+
+---
+
+#### **بدء سريع لمستخدمي Windows:**
+1. **للمرة الأولى فقط:** قم بتشغيل `installer-windows.bat` لإعداد كل شيء
+2. **لتشغيل التطبيق:** قم بتشغيل `run-it.bat` (أو انقر فوقه نقرًا مزدوجًا)
 
 لتحويل البرنامج إلى ملف تنفيذي:
 
@@ -172,6 +263,8 @@ pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset
 ├── path_ffmpeg.py          # ايجاد مسار تشغيل FFmpeg وارجاعه
 ├── aria2_check.py          # التحقق من Aria2c
 ├── utils.py                # دوال المسارات
+├── installer-windows.bat   # Windows setup script (سكريبت يأتمت التتيت )
+├── run-it.bat              # Windows batch script to run the application ( سكريبت تشغيل البرنامج )
 ├── requirements.txt        # ملف الاعتماديات
 ├── languages/              # ملفات الترجمة
 │   ├── en.json
