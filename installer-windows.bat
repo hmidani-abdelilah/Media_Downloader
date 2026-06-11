@@ -51,6 +51,25 @@ if exist "requirements.txt" (
 )
 if %errorlevel% neq 0 (echo Echec de l'installation des packages pip. & pause )
 
+
+:: ===== CREATION DU RACCOURCI SUR LE BUREAU =====
+echo Creation du raccourci sur le Bureau...
+
+set "TARGET_PATH=%~dp0run-it.bat"
+set "SHORTCUT_PATH=%PUBLIC%\Desktop\Media Downloader.lnk"
+set "ICON_PATH=%~dp0Icon.ico"
+
+:: Appel direct à l'exécutable PowerShell via son chemin complet en dur
+C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command "$s=(New-Object -ComObject WScript.Shell).CreateShortcut('%SHORTCUT_PATH%');$s.TargetPath='%TARGET_PATH%';$s.WorkingDirectory='%~dp0';if(Test-Path '%ICON_PATH%'){$s.IconLocation='%ICON_PATH%'};$s.Save()"
+
+if %errorlevel% neq 0 (
+    echo Passage au bureau utilisateur alternatif...
+    for /f "usebackq delims=" %%I in (`C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command "[Environment]::GetFolderPath('Desktop')"`) do set "USER_DESKTOP=%%I"
+    C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command "$s=(New-Object -ComObject WScript.Shell).CreateShortcut('%USER_DESKTOP%\Media Downloader.lnk');$s.TargetPath='%TARGET_PATH%';$s.WorkingDirectory='%~dp0';if(Test-Path '%ICON_PATH%'){$s.IconLocation='%ICON_PATH%'};$s.Save()"
+)
+
+echo.
 echo Tous les packages sont a jour !
-echo Executez run.bat pour lancer le programme.
+echo Executez run-it.bat pour lancer le programme.
+echo Un raccourci a ete cree sur votre Bureau.
 pause
