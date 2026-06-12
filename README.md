@@ -1,4 +1,4 @@
-# Media Downloader
+# <div align="center"> Media Downloader </div>   
 
 ![Media Downloader GUI Screenshot Application ](https://raw.githubusercontent.com/hmidani-abdelilah/Media_Downloader/refs/heads/main/Screenshot%20From%202026-03-31%2013-45-22.png "Media Downloader GUI")
 
@@ -53,7 +53,46 @@ pip install -r requirements.txt
 python app.py
 ```
 
-#### **Option 2: Using Windows Batch Scripts**
+#### **Option 2: Using Linux Installation Script**
+
+**For Linux Users**, an automated installer script is provided:
+
+##### **`installer.sh`** 🔧
+This script automates the complete setup process for Linux users:
+
+**What it does:**
+- ✅ Checks if the script is run with sudo/root privileges
+- ✅ Detects your Linux distribution (Ubuntu, Debian, Fedora, Arch, etc.)
+- ✅ Installs system dependencies (Python3, pip, venv, FFmpeg, Git)
+- ✅ Clones the Media_Downloader repository (or updates it if already present)
+- ✅ Creates a Python virtual environment
+- ✅ Installs all Python dependencies from `requirements.txt`
+- ✅ Sets up a desktop entry for easy application launching
+- ✅ Configures the application icon
+
+**How to use:**
+1. Make the script executable:
+   ```bash
+   chmod +x installer.sh
+   ```
+2. Run the installer with sudo:
+   ```bash
+   sudo ./installer.sh
+   ```
+3. Wait for the installation process to complete
+4. The application will be available in your applications menu
+
+**Supported Distributions:**
+- Ubuntu, Debian, Linux Mint, Kali Linux, Raspbian
+- Fedora
+- RHEL, CentOS, Rocky Linux, AlmaLinux
+- Arch Linux, Manjaro, EndeavourOS, Garuda Linux
+
+**Note:** The script requires `sudo` privileges to install system packages. You will be prompted for your password during installation.
+
+---
+
+#### **Option 3: Using Windows Batch Scripts**
 
 **For Windows Users**, two convenient batch scripts are provided:
 
@@ -66,7 +105,7 @@ This script automates the setup process for Windows users:
 - ✅ Verifies that FFmpeg and Aria2c are available (either locally in the project folders or system-wide)
 - ✅ Sets up the environment for first-time users
 - ✅ Displays status messages for each step of the installation
-- ✅ Creat shotcut in Desktop to run the application
+- ✅ Creates a shortcut on Desktop to run the application
 
 **How to use:**
 1. Simply double-click `installer-windows.bat` 
@@ -88,6 +127,19 @@ This script starts the application after installation:
 **How to use:**
 1. Double-click `run-it.bat`
 2. The application GUI will open
+
+---
+
+#### **Quick Start for Linux Users:**
+1. **First time only:** Make the installer executable and run it with sudo:
+   ```bash
+   chmod +x installer.sh
+   sudo ./installer.sh
+   ```
+2. **To launch the app:** Search for "Media Downloader" in your applications menu, or run:
+   ```bash
+   ~/Media_Downloader/venv/bin/python3 ~/Media_Downloader/app.py
+   ```
 
 ---
 
@@ -126,6 +178,7 @@ pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset
 ├── path_ffmpeg.py          # Find FFmpeg and return the PATH 
 ├── aria2_check.py          # Aria2c presence checker
 ├── utils.py                # Resource path utility
+├── installer.sh            # Linux setup script (automated installation)
 ├── installer-windows.bat   # Windows setup script (automated installation)
 ├── run-it.bat              # Windows batch script to run the application
 ├── Media_Downloader.desktop # Desktop file for Linux integration
@@ -197,7 +250,47 @@ pip install -r requirements.txt
 ```bash
 python app.py
 ```
-#### **الخيار 2: استخدام سكربتات Windows Batch**
+
+#### **الخيار 2: استخدام سكريبت التثبيت على Linux**
+
+**لمستخدمي نظام Linux**، تم توفير سكريبت تثبيت آلي:
+
+##### **`installer.sh`** 🔧
+هذا السكريبت يؤتمت عملية الإعداد الكاملة لمستخدمي Linux:
+
+**ماذا يفعل:**
+- ✅ يتحقق من تشغيل السكريبت بصلاحيات sudo/root
+- ✅ يكتشف توزيعة Linux (Ubuntu, Debian, Fedora, Arch، إلخ)
+- ✅ يثبت المتطلبات (Python3, pip, venv, FFmpeg, Git)
+- ✅ ينسخ مستودع Media_Downloader (أو يحدثه إن كان موجوداً)
+- ✅ ينشئ بيئة Python وهمية
+- ✅ يثبت جميع مكتبات Python من `requirements.txt`
+- ✅ ينشئ ملف تشغيل سطح المكتب للتطبيق
+- ✅ يضبط أيقونة التطبيق
+
+**كيفية الاستخدام:**
+1. جعل السكريبت قابلاً للتنفيذ:
+   ```bash
+   chmod +x installer.sh
+   ```
+2. تشغيل المثبت مع sudo:
+   ```bash
+   sudo ./installer.sh
+   ```
+3. انتظر اكتمال عملية التثبيت
+4. سيكون التطبيق متاحاً في قائمة التطبيقات
+
+**التوزيعات المدعومة:**
+- Ubuntu, Debian, Linux Mint, Kali Linux, Raspbian
+- Fedora
+- RHEL, CentOS, Rocky Linux, AlmaLinux
+- Arch Linux, Manjaro, EndeavourOS, Garuda Linux
+
+**ملاحظة:** السكريبت يتطلب صلاحيات sudo لتثبيت حزم النظام. ستُطلب كلمة المرور خلال التثبيت.
+
+---
+
+#### **الخيار 3: استخدام سكربتات Windows Batch**
 
 **لمستخدمي نظام Windows**، تم توفير سكربتين Batch مريحين للاستخدام:
 
@@ -236,6 +329,19 @@ python app.py
 
 ---
 
+#### **بدء سريع لمستخدمي Linux:**
+1. **للمرة الأولى فقط:** اجعل المثبت قابلاً للتنفيذ وشغله مع sudo:
+   ```bash
+   chmod +x installer.sh
+   sudo ./installer.sh
+   ```
+2. **لتشغيل التطبيق:** ابحث عن "Media Downloader" في قائمة التطبيقات، أو شغل:
+   ```bash
+   ~/Media_Downloader/venv/bin/python3 ~/Media_Downloader/app.py
+   ```
+
+---
+
 #### **بدء سريع لمستخدمي Windows:**
 1. **للمرة الأولى فقط:** قم بتشغيل `installer-windows.bat` لإعداد كل شيء
 2. **لتشغيل التطبيق:** قم بتشغيل `run-it.bat` (أو انقر فوقه نقرًا مزدوجًا)
@@ -263,8 +369,9 @@ pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset
 ├── path_ffmpeg.py          # ايجاد مسار تشغيل FFmpeg وارجاعه
 ├── aria2_check.py          # التحقق من Aria2c
 ├── utils.py                # دوال المسارات
-├── installer-windows.bat   # Windows setup script (سكريبت يأتمت التتيت )
-├── run-it.bat              # Windows batch script to run the application ( سكريبت تشغيل البرنامج )
+├── installer.sh            # سكريبت Linux (تثبيت آلي)
+├── installer-windows.bat   # سكريبت Windows (تثبيت آلي)
+├── run-it.bat              # سكريبت Windows لتشغيل التطبيق
 ├── requirements.txt        # ملف الاعتماديات
 ├── languages/              # ملفات الترجمة
 │   ├── en.json
