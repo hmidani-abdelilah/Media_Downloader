@@ -79,8 +79,16 @@ This script automates the complete setup process for Linux users:
    ```bash
    sudo ./installer.sh
    ```
-3. Wait for the installation process to complete
-4. The application will be available in your applications menu
+3. To uninstall later, run:
+   ```bash
+   sudo ./installer.sh uninstall
+   ```
+4. To see help and usage options:
+   ```bash
+   sudo ./installer.sh --help
+   ```
+5. Wait for the process to complete
+6. The application will be available in your applications menu
 
 **Supported Distributions:**
 - Ubuntu, Debian, Linux Mint, Kali Linux, Raspbian
@@ -277,8 +285,16 @@ python app.py
    ```bash
    sudo ./installer.sh
    ```
-3. انتظر اكتمال عملية التثبيت
-4. سيكون التطبيق متاحاً في قائمة التطبيقات
+3. لإلغاء التثبيت لاحقًا، شغّل:
+   ```bash
+   sudo ./installer.sh uninstall
+   ```
+4. لعرض التعليمات وخيارات الاستخدام:
+   ```bash
+   sudo ./installer.sh --help
+   ```
+5. انتظر اكتمال عملية التثبيت
+6. سيكون التطبيق متاحاً في قائمة التطبيقات
 
 **التوزيعات المدعومة:**
 - Ubuntu, Debian, Linux Mint, Kali Linux, Raspbian
