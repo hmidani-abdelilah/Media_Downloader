@@ -23,6 +23,72 @@ fi
 # Determine the real user to avoid permission issues with Python files and venv
 REAL_USER=${SUDO_USER:-$USER}
 USER_HOME=$(eval echo ~$REAL_USER)
+CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+print_usage() {
+    cat <<EOF
+Usage: sudo ./installer.sh [OPTIONS]
+
+Options:
+  install             Install Media Downloader (default action)
+  uninstall           Remove Media Downloader installation
+  --uninstall         Alias for uninstall
+  -h, --help          Show this help message and exit
+
+Examples:
+  sudo ./installer.sh
+  sudo ./installer.sh uninstall
+  sudo ./installer.sh --help
+EOF
+}
+
+if [[ "$1" == "-h" || "$1" == "--help" || "$1" == "help" ]]; then
+    print_usage
+    exit 0
+fi
+
+# Uninstall support
+if [[ "$1" == "uninstall" || "$1" == "--uninstall" ]]; then
+    DESKTOP_FILE="/usr/share/applications/media-downloader.desktop"
+    APP_DIR="$CURRENT_DIR/Media_Downloader"
+    VENV_DIR="$APP_DIR/venv"
+
+    echo -e "${BLUE}[ UNINSTALL ] Removing Media Downloader installation...${NC}"
+
+    if [ -f "$DESKTOP_FILE" ]; then
+        rm -f "$DESKTOP_FILE"
+        echo -e "${BLUE}[ UNINSTALL ] Removed desktop entry: $DESKTOP_FILE${NC}"
+    else
+        echo -e "${YELLOW}[ UNINSTALL ] Desktop entry not found: $DESKTOP_FILE${NC}"
+    fi
+
+    if [ -d "$VENV_DIR" ]; then
+        rm -rf "$VENV_DIR"
+        echo -e "${BLUE}[ UNINSTALL ] Removed virtual environment: $VENV_DIR${NC}"
+    else
+        echo -e "${YELLOW}[ UNINSTALL ] Virtual environment not found: $VENV_DIR${NC}"
+    fi
+
+    if [ -d "$APP_DIR" ]; then
+        rm -rf "$APP_DIR"
+        echo -e "${BLUE}[ UNINSTALL ] Removed application directory: $APP_DIR${NC}"
+    else
+        echo -e "${YELLOW}[ UNINSTALL ] Application directory not found: $APP_DIR${NC}"
+    fi
+
+    if command -v update-desktop-database &> /dev/null; then
+        update-desktop-database /usr/share/applications
+    fi
+
+    echo -e "${GREEN}[ SUCCESS ] Uninstallation completed.${NC}"
+    exit 0
+fi
+
+if [ -n "$1" ] && [[ "$1" != "install" ]]; then
+    echo -e "${RED}[ ERROR ] Unknown option: $1${NC}"
+    print_usage
+    exit 1
+fi
 
 # 2. Detect distribution and install Python3 and FFmpeg
 if [ -f /etc/os-release ]; then
