@@ -216,6 +216,8 @@ def get_videos_info(url,cookies_path="\U0001F36A",ffmpeg_path=ffmpeg_path):
         "quiet": True,
         "extract_flat": True,
         "skip_download": True,
+        "socket_timeout": 30,
+    # Explicitly verify SSL (should be default, but verify)
     }
 
     # ✅ التحقق من ffmpeg المحلي

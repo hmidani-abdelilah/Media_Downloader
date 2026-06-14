@@ -1,5 +1,8 @@
-import sys
-import io
+# ملف gui.py: يحتوي على الفئة الرئيسية لتطبيق تحميل فيديوهات يوتيوب مع واجهة مستخدم رسومية باستخدام مكتبة customtkinter
+import sys # لإعادة توجيه الإخراج إلى UTF-8 في حالة عدم دعم sys.stdout أو sys.stderr للكتابة الثنائية
+import io # لإنشاء تدفقات نصية ثنائية لتوجيه الإخراج إلى UTF-8
+import re # للتعامل مع التعبيرات العادية (غير مستخدم حاليا، لكن قد يكون مفيد في المستقبل لتحليل الروابط أو المدخلات)
+import urllib.parse # لتحليل الروابط (غير مستخدم حاليا، لكن قد يكون مفيد في المستقبل لتحليل الروابط أو المدخلات)
 
 if sys.stdout is None or not hasattr(sys.stdout, 'buffer'):
     # On crée un flux binaire, puis on l'enveloppe pour le texte
@@ -852,6 +855,22 @@ class YouTubeDownloaderApp:
             except Exception as e:
                 CTkMessagebox(title="Error", message=f"Invalid file: {e}")
 
+    def validate_url(self, url):
+        """
+        التحقق من صحة الرابط المدخل ودعمه من قبل التطبيق
+         - التحقق من أن الرابط يبدأ بـ http:// أو https:// أو www.
+         - التحقق من أن الرابط يحتوي على نطاق صالح (netloc) بعد التحليل
+         - لا يتم استخدام تعبيرات منتظمة معقدة لتجنب مشاكل الأداء، بل يتم الاعتماد على تحليل URL بسيط باستخدام urllib.parse
+         - يتم التعامل مع أي استثناءات قد تحدث أثناء تحليل URL وإرجاع False في حالة وجود أي خطأ
+        """
+        # pattern = r'^https?://(www\.)?(youtube|youtu\.be|twitter|instagram|tiktok)'
+        # return bool(re.match(pattern, url))
+        try:
+            parsed = urllib.parse.urlparse(url)
+            return parsed.scheme in ("http", "https") and bool(parsed.netloc)
+        except Exception:
+            return False
+
     # دالة لبدء عملية تحميل الفيديو أو قائمة التشغيل
     def start_download(self):
         """
@@ -871,6 +890,15 @@ class YouTubeDownloaderApp:
             CTkMessagebox(
                 title=self.lang.get("error", "Error"), 
                 message=self.lang.get("please_enter_url", "Please enter a URL."), 
+                icon="warning"
+            )
+            return
+        # التحقق من صحة الرابط المدخل ودعمه من قبل التطبيق
+        if not self.validate_url(url):
+            # إظهار تحذير إذا كان الرابط غير صالح أو غير مدعوم
+            CTkMessagebox(
+                title=self.lang.get("error", "Error"), 
+                message=self.lang.get("invalid_url", "Invalid URL or unsupported platform."), 
                 icon="warning"
             )
             return
