@@ -58,21 +58,27 @@ class YouTubeDownloaderApp:
             lang_code: رمز اللغة المستخدمة (الافتراضي: الإنجليزية)
         """
         self.root = root # تعيين نافذة الجذر
-        
+        self.lang = self.load_language(lang_code) # تحميل ملف اللغة المناسب
+        self.lang_code = lang_code # تعيين رمز اللغة الحالي
+        self.save_dir = os.path.expanduser("~")  # مجلد المستخدم الافتراضي كمسار حفظ
+        self.cookiefile_dir = "\U0001F36A" # مسار ملف cookies 
+        self.current_download_thread = None  # خيط التنزيل الحالي
+        self.is_downloading = False  # مؤشر على حالة التنزيل
+
         # Initialize the menu bar
         # --- UI ELEMENTS ---
         self.menu_bar = CTkMenuBar(master=self.root)
         # Add top-level buttons
-        self.file_button = self.menu_bar.add_cascade("Options") # إضافة زر "خيارات" إلى شريط القائمة
+        self.file_button = self.menu_bar.add_cascade(self.lang.get("options", "Options")) # إضافة زر "خيارات" إلى شريط القائمة
         #self.edit_button = self.menu_bar.add_cascade("Edit")
-        self.menu_bar.add_cascade("Help", command=self.show_help) # إضافة زر "مساعدة" إلى شريط القائمة وربطه بدالة show_help
+        self.menu_bar.add_cascade(self.lang.get("help", "Help"), command=self.show_help) # إضافة زر "مساعدة" إلى شريط القائمة وربطه بدالة show_help
         
         
         # Create dropdown content
         self.dropdown = CustomDropdownMenu(widget=self.file_button)
-        self.dropdown.add_option(option="Check for Updates", command=self.run_update)
+        self.dropdown.add_option(option=self.lang.get("check_updates", "Check for Updates"), command=self.run_update)
         self.dropdown.add_separator()
-        self.dropdown.add_option(option="Exit", command=self.root.destroy)
+        self.dropdown.add_option(option=self.lang.get("exit", "Exit"), command=self.root.destroy)
         # ربط المفاتيح لتكبير الشاشة والخروج من ملء الشاشة
         self.root.bind("<F11>", self.toggle_fullscreen) # ربط مفتاح F11 لتبديل وضع ملء الشاشة
         self.root.bind("<Escape>", self.exit_fullscreen) # ربط مفتاح Escape للخروج من وضع ملء الشاشة
@@ -708,11 +714,11 @@ class YouTubeDownloaderApp:
             message = "Updated Packages:\n\n" + "\n".join(upgraded)
 
             msg = CTkMessagebox(
-                title="Update Complete",
-                message=message + "\n\nRestart application to apply changes.",
+                title=self.lang.get("update_complete", "Update Complete"),
+                message=message + "\n\n" + self.lang.get("restart_application", "Restart application to apply changes."),
                 icon="check",
-                option_1="Restart Now",
-                option_2="Later"
+                option_1=self.lang.get("restart_now", "Restart Now"),
+                option_2=self.lang.get("later", "Later")
             )
             # إذا اختار المستخدم إعادة التشغيل الآن، يتم إعادة تشغيل التطبيق لتطبيق التغييرات. إذا اختار لاحقًا، لا يتم فعل أي شيء والسماح له بإعادة التشغيل يدويًا في وقت لاحق.
             if msg.get() == "Restart Now":
@@ -728,8 +734,8 @@ class YouTubeDownloaderApp:
         else:
             # لا يوجد أي تحديث
             CTkMessagebox(
-                title="Up To Date",
-                message="All packages are already up to date.",
+                title=self.lang.get("up_to_date", "Up To Date"),
+                message=self.lang.get("packages_up_to_date", "All packages are already up to date."),
                 icon="info"
             )
 
@@ -741,17 +747,17 @@ class YouTubeDownloaderApp:
         if "error" in status:
             # عرض رسالة خطأ في واجهة المستخدم مع تفاصيل الخطأ الذي حدث أثناء التحديث
             CTkMessagebox(
-                title="Error",
-                message=f"Update failed: {status}",
+                title=self.lang.get("error", "Error"),
+                message=self.lang.get("update_failed", "Update failed: ") + str(status),
                 icon="cancel"
             )
         else:
             # عرض رسالة نجاح في واجهة المستخدم مع خيار إعادة تشغيل التطبيق لتطبيق التغييرات
             msg = CTkMessagebox(
-                title="Finished",
-                message="Update complete! You must reload the application for changes to take effect.",
+                title=self.lang.get("finished", "Finished"),
+                message=self.lang.get("update_reload", "Update complete! You must reload the application for changes to take effect."),
                 icon="check",
-                option_1="Close App"
+                option_1=self.lang.get("close_app", "Close App")
             )
             # إذا اختار المستخدم إغلاق التطبيق، يتم إغلاق التطبيق. وإلا، لا يتم فعل أي شيء والسماح له بإعادة التشغيل يدويًا في وقت لاحق.
             if msg.get() == "Close App":
@@ -764,7 +770,7 @@ class YouTubeDownloaderApp:
             url = self.url_frame.clipboard_get()         # محاولة الحصول على النص من الحافظة
             # Validate URL format
             if not url.startswith(('http://', 'https://', 'www.')):
-                CTkMessagebox(title="Invalid", message="Invalid URL format")
+                CTkMessagebox(title=self.lang.get("invalid", "Invalid"), message=self.lang.get("invalid_url_format", "Invalid URL format"))
                 return
             self.url_entry.delete(0, ctk.END)
             self.url_entry.insert("end", url)
@@ -811,7 +817,7 @@ class YouTubeDownloaderApp:
         """
         فتح مربع حوار لاختيار مجلد حفظ الملفات
         """
-        selected = CTkFileDialog.askdirectory(autocomplete=True,initial_dir=HOME,style='Mini',title="Select Directory") # فتح مربع حوار لاختيار المجلد
+        selected = CTkFileDialog.askdirectory(autocomplete=True,initial_dir=HOME,style='Mini',title=self.lang.get("select_directory", "Select Directory")) # فتح مربع حوار لاختيار المجلد
         # تحديث مسار الحفظ إذا تم اختيار مجلد
         if selected:
             try:
@@ -834,7 +840,7 @@ class YouTubeDownloaderApp:
         تح مربع حوار لاختيار مجلف cookies  
         """
         selectedfile = CTkFileDialog.askopenfilename(style='Mini',
-                                       title="Select your cookies.txt file",
+                                       title=self.lang.get("select_cookies_file_dialog", "Select your cookies.txt file"),
                                        autocomplete=True ,
                                        initial_dir=HOME,
                                        filetypes=[("Text files", "*.txt")]
@@ -920,27 +926,30 @@ class YouTubeDownloaderApp:
                 icon="warning", option_1="Cancel", option_2="Retry"
             )
         # تنبيه المستخدم اذا اختار إغلاق الحاسوب بعد التحميل دون اختيار إغلاق التطبيق
-        elif self.shutdown_after_download.get() and not self.close_after_download.get():
-             # إظهار تحذير إذا اختار المستخدم إغلاق الحاسوب بعد التحميل دون اختيار إغلاق التطبيق
-             CTkMessagebox(
+        elif self.shutdown_after_download.get():
+            # إظهار تحذير إذا اختار المستخدم إغلاق الحاسوب بعد التحميل دون اختيار إغلاق التطبيق
+            self.warning_shutdown = CTkMessagebox(
                 title=self.lang.get("warning", "Warning"), 
                 message=self.lang.get("shutdown_without_closing", "You have selected to shutdown the computer after download without selecting to close the application. This may cause the computer to shutdown while the application is still running. Do you want to proceed?"), 
                 icon="warning", option_1="Cancel", option_2="Proceed"
-            )
-        else:    
-            # تعطيل زر التحميل وتفعيل زر الإيقاف أثناء عملية التحميل
-            self.download_button.configure(state="disabled")
-            self.stop_button.configure(state="normal")
-            self.is_downloading = True
+            )   
+        if self.warning_shutdown.get() == "Cancel":
+            return  # إلغاء عملية التحميل إذا اختار المستخدم "إلغاء"   
+        else:
             
-            # عرض حالة التحميل الأولية
-            self.status_label.configure(text=self.lang.get("fetching_info", "Fetching videos info..."))
-            
-            # بدء خيط جديد للتحميل لمنع تجميد واجهة المستخدم
-            self.current_download_thread = threading.Thread(target=self.prepare_and_download, args=(url,))
-            self.current_download_thread.daemon = True  # الخيط ينتهي عند إنهاء البرنامج الرئيسي
-            self.current_download_thread.start()
-            
+                # تعطيل زر التحميل وتفعيل زر الإيقاف أثناء عملية التحميل
+                self.download_button.configure(state="disabled")
+                self.stop_button.configure(state="normal")
+                self.is_downloading = True
+                
+                # عرض حالة التحميل الأولية
+                self.status_label.configure(text=self.lang.get("fetching_info", "Fetching videos info..."))
+                
+                # بدء خيط جديد للتحميل لمنع تجميد واجهة المستخدم
+                self.current_download_thread = threading.Thread(target=self.prepare_and_download, args=(url,))
+                self.current_download_thread.daemon = True  # الخيط ينتهي عند إنهاء البرنامج الرئيسي
+                self.current_download_thread.start()
+                
             
     # دالة للتحقق من حالة خيط التحميل وإعادة تفعيل الواجهة عند الانتهاء
     def check_download_thread(self):
@@ -953,23 +962,38 @@ class YouTubeDownloaderApp:
             self.stop_button.configure(state="disabled")
             self.is_downloading = False
             if self.shutdown_after_download.get():
-                self.root.after(60000, self.shutdown_computer)  # إغلاق الحاسوب بعد 60 ثانية
+                self.root.after(1000, self.shutdown_computer)  # إغلاق الحاسوب بعد 10 ثانية
             elif self.close_after_download.get():
-                self.root.after(60000, self.root.destroy)  # إغلاق التطبيق بعد 60 ثانية  
+                self.root.after(1000, self.root.destroy)  # إغلاق التطبيق بعد 10 ثانية  
     # دالة لإغلاق الحاسوب بعد اكتمال التحميل
     def shutdown_computer(self):
         """
         إغلاق الحاسوب بعد اكتمال التحميل
         """
-        if self.stop_current_download:
-             return  # إذا تم إيقاف التحميل، لا تقم بإغلاق الحاسوب  
-        elif sys.platform == "win32":
-            os.system("shutdown /s /t 1")  # أمر إغلاق الحاسوب في ويندوز
+        # Don't shutdown while a download is still in progress
+        if self.is_downloading:
+            return
+        
+        # إظهار رسالة تأكيد للمستخدم قبل إغلاق الحاسوب
+        #self.shutdown_msg = CTkMessagebox(
+        #    title=self.lang.get("shutdown", "Shutdown"), 
+        #    message=self.lang.get("confirm_shutdown", "Are you sure you want to shutdown the computer?"),
+        #    icon="question", option_1=self.lang.get("cancel", "Cancel"), option_2=self.lang.get("no", "No"), option_3=self.lang.get("yes", "Yes")   
+        #)
+        #self.shutdown_response = self.shutdown_msg.get() # الحصول على استجابة المستخدم
+        #if self.shutdown_response != "Yes":
+        #    return  # إلغاء عملية إغلاق الحاسوب إذا لم يوافق المستخدم   
+        
+        # تنفيذ أمر إغلاق الحاسوب بناءً على نظام التشغيل
+
+        if sys.platform == "win32":
+            #CTkMessagebox(title=self.lang.get("shutdown", "Shutdown"), message=self.lang.get("shutting_down", "Shutting down the computer..."), icon="info")        
+            os.system("shutdown /s /t 1")  # Windows shutdown
         elif sys.platform == "darwin":
-            os.system("sudo shutdown -h now")  # أمر إغلاق الحاسوب في ماك (قد يتطلب صلاحيات)
+            os.system("sudo shutdown -h now")  # macOS shutdown (may require privileges)
         else:
-            os.system("shutdown -h now")  # أمر إغلاق الحاسوب في لينكس (قد يتطلب صلاحيات)   
-             
+            os.system("shutdown -h now")  # Linux shutdown (may require privileges)
+          
 
     # دالة لإيقاف عملية التحميل الحالية
     def stop_current_download(self):
@@ -979,8 +1003,8 @@ class YouTubeDownloaderApp:
         # التحقق من وجود عملية تحميل جارية
         if self.is_downloading:
             # طلب تأكيد من المستخدم قبل الإيقاف
-            self.msg = CTkMessagebox(title="Exit?", message=self.lang.get("ask_to_stop_download", "Are you sure to stop the download?"),
-                            icon="question", option_1="Cancel", option_2="No", option_3="Yes")
+            self.msg = CTkMessagebox(title=self.lang.get("exit_prompt", "Exit?"), message=self.lang.get("ask_to_stop_download", "Are you sure to stop the download?"),
+                            icon="question", option_1=self.lang.get("cancel", "Cancel"), option_2=self.lang.get("no", "No"), option_3=self.lang.get("yes", "Yes"))
             self.response = self.msg.get() # الحصول على استجابة المستخدم
             if self.response == "Yes":
                 # إيقاف التحميل وإعادة تعيين حالة التطبيق
@@ -1107,28 +1131,24 @@ class YouTubeDownloaderApp:
                         "This video is private or requires login.\nPlease select a cookies file to continue."
                     ),
                     icon="warning",
-                    option_1="Cancel",
-                    option_2="Select File"
+                    option_1=self.lang.get("cancel", "Cancel"),
+                    option_2=self.lang.get("select_file", "Select File")
                 ).get()
 
-                
-                    
-                if response == "Select File": # إذا اختار المستخدم تحديد ملف
-                    # the dialog must run on the main thread; use Event to wait
+                if response == self.lang.get("select_file", "Select File"):
                     file_event = threading.Event()
                     result = {"path": None}
 
                     def choose_file():
-                        
                         result["path"] = CTkFileDialog.askopenfilename(
-                                autocomplete=True,
-                                style='Mini',
-                                title="Select your cookies.txt file",
-                                initial_dir=HOME,
-                                filetypes=[("Text files", "*.txt")]
-                            )
+                            autocomplete=True,
+                            style='Mini',
+                            title=self.lang.get("select_cookies_file_dialog", "Select your cookies.txt file"),
+                            initial_dir=HOME,
+                            filetypes=[("Text files", "*.txt")]
+                        )
                         file_event.set()
-                        
+
                     self.root.after(0, choose_file)
                     file_event.wait()
                     selected_file = result.get("path")
