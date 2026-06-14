@@ -918,6 +918,14 @@ class YouTubeDownloaderApp:
                 message=self.lang.get("please_install_Aria2c", "Please install Aria2."), 
                 icon="warning", option_1="Cancel", option_2="Retry"
             )
+        # تنبيه المستخدم اذا اختار إغلاق الحاسوب بعد التحميل دون اختيار إغلاق التطبيق
+        elif self.shutdown_after_download.get() and not self.close_after_download.get():
+             # إظهار تحذير إذا اختار المستخدم إغلاق الحاسوب بعد التحميل دون اختيار إغلاق التطبيق
+             CTkMessagebox(
+                title=self.lang.get("warning", "Warning"), 
+                message=self.lang.get("shutdown_without_closing", "You have selected to shutdown the computer after download without selecting to close the application. This may cause the computer to shutdown while the application is still running. Do you want to proceed?"), 
+                icon="warning", option_1="Cancel", option_2="Proceed"
+            )
         else:    
             # تعطيل زر التحميل وتفعيل زر الإيقاف أثناء عملية التحميل
             self.download_button.configure(state="disabled")
@@ -944,9 +952,9 @@ class YouTubeDownloaderApp:
             self.stop_button.configure(state="disabled")
             self.is_downloading = False
             if self.shutdown_after_download.get():
-                self.root.after(1000, self.shutdown_computer)  # إغلاق الحاسوب بعد 1 ثانية
+                self.root.after(60000, self.shutdown_computer)  # إغلاق الحاسوب بعد 60 ثانية
             elif self.close_after_download.get():
-                self.root.after(1000, self.root.destroy)  # إغلاق التطبيق بعد 1 ثانية  
+                self.root.after(60000, self.root.destroy)  # إغلاق التطبيق بعد 60 ثانية  
     # دالة لإغلاق الحاسوب بعد اكتمال التحميل
     def shutdown_computer(self):
         """
