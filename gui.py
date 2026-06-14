@@ -107,17 +107,17 @@ class YouTubeDownloaderApp:
         self.cookiefile_dir = "\U0001F36A" # مسار ملف cookies 
         self.current_download_thread = None  # خيط التنزيل الحالي
         self.is_downloading = False  # مؤشر على حالة التنزيل
-    
+        self.warning_shutdown = None  # حالة رسالة التحذير لإغلاق الحاسوب بعد التحميل
+
         # إنشاء عناصر واجهة المستخدم
         self.create_widgets()
 
-        # تحديت التيم تلقائيا 
-        self.sync_appearance()
+        # Bind close window event to custom handler
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
-    # دالة ارسال اشعار بانهاء التحميل في windows
     def notification(self):
         system = platform.system()
-        
+
         if system == "Windows":
             from winotify import Notification # Notifications حقيقية ديال Windows pip install winotify
             def show():
@@ -918,38 +918,57 @@ class YouTubeDownloaderApp:
                 icon="cancel"
             )
         # التحقق من تثبيت Aria2c إذا اختار المستخدم استخدامه
-        elif self.aria2c.get() == True  and not aria2c:
-             # إظهار خطأ إذا لم يتم تثبيت Aria2c
-             CTkMessagebox(
-                title=self.lang.get("Warning Message!", "Error"), 
-                message=self.lang.get("please_install_Aria2c", "Please install Aria2."), 
-                icon="warning", option_1="Cancel", option_2="Retry"
+        elif self.aria2c.get() == True and not aria2c:
+            # إظهار خطأ إذا لم يتم تثبيت Aria2c
+            CTkMessagebox(
+                title=self.lang.get("Warning Message!", "Error"),
+                message=self.lang.get("please_install_Aria2c", "Please install Aria2."),
+                icon="warning",
+                option_1="Cancel",
+                option_2="Retry"
             )
+            return
+
         # تنبيه المستخدم اذا اختار إغلاق الحاسوب بعد التحميل دون اختيار إغلاق التطبيق
-        elif self.shutdown_after_download.get():
+        if self.shutdown_after_download.get():
             # إظهار تحذير إذا اختار المستخدم إغلاق الحاسوب بعد التحميل دون اختيار إغلاق التطبيق
             self.warning_shutdown = CTkMessagebox(
-                title=self.lang.get("warning", "Warning"), 
-                message=self.lang.get("shutdown_without_closing", "You have selected to shutdown the computer after download without selecting to close the application. This may cause the computer to shutdown while the application is still running. Do you want to proceed?"), 
-                icon="warning", option_1="Cancel", option_2="Proceed"
-            )   
-        if self.warning_shutdown.get() == "Cancel":
-            return  # إلغاء عملية التحميل إذا اختار المستخدم "إلغاء"   
+                title=self.lang.get("warning", "Warning"),
+                message=self.lang.get("shutdown_without_closing", "You have selected to shutdown the computer after download without selecting to close the application. This may cause the computer to shutdown while the application is still running. Do you want to proceed?"),
+                icon="warning",
+                option_1="Cancel",
+                option_2="Proceed"
+            )
+            if self.warning_shutdown.get() == "Cancel":
+                return  # إلغاء عملية التحميل إذا اختار المستخدم "إلغاء"
+
+        # تعطيل زر التحميل وتفعيل زر الإيقاف أثناء عملية التحميل
+        self.download_button.configure(state="disabled")
+        self.stop_button.configure(state="normal")
+        self.is_downloading = True
+
+        # عرض حالة التحميل الأولية
+        self.status_label.configure(text=self.lang.get("fetching_info", "Fetching videos info..."))
+
+        # بدء خيط جديد للتحميل لمنع تجميد واجهة المستخدم
+        self.current_download_thread = threading.Thread(target=self.prepare_and_download, args=(url,))
+        self.current_download_thread.daemon = True  # الخيط ينتهي عند إنهاء البرنامج الرئيسي
+        self.current_download_thread.start()
+
+    def on_closing(self):
+        """
+        التعامل مع إغلاق النافذة (مثل الضغط على زر الإغلاق)
+        """
+        if self.is_downloading:
+            # إذا كان هناك عملية تحميل جارية، نطلب تأكيد من المستخدم قبل الإغلاق
+            self.msg = CTkMessagebox(title=self.lang.get("exit_prompt", "Exit?"), message=self.lang.get("ask_to_stop_download_on_exit", "A download is in progress. Are you sure you want to exit?"),
+                            icon="question", option_1=self.lang.get("cancel", "Cancel"), option_2=self.lang.get("no", "No"), option_3=self.lang.get("yes", "Yes"))
+            self.response = self.msg.get() # الحصول على استجابة المستخدم
+            if self.response == "Yes":
+                stop_download() # استدعاء دالة إيقاف التحميل من مكتبة التحميل
+                self.root.destroy() # إغلاق النافذة
         else:
-            
-                # تعطيل زر التحميل وتفعيل زر الإيقاف أثناء عملية التحميل
-                self.download_button.configure(state="disabled")
-                self.stop_button.configure(state="normal")
-                self.is_downloading = True
-                
-                # عرض حالة التحميل الأولية
-                self.status_label.configure(text=self.lang.get("fetching_info", "Fetching videos info..."))
-                
-                # بدء خيط جديد للتحميل لمنع تجميد واجهة المستخدم
-                self.current_download_thread = threading.Thread(target=self.prepare_and_download, args=(url,))
-                self.current_download_thread.daemon = True  # الخيط ينتهي عند إنهاء البرنامج الرئيسي
-                self.current_download_thread.start()
-                
+            self.root.destroy() # إغلاق النافذة إذا لم يكن هناك تحميل جاري             
             
     # دالة للتحقق من حالة خيط التحميل وإعادة تفعيل الواجهة عند الانتهاء
     def check_download_thread(self):
@@ -962,9 +981,9 @@ class YouTubeDownloaderApp:
             self.stop_button.configure(state="disabled")
             self.is_downloading = False
             if self.shutdown_after_download.get():
-                self.root.after(1000, self.shutdown_computer)  # إغلاق الحاسوب بعد 10 ثانية
+                self.root.after(30000, self.shutdown_computer)  # إغلاق الحاسوب بعد 30 ثانية
             elif self.close_after_download.get():
-                self.root.after(1000, self.root.destroy)  # إغلاق التطبيق بعد 10 ثانية  
+                self.root.after(30000, self.root.destroy)  # إغلاق التطبيق بعد 30 ثانية  
     # دالة لإغلاق الحاسوب بعد اكتمال التحميل
     def shutdown_computer(self):
         """
