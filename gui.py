@@ -866,7 +866,8 @@ class YouTubeDownloaderApp:
         # pattern = r'^https?://(www\.)?(youtube|youtu\.be|twitter|instagram|tiktok)'
         # return bool(re.match(pattern, url))
         try:
-            parsed = urllib.parse.urlparse(url)
+            normalized_url = url if "://" in url else f"https://{url}"
+            parsed = urllib.parse.urlparse(normalized_url)
             return parsed.scheme in ("http", "https") and bool(parsed.netloc)
         except Exception:
             return False
@@ -1007,6 +1008,7 @@ class YouTubeDownloaderApp:
             result = get_videos_info(url,cookies_path=self.cookiefile_dir) # استدعاء دالة جلب معلومات الفيديوهات من مكتبة التحميل
             videos = result["videos"] # قائمة الفيديوهات المستخرجة
             playlist_title = result["playlist_title"] # عنوان قائمة التشغيل (إن وجدت)
+            channel_title = result.get("channel_title")
             
             total = len(videos) # العدد الكلي للفيديوهات
             # التحقق من صحة قيمة CRF إذا لم يكن المستخدم قد اختار نسخ الترميز بدون ضغط
@@ -1045,7 +1047,13 @@ class YouTubeDownloaderApp:
                 
                 try:
                     # تحميل الفيديو الحالي
-                    self.download_single_video(video['url'], playlist_title)
+                    playlist_folder = video.get('sub_dir_title') if video.get('item_type') == 'playlist' else playlist_title
+                    if channel_title and playlist_folder:
+                        playlist_folder = os.path.join(channel_title, playlist_folder)
+                    elif channel_title and not playlist_folder:
+                        playlist_folder = channel_title
+
+                    self.download_single_video(video['url'], playlist_folder)
                 except Exception as e:
                     if "Download stopped by user" in str(e):
                         break
