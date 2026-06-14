@@ -759,8 +759,15 @@ class YouTubeDownloaderApp:
     def paste(self):
         try:
             url = self.url_frame.clipboard_get()         # محاولة الحصول على النص من الحافظة
+            # Validate URL format
+            if not url.startswith(('http://', 'https://', 'www.')):
+                CTkMessagebox(title="Invalid", message="Invalid URL format")
+                return
+            self.url_entry.delete(0, ctk.END)
+            self.url_entry.insert("end", url)
         except tk.TclError:
-            return                                       # إذا فشلت (لا يوجد شيء في الحافظة)، لا تفعل شيئًا
+            return
+                                              # إذا فشلت (لا يوجد شيء في الحافظة)، لا تفعل شيئًا
         self.url_entry.delete(0, ctk.END)              # مسح ما بداخل الحقل
         self.url_entry.insert("end", url)             # إدراج النص في نهاية حقل الإدخال
     
@@ -804,9 +811,19 @@ class YouTubeDownloaderApp:
         selected = CTkFileDialog.askdirectory(autocomplete=True,initial_dir=HOME,style='Mini',title="Select Directory") # فتح مربع حوار لاختيار المجلد
         # تحديث مسار الحفظ إذا تم اختيار مجلد
         if selected:
-            self.save_dir = selected
-            # schedule UI update on main thread
-            self.directory_label.configure(text=self.lang.get("directory", "Directory:") + f" {self.save_dir}")
+            try:
+                if not os.path.isdir(selected):
+                    raise ValueError("Not a directory")
+                if not os.access(selected, os.W_OK):
+                    raise ValueError("Directory not writable")
+                # Optional: Prevent selecting root or system dirs
+                if selected in ['/', '/root', 'C:\\', 'C:\\Windows']:
+                    raise ValueError("Invalid directory")
+                self.save_dir = selected
+                # schedule UI update on main thread
+                self.directory_label.configure(text=self.lang.get("directory", "Directory:") + f" {self.save_dir}")
+            except Exception as e:
+                CTkMessagebox(title="Error", message=f"Invalid directory: {e}")
 
     # دالة لفتح مربع حوار لاختيار مجلف cookies
     def select_file(self):
@@ -822,9 +839,18 @@ class YouTubeDownloaderApp:
                                        ) # فتح مربع حوار لاختيار الملف
         # تحديث مسار ملف cookies إذا تم اختيار ملف  
         if selectedfile:
-            self.cookiefile_dir = selectedfile
-            # schedule UI update on main thread
-            self.cookiefile_label.configure(text=self.lang.get("file_path", "File PATH:") + f" {self.cookiefile_dir}")
+            # Validate file
+            try:
+                if not os.path.isfile(selectedfile):
+                    raise ValueError("Not a file")
+                if os.path.getsize(selectedfile) > 5_000_000:  # Max 5MB
+                    raise ValueError("File too large")
+                self.cookiefile_dir = selectedfile
+                # schedule UI update on main thread
+                self.cookiefile_label.configure(text=self.lang.get("file_path", "File PATH:") + f" {self.cookiefile_dir}")
+
+            except Exception as e:
+                CTkMessagebox(title="Error", message=f"Invalid file: {e}")
 
     # دالة لبدء عملية تحميل الفيديو أو قائمة التشغيل
     def start_download(self):
