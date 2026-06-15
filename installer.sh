@@ -14,17 +14,6 @@ NC='\033[0m'
 
 echo -e "${BLUE}=== Starting Media Downloader installation ===${NC}"
 
-# 1. Ensure script is run with sudo/root to install system packages
-if [ "$EUID" -ne 0 ]; then
-    echo -e "${RED}[ ERROR ] Please run the script as root (sudo ./installer.sh)${NC}"
-    exit 1
-fi
-
-# Determine the real user to avoid permission issues with Python files and venv
-REAL_USER=${SUDO_USER:-$USER}
-USER_HOME=$(eval echo ~$REAL_USER)
-CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
 print_usage() {
     cat <<EOF
 Usage: sudo ./installer.sh [OPTIONS]
@@ -46,6 +35,19 @@ if [[ "$1" == "-h" || "$1" == "--help" || "$1" == "help" ]]; then
     print_usage
     exit 0
 fi
+
+# 1. Ensure script is run with sudo/root to install system packages
+if [ "$EUID" -ne 0 ]; then
+    echo -e "${RED}[ ERROR ] Please run the script as root (sudo ./installer.sh)${NC}"
+    exit 1
+fi
+
+# Determine the real user to avoid permission issues with Python files and venv
+REAL_USER=${SUDO_USER:-$USER}
+USER_HOME=$(eval echo ~$REAL_USER)
+CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+
 
 # Uninstall support
 if [[ "$1" == "uninstall" || "$1" == "--uninstall" ]]; then
