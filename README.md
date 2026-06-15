@@ -20,6 +20,7 @@ A graphical application for downloading videos and audio from YouTube and other 
 - Supports **Aria2c** as external downloader for faster downloads
 - Cookies file support for private/protected videos
 - Export cookies from browser use [Get cookies LOCALLY](https://chromewebstore.google.com/detail/cclelndahbckbenkjhflpdbgdldlbecc?utm_source=item-share-cb)
+- **Drag-and-drop URL support** - Simply drag URLs into the input field
 - Context menu for URL input (cut, paste, clear)
 - Notification on download completion
 - Automatic update checker for dependencies
@@ -226,6 +227,7 @@ pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset
 - دعم التحميل السريع عبر **Aria2c**
 - دعم ملفات الكوكيز للفيديوهات الخاصة أو المحمية 
 - لإستخراج ملف الكوكيز من المتصفح استخدم [Get cookies LOCALLY](https://chromewebstore.google.com/detail/cclelndahbckbenkjhflpdbgdldlbecc?utm_source=item-share-cb)
+- **دعم السحب والإفلات للروابط** - يمكنك ببساطة سحب الروابط إلى حقل الإدخال
 - قائمة سياق لحقل الرابط (قص، لصق، مسح)
 - إشعارات عند اكتمال التحميل
 - فاحص تحديثات تلقائي للاعتماديات
