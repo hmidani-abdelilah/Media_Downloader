@@ -1071,56 +1071,100 @@ class YouTubeDownloaderApp:
             elif self.close_after_download.get():
                 self.root.after(30000, self.root.destroy)  # إغلاق التطبيق بعد 30 ثانية  
     # دالة لإغلاق الحاسوب بعد اكتمال التحميل
+     # دالة لإغلاق الحاسوب بعد اكتمال التحميل
     def shutdown_computer(self):
         """
-        إغلاق الحاسوب بعد اكتمال التحميل
-            - يتم التحقق مرة أخرى من أن المستخدم لا يزال يريد إغلاق الحاسوب بعد اكتمال التحميل، وذلك من خلال إظهار رسالة تأكيد ثانية قبل تنفيذ أمر إغلاق الحاسوب، مما يمنح المستخدم فرصة لإلغاء عملية إغلاق الحاسوب إذا كان لا يزال بحاجة إلى استخدامه أو إذا لم يكن مستعدًا لإغلاقه في تلك اللحظة.
-            - يتم تنفيذ أمر إغلاق الحاسوب بناءً على نظام التشغيل المستخدم (Windows, macOS, Linux)، مع التعامل مع أي استثناءات قد تحدث أثناء محاولة إغلاق الحاسوب وعرض رسالة خطأ مناسبة للمستخدم إذا فشل الأمر.
-            - لا يتم فرض إغلاق الحاسوب بشكل مباشر بعد اكتمال التحميل، بل يتم الانتظار لمدة 30 ثانية قبل محاولة إغلاق الحاسوب، مما يمنح المستخدم وقتًا كافيًا لإنهاء أي مهام أخرى أو حفظ عمله قبل أن يتم إغلاق الحاسوب.
-            - يتم أيضًا تضمين خطوة للتحقق من وجود أي عمليات تحميل جارية قبل محاولة إغلاق الحاسوب، بحيث لا يتم إغلاق الحاسوب أثناء وجود عمليات تحميل غير مستقرة في الخلفية، مما يساعد في تجنب فقدان البيانات أو حدوث أخطاء أثناء عملية الإغلاق.
-            - في حالة فشل أمر إغلاق الحاسوب (مثل عدم وجود صلاحيات كافية أو مشاكل في النظام)، يتم عرض رسالة خطأ للمستخدم بدلاً من محاولة إعادة المحاولة تلقائيًا، مما يسمح له بفهم المشكلة واتخاذ الإجراءات اللازمة لحلها.
-            - لا يتم استخدام أوامر إغلاق حاسوب متقدمة أو معقدة، بل يتم الاعتماد على الأوامر الأساسية المتاحة في كل نظام تشغيل لضمان أقصى قدر من التوافق والاستقرار أثناء عملية الإغلاق.
-            - يتم التعامل مع عملية إغلاق الحاسوب كخطوة نهائية بعد اكتمال التحميل، ولا يتم تنفيذ أي إجراءات أخرى بعد محاولة إغلاق الحاسوب، سواء نجحت العملية أم لا، للحفاظ على بساطة تدفق التطبيق وتركيز المستخدم على النتيجة النهائية لعملية التحميل والإغلاق.
-            - في النهاية، يتم التأكد من أن التطبيق لا يزال مستجيبًا أثناء عملية الإغلاق وأنه لا يتسبب في تجميد النظام أو حدوث سلوك غير متوقع أثناء محاولة إغلاق الحاسوب.
-            - يتم أيضًا تضمين خيار للمستخدم لإلغاء عملية إغلاق الحاسوب إذا اختار ذلك في رسالة التأكيد، مما يمنحه السيطرة الكاملة على عملية الإغلاق ويمنع أي إغلاق غير مرغوب فيه في حالة وجود أي ظروف غير متوقعة بعد اكتمال التحميل.
+        إغلاق الحاسوب بعد اكتمال التحميل مع عداد تنازلي 30 ثانية (بدون تجميد)
         """
-        # Don't shutdown while a download is still in progress
+        # عدم الإغلاق إذا كان التحميل مستمراً
         if self.is_downloading:
             return
         
-        # إظهار رسالة تأكيد للمستخدم قبل إغلاق الحاسوب
-        #self.shutdown_msg = CTkMessagebox(
-        #    title=self.lang.get("shutdown", "Shutdown"), 
-        #    message=self.lang.get("confirm_shutdown", "Are you sure you want to shutdown the computer?"),
-        #    icon="question", option_1=self.lang.get("cancel", "Cancel"), option_2=self.lang.get("no", "No"), option_3=self.lang.get("yes", "Yes")   
-        #)
-        #self.shutdown_response = self.shutdown_msg.get() # الحصول على استجابة المستخدم
-        #if self.shutdown_response != "Yes":
-        #    return  # إلغاء عملية إغلاق الحاسوب إذا لم يوافق المستخدم   
+        if not self.shutdown_after_download.get():
+            return
         
-        # تنفيذ أمر إغلاق الحاسوب بناءً على نظام التشغيل
+        # إعداد متغير العداد
+        self.shutdown_counter = 30
         
-        # اضافة تنبيه مع امكانية اقاف العملية وعداد تنازلي 30 تانية قبل إغلاق الحاسوب، مع عرض رسالة للمستخدم توضح أن الحاسوب سيغلق بعد 30 ثانية وأنه يمكنه إلغاء العملية إذا رغب في ذلك، مما يمنحه فرصة لإيقاف إغلاق الحاسوب إذا كان لا يزال بحاجة إلى استخدامه أو إذا لم يكن مستعدًا لإغلاقه في تلك اللحظة.
-        if self.shutdown_after_download.get():
-            self.shutdown_warning = CTkMessagebox(
-                title=self.lang.get("shutdown", "Shutdown"), 
-                message=self.lang.get("shutdown_countdown", "The computer will shutdown in 30 seconds. Do you want to cancel the shutdown?"),
-                icon="warning",
-                option_1=self.lang.get("cancel_shutdown", "Cancel Shutdown"),
-                option_2=self.lang.get("proceed_shutdown", "Proceed with Shutdown")
-            )
-            if self.shutdown_warning.get() == "Cancel Shutdown":
-                return  # إلغاء عملية إغلاق الحاسوب إذا اختار المستخدم "إلغاء إغلاق الحاسوب"
+        # إنشاء نافذة مخصصة للعد التنازلي لتفادي مشاكل الحظر
+        self.shutdown_win = ctk.CTkToplevel(self.root)
+        self.shutdown_win.title(self.lang.get("shutdown", "Shutdown"))
+        self.shutdown_win.geometry("420x180")
+        self.shutdown_win.resizable(False, False)
+        self.shutdown_win.transient(self.root)  # جعلها تابعة للنافذة الرئيسية
+        self.shutdown_win.grab_set()            # حظر التفاعل مع الواجهة الخلفية مؤقتاً
+        
+        # توسيط النافذة في منتصف البرنامج تماماً
+        self.shutdown_win.update_idletasks()
+        x = self.root.winfo_x() + (self.root.winfo_width() // 2) - 210
+        y = self.root.winfo_y() + (self.root.winfo_height() // 2) - 90
+        self.shutdown_win.geometry(f"+{x}+{y}")
+        
+        # نص العداد التنازلي الحركي
+        message_text = self.lang.get("shutdown_countdown", "The computer will shutdown in {0} seconds. Do you want to cancel the shutdown?").format(self.shutdown_counter)
+        self.countdown_label = ctk.CTkLabel(
+            self.shutdown_win, 
+            text=message_text, 
+            font=("Arial", 13, "bold"),
+            wraplength=380
+        )
+        self.countdown_label.pack(pady=30, padx=20)
+        
+        # إطار الأزرار سفلي
+        btn_frame = ctk.CTkFrame(self.shutdown_win, fg_color="transparent")
+        btn_frame.pack(pady=5)
+        
+        # دالة إلغاء الإغلاق
+        def cancel_action():
+            self.shutdown_win.destroy()
+            
+        # دالة الإغلاق الفوري
+        def proceed_action():
+            self.shutdown_win.destroy()
+            self.execute_shutdown()
+            
+        # زر إلغاء الإغلاق (أحمر)
+        btn_cancel = ctk.CTkButton(
+            btn_frame, 
+            text=self.lang.get("cancel_shutdown", "Cancel Shutdown"), 
+            command=cancel_action,
+            fg_color="#d32f2f", 
+            hover_color="#b71c1c"
+        )
+        btn_cancel.grid(row=0, column=0, padx=10)
+        
+        # زر الإغلاق الفوري
+        btn_proceed = ctk.CTkButton(
+            btn_frame, 
+            text=self.lang.get("proceed_shutdown", "Proceed with Shutdown"), 
+            command=proceed_action
+        )
+        btn_proceed.grid(row=0, column=1, padx=10)
+        
+        # عند إغلاق النافذة من زر X يعتبر إلغاء
+        self.shutdown_win.protocol("WM_DELETE_WINDOW", cancel_action)
+        
+        # دالة التحديث الدوري للعداد في الخلفية
+        def update_countdown():
+            # التحقق أن النافذة قائمة ولم يتم إلغاؤها
+            if not self.shutdown_win.winfo_exists():
+                return 
+                
+            if self.shutdown_counter > 0:
+                self.shutdown_counter -= 1
+                new_msg = self.lang.get("shutdown_countdown", "The computer will shutdown in {0} seconds. Do you want to cancel the shutdown?").format(self.shutdown_counter)
+                self.countdown_label.configure(text=new_msg)
+                
+                # جدولة النبضة التالية بعد ثانية
+                self.shutdown_win.after(1000, update_countdown)
+            else:
+                # انتهاء الوقت وتنفيذ الإغلاق تلقائياً
+                self.shutdown_win.destroy()
+                self.execute_shutdown()
+                
+        # بدء تشغيل العداد التنازلي
+        self.shutdown_win.after(1000, update_countdown)
 
-        # تنفيذ أمر إغلاق الحاسوب بناءً على نظام التشغيل
-        if sys.platform == "win32":
-            #CTkMessagebox(title=self.lang.get("shutdown", "Shutdown"), message=self.lang.get("shutting_down", "Shutting down the computer..."), icon="info")        
-            os.system("shutdown /s /t 1")  # Windows shutdown
-        elif sys.platform == "darwin":
-            os.system("sudo shutdown -h now")  # macOS shutdown (may require privileges)
-        else:
-            os.system("shutdown -h now")  # Linux shutdown (may require privileges)
-          
 
     # دالة لإيقاف عملية التحميل الحالية
     def stop_current_download(self):
