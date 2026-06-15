@@ -4,6 +4,7 @@ CTkMenuBar
 yt-dlp
 aria2
 CTKFileDialog-plus
+tkinterdnd2
 #ffmpeg-python
 winotify
 desktop-notifier

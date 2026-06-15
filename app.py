@@ -4,6 +4,12 @@ import os  # استيراد مكتبة التعامل مع نظام الملفا
 # -*- coding: utf-8 -*-
 import sys
 import io
+from tkinterdnd2 import TkinterDnD
+
+class DnDCTk(ctk.CTk, TkinterDnD.DnDWrapper):
+    def __init__(self, *args, **kwargs):
+        ctk.CTk.__init__(self, *args, **kwargs)
+        self.TkdndVersion = TkinterDnD._require(self)
 
 # Set UTF-8 encoding for stdout and stderr
 if sys.stdout.encoding != 'utf-8':
@@ -41,8 +47,8 @@ def main():
     ctk.set_appearance_mode("System")  # استخدام مظهر النظام (فاتح أو داكن حسب إعدادات النظام)
     ctk.set_default_color_theme("blue")  # تعيين سمة اللون الأزرق للتطبيق
     
-    # إنشاء النافذة الرئيسية للتطبيق
-    app = ctk.CTk()  # إنشاء كائن الإطار الرئيسي
+    # إنشاء النافذة الرئيسية للتطبيق باستخدام CTk مع دعم TkinterDnD
+    app = DnDCTk()  # إنشاء كائن الإطار الرئيسي المدعوم من CustomTkinter وTkinterDnD
     
     # تحديد أبعاد النافذة الافتراضية
     width = 1150  # عرض النافذة بالبكسل
