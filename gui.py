@@ -1072,35 +1072,33 @@ class YouTubeDownloaderApp:
                 self.root.after(30000, self.root.destroy)  # إغلاق التطبيق بعد 30 ثانية  
     # دالة لإغلاق الحاسوب بعد اكتمال التحميل
      # دالة لإغلاق الحاسوب بعد اكتمال التحميل
+    # دالة لإغلاق الحاسوب بعد اكتمال التحميل
     def shutdown_computer(self):
         """
         إغلاق الحاسوب بعد اكتمال التحميل مع عداد تنازلي 30 ثانية (بدون تجميد)
         """
-        # عدم الإغلاق إذا كان التحميل مستمراً
         if self.is_downloading:
             return
         
         if not self.shutdown_after_download.get():
             return
         
-        # إعداد متغير العداد
         self.shutdown_counter = 30
         
-        # إنشاء نافذة مخصصة للعد التنازلي لتفادي مشاكل الحظر
+        # إنشاء نافذة مخصصة للعد التنازلي
         self.shutdown_win = ctk.CTkToplevel(self.root)
         self.shutdown_win.title(self.lang.get("shutdown", "Shutdown"))
         self.shutdown_win.geometry("420x180")
         self.shutdown_win.resizable(False, False)
-        self.shutdown_win.transient(self.root)  # جعلها تابعة للنافذة الرئيسية
-        self.shutdown_win.grab_set()            # حظر التفاعل مع الواجهة الخلفية مؤقتاً
+        self.shutdown_win.transient(self.root)  
+        self.shutdown_win.grab_set()            
         
-        # توسيط النافذة في منتصف البرنامج تماماً
+        # توسيط النافذة
         self.shutdown_win.update_idletasks()
         x = self.root.winfo_x() + (self.root.winfo_width() // 2) - 210
         y = self.root.winfo_y() + (self.root.winfo_height() // 2) - 90
         self.shutdown_win.geometry(f"+{x}+{y}")
         
-        # نص العداد التنازلي الحركي
         message_text = self.lang.get("shutdown_countdown", "The computer will shutdown in {0} seconds. Do you want to cancel the shutdown?").format(self.shutdown_counter)
         self.countdown_label = ctk.CTkLabel(
             self.shutdown_win, 
@@ -1110,20 +1108,16 @@ class YouTubeDownloaderApp:
         )
         self.countdown_label.pack(pady=30, padx=20)
         
-        # إطار الأزرار سفلي
         btn_frame = ctk.CTkFrame(self.shutdown_win, fg_color="transparent")
         btn_frame.pack(pady=5)
         
-        # دالة إلغاء الإغلاق
         def cancel_action():
             self.shutdown_win.destroy()
             
-        # دالة الإغلاق الفوري
         def proceed_action():
             self.shutdown_win.destroy()
-            self.execute_shutdown()
+            self.execute_shutdown()  # استدعاء دالة الإغلاق
             
-        # زر إلغاء الإغلاق (أحمر)
         btn_cancel = ctk.CTkButton(
             btn_frame, 
             text=self.lang.get("cancel_shutdown", "Cancel Shutdown"), 
@@ -1133,7 +1127,6 @@ class YouTubeDownloaderApp:
         )
         btn_cancel.grid(row=0, column=0, padx=10)
         
-        # زر الإغلاق الفوري
         btn_proceed = ctk.CTkButton(
             btn_frame, 
             text=self.lang.get("proceed_shutdown", "Proceed with Shutdown"), 
@@ -1141,12 +1134,9 @@ class YouTubeDownloaderApp:
         )
         btn_proceed.grid(row=0, column=1, padx=10)
         
-        # عند إغلاق النافذة من زر X يعتبر إلغاء
         self.shutdown_win.protocol("WM_DELETE_WINDOW", cancel_action)
         
-        # دالة التحديث الدوري للعداد في الخلفية
         def update_countdown():
-            # التحقق أن النافذة قائمة ولم يتم إلغاؤها
             if not self.shutdown_win.winfo_exists():
                 return 
                 
@@ -1154,16 +1144,33 @@ class YouTubeDownloaderApp:
                 self.shutdown_counter -= 1
                 new_msg = self.lang.get("shutdown_countdown", "The computer will shutdown in {0} seconds. Do you want to cancel the shutdown?").format(self.shutdown_counter)
                 self.countdown_label.configure(text=new_msg)
-                
-                # جدولة النبضة التالية بعد ثانية
                 self.shutdown_win.after(1000, update_countdown)
             else:
-                # انتهاء الوقت وتنفيذ الإغلاق تلقائياً
                 self.shutdown_win.destroy()
-                self.execute_shutdown()
+                self.execute_shutdown()  # استدعاء دالة الإغلاق عند انتهاء الوقت
                 
-        # بدء تشغيل العداد التنازلي
         self.shutdown_win.after(1000, update_countdown)
+
+    # دالة لتنفيذ أمر إغلاق الحاسوب (تأكد أنها تبدأ بنفس مستوى محاذاة الدالة السابقة)
+    def execute_shutdown(self):
+        """
+        تنفيذ أمر إغلاق الحاسوب بناءً على نظام التشغيل
+        """
+        try:
+            if sys.platform == "win32":
+                os.system("shutdown /s /t 1")  
+            elif sys.platform == "darwin":
+                os.system("sudo shutdown -h now")  
+            else:
+                os.system("shutdown -h now")  
+        except Exception as e:
+            # استيراد محلي لتفادي أي مشاكل
+            from CTkMessagebox import CTkMessagebox
+            CTkMessagebox(
+                title=self.lang.get("error", "Error"),
+                message=f"{self.lang.get('shutdown_error', 'Failed to shutdown the computer:')} {str(e)}",
+                icon="cancel"
+            )
 
 
     # دالة لإيقاف عملية التحميل الحالية
