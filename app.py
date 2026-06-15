@@ -2,22 +2,26 @@ import customtkinter as ctk  # استيراد مكتبة واجهة المستخ
 from gui import YouTubeDownloaderApp  # استيراد فئة التطبيق الرئيسية من وحدة gui
 import os  # استيراد مكتبة التعامل مع نظام الملفات
 # -*- coding: utf-8 -*-
-import sys
-import io
-from tkinterdnd2 import TkinterDnD
+import sys # استيراد مكتبة sys للتعامل مع إعدادات الترميز
+import io # استيراد مكتبة io لإعادة توجيه تدفقات الإدخال والإخراج لضمان دعم UTF-8
+from tkinterdnd2 import TkinterDnD # استيراد مكتبة TkinterDnD لدعم السحب والإفلات في واجهة المستخدم
 
+# إنشاء فئة DnDCTk التي ترث من ctk.CTk و TkinterDnD.DnDWrapper لتمكين دعم السحب والإفلات في واجهة المستخدم
 class DnDCTk(ctk.CTk, TkinterDnD.DnDWrapper):
     def __init__(self, *args, **kwargs):
         ctk.CTk.__init__(self, *args, **kwargs)
+        # تحميل امتداد TkinterDnD لتمكين دعم السحب والإفلات في التطبيق
         self.TkdndVersion = TkinterDnD._require(self)
 
 # Set UTF-8 encoding for stdout and stderr
+# لضمان أن يتم التعامل مع النصوص العربية بشكل صحيح في واجهة المستخدم وفي ملفات اللغة، تأكد من أن جميع ملفات اللغة (مثل en.json, ar.json, fr.json) محفوظة بترميز UTF-8. هذا يضمن أن الأحرف العربية ستظهر بشكل صحيح في التطبيق دون مشاكل ترميز.
 if sys.stdout.encoding != 'utf-8':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 if sys.stderr.encoding != 'utf-8':
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 # لضمان أن يتم التعامل مع النصوص العربية بشكل صحيح في واجهة المستخدم وفي ملفات اللغة، تأكد من أن جميع ملفات اللغة (مثل en.json, ar.json, fr.json) محفوظة بترميز UTF-8. هذا يضمن أن الأحرف العربية ستظهر بشكل صحيح في التطبيق دون مشاكل ترميز.
 
+# تأكد من أن جميع ملفات اللغة (مثل en.json, ar.json, fr.json) محفوظة بترميز UTF-8 لضمان دعم الأحرف العربية بشكل صحيح في التطبيق
 def check_required_directories():
     """
     التأكد من وجود المجلدات المطلوبة للتطبيق وإنشائها إذا لم تكن موجودة
@@ -30,6 +34,7 @@ def check_required_directories():
         pass
         #os.makedirs("languages")  # إنشاء المجلد إذا لم يكن موجوداً
 
+# الدالة الرئيسية للتطبيق التي تقوم بتهيئة النافذة الرئيسية وبدء تشغيل التطبيق
 def main():
     """
     الدالة الرئيسية للتطبيق التي تقوم بتهيئة النافذة الرئيسية وبدء تشغيل التطبيق
