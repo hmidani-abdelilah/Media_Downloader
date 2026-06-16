@@ -287,6 +287,7 @@ class YouTubeDownloaderApp:
         query_params = urllib.parse.parse_qs(parsed_url.query)
         
         # Check if 'list' is one of the URL parameters
+        # فحص ما إذا كانت معلمة 'list' موجودة في الرابط، مما يشير إلى أن الرابط يحتوي على قائمة تشغيل، وفي هذه الحالة يتم تقديم خيار للمستخدم لاختيار ما يريد تحميله (فيديو واحد أو قائمة تشغيل كاملة) بناءً على وجود هذه المعلمة في الرابط.
         if 'list' in query_params:
             # Prompt the user with CTkMessagebox
             msg = CTkMessagebox(
@@ -314,6 +315,7 @@ class YouTubeDownloaderApp:
                 # Extract just the playlist ID and build a clean playlist link
                 #playlist_id = query_params['list'][0]
                 #return f"https://www.youtube.com/playlist?list={playlist_id}"
+                # في حالة اختيار المستخدم تحميل قائمة التشغيل كاملة، يتم استخراج معرف قائمة التشغيل من الرابط وبناء رابط نظيف يشير مباشرة إلى قائمة التشغيل بدلاً من الفيديو الفردي، مما يضمن أن عملية التحميل ستشمل جميع الفيديوهات الموجودة في تلك القائمة.
                 return url
                 
             else:
@@ -321,6 +323,7 @@ class YouTubeDownloaderApp:
                 return None
 
         # If it's just a normal video without a playlist, return the original URL
+        # إذا كان الرابط يشير إلى فيديو عادي بدون قائمة تشغيل، يتم إرجاع الرابط الأصلي كما هو دون أي تعديل، مما يسمح للمستخدم بتحميل الفيديو الفردي مباشرة إذا لم يكن هناك قائمة تشغيل مرتبطة بالرابط.
         return url
 
     # دالة لإنشاء عناصر واجهة المستخدم الرسومية 
@@ -1154,6 +1157,7 @@ class YouTubeDownloaderApp:
         y = self.root.winfo_y() + (self.root.winfo_height() // 2) - 90
         self.shutdown_win.geometry(f"+{x}+{y}")
         
+        # عرض رسالة العد التنازلي مع تحديثها كل ثانية
         message_text = self.lang.get("shutdown_countdown", "The computer will shutdown in {0} seconds. Do you want to cancel the shutdown?").format(self.shutdown_counter)
         self.countdown_label = ctk.CTkLabel(
             self.shutdown_win, 
@@ -1162,17 +1166,20 @@ class YouTubeDownloaderApp:
             wraplength=380
         )
         self.countdown_label.pack(pady=30, padx=20)
-        
+
+        # إنشاء إطار للأزرار أسفل رسالة العد التنازلي
         btn_frame = ctk.CTkFrame(self.shutdown_win, fg_color="transparent")
         btn_frame.pack(pady=5)
         
+        # زر لإلغاء إغلاق الحاسوب وزر للموافقة على إغلاق الحاسوب، مع تحديث رسالة العد التنازلي كل ثانية دون تجميد الواجهة، وإغلاق النافذة إذا اختار المستخدم إلغاء الإغلاق أو عند انتهاء العد التنازلي والموافقة على إغلاق الحاسوب.
         def cancel_action():
             self.shutdown_win.destroy()
-            
+
+        # دالة للموافقة على إغلاق الحاسوب، حيث يتم إغلاق النافذة واستدعاء دالة إغلاق الحاسوب عند انتهاء العد التنازلي أو إذا اختار المستخدم الموافقة على إغلاق الحاسوب.    
         def proceed_action():
             self.shutdown_win.destroy()
             self.execute_shutdown()  # استدعاء دالة الإغلاق
-            
+        # إنشاء زر لإلغاء إغلاق الحاسوب مع لون أحمر لتمييزه كخيار إلغاء، وزر للموافقة على إغلاق الحاسوب، مع تحديث رسالة العد التنازلي كل ثانية دون تجميد الواجهة، وإغلاق النافذة إذا اختار المستخدم إلغاء الإغلاق أو عند انتهاء العد التنازلي والموافقة على إغلاق الحاسوب.    
         btn_cancel = ctk.CTkButton(
             btn_frame, 
             text=self.lang.get("cancel_shutdown", "Cancel Shutdown"), 
@@ -1182,6 +1189,7 @@ class YouTubeDownloaderApp:
         )
         btn_cancel.grid(row=0, column=0, padx=10)
         
+        # إنشاء زر للموافقة على إغلاق الحاسوب
         btn_proceed = ctk.CTkButton(
             btn_frame, 
             text=self.lang.get("proceed_shutdown", "Proceed with Shutdown"), 
@@ -1189,12 +1197,16 @@ class YouTubeDownloaderApp:
         )
         btn_proceed.grid(row=0, column=1, padx=10)
         
+        # ربط حدث إغلاق النافذة بزر إلغاء إغلاق الحاسوب لضمان أن أي محاولة لإغلاق النافذة (مثل الضغط على زر الإغلاق في شريط العنوان) ستؤدي إلى إلغاء إغلاق الحاسوب بدلاً من السماح بإغلاق النافذة فقط، مما يوفر تجربة مستخدم متسقة ويمنع حدوث أي ارتباك أو أخطاء في حالة محاولة المستخدم إغلاق النافذة بدلاً من استخدام الأزرار المخصصة.
         self.shutdown_win.protocol("WM_DELETE_WINDOW", cancel_action)
         
+        # دالة لتحديث رسالة العد التنازلي كل ثانية دون تجميد الواجهة، وإغلاق النافذة إذا انتهى العد التنازلي أو إذا اختار المستخدم إلغاء الإغلاق.
         def update_countdown():
+            # ان لم توجد النافذة (تم إلغاؤها) لا نفعل شيئًا
             if not self.shutdown_win.winfo_exists():
                 return 
-                
+
+            #  إذا كان العداد لا يزال أكبر من 0، نخفض العداد بمقدار 1 ونحدث رسالة العد التنازلي في واجهة المستخدم، ثم نعيد جدولة التحديث مرة أخرى بعد 1000 ميلي ثانية (1 ثانية) باستخدام after()، مما يسمح للواجهة بالبقاء مستجيبة أثناء العد التنازلي. إذا وصل العداد إلى 0، نغلق النافذة ونستدعي دالة إغلاق الحاسوب لتنفيذ أمر الإغلاق.    
             if self.shutdown_counter > 0:
                 self.shutdown_counter -= 1
                 new_msg = self.lang.get("shutdown_countdown", "The computer will shutdown in {0} seconds. Do you want to cancel the shutdown?").format(self.shutdown_counter)
@@ -1212,6 +1224,7 @@ class YouTubeDownloaderApp:
         تنفيذ أمر إغلاق الحاسوب بناءً على نظام التشغيل
         """
         try:
+            # تنفيذ أمر إغلاق الحاسوب بناءً على نظام التشغيل الحالي، مع التعامل مع أي استثناءات قد تحدث أثناء تنفيذ الأمر وعرض رسالة خطأ مناسبة للمستخدم إذا فشل إغلاق الحاسوب.
             if sys.platform == "win32":
                 os.system("shutdown /s /t 1")  
             elif sys.platform == "darwin":
