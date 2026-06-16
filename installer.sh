@@ -12,7 +12,7 @@ YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-echo -e "${BLUE}=== Starting Media Downloader installation ===${NC}"
+
 
 print_usage() {
     cat <<EOF
@@ -32,6 +32,11 @@ EOF
 }
 
 if [[ "$1" == "-h" || "$1" == "--help" || "$1" == "help" ]]; then
+    echo -e "${BLUE}[ INFO ] Displaying usage information...${NC}"
+    echo
+    echo -e "${BLUE}=== Media Downloader Installer ===${NC}"
+    echo -e "${BLUE}This installer will set up the Media Downloader application by installing necessary system dependencies, creating a Python virtual environment, installing Python packages from requirements.txt, and configuring a desktop shortcut with the appropriate icon.${NC}"
+    echo
     print_usage
     exit 0
 fi
@@ -39,8 +44,11 @@ fi
 # 1. Ensure script is run with sudo/root to install system packages
 if [ "$EUID" -ne 0 ]; then
     echo -e "${RED}[ ERROR ] Please run the script as root (sudo ./installer.sh)${NC}"
+    print_usage
     exit 1
 fi
+
+echo -e "${BLUE}=== Starting Media Downloader installation ===${NC}"
 
 # Determine the real user to avoid permission issues with Python files and venv
 REAL_USER=${SUDO_USER:-$USER}
