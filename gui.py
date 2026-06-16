@@ -268,6 +268,61 @@ class YouTubeDownloaderApp:
             except:
                 return {}  # إرجاع قاموس فارغ في حالة عدم وجود أي ملف لغة
 
+    # دالة لمعالجة روابط يوتيوب واستخراج الرابط المناسب بناءً على ما إذا كانت تحتوي على قائمة تشغيل أم لا، مع تقديم خيار للمستخدم لاختيار ما يريد تحميله (فيديو واحد أو قائمة تشغيل كاملة)
+    def process_youtube_url(self,url):
+        """
+        فحص ما إذا كانت رابط يوتيوب يحتوي على قائمة تشغيل.
+        المستخدم يختار بين تحميل فيدو منفرد او  قائمة تشغيل كاملة
+        ترجع الرابط المطلوب
+
+        المعلمات:
+            url: الرابط المطلوب
+        
+        Checks if a YouTube URL contains a playlist.
+        Prompts the user to choose between downloading the single video or the entire playlist.
+        Returns the appropriate clean URL.
+        """
+        # Parse the provided URL لتحليل الرابط المقدم واستخراج مكوناته المختلفة مثل المسار والمعلمات
+        parsed_url = urllib.parse.urlparse(url)
+        query_params = urllib.parse.parse_qs(parsed_url.query)
+        
+        # Check if 'list' is one of the URL parameters
+        if 'list' in query_params:
+            # Prompt the user with CTkMessagebox
+            msg = CTkMessagebox(
+                title="Playlist Detected", 
+                message="This link contains a playlist. What do you want to download?",
+                icon="question", 
+                option_1="Single Video", 
+                option_2="Entire Playlist",
+                option_3="Cancel"
+            )
+            response = msg.get()
+            
+            if response == "Single Video":
+                # Extract just the video part to ignore the playlist
+                if 'v' in query_params:
+                    video_id = query_params['v'][0]
+                    return f"https://www.youtube.com/watch?v={video_id}"
+                elif "youtu.be" in parsed_url.netloc:
+                    # Handle shortened youtu.be links
+                    return f"https://youtu.be{parsed_url.path}"
+                else:
+                    return url # Fallback
+                    
+            elif response == "Entire Playlist":
+                # Extract just the playlist ID and build a clean playlist link
+                #playlist_id = query_params['list'][0]
+                #return f"https://www.youtube.com/playlist?list={playlist_id}"
+                return url
+                
+            else:
+                # The user pressed Cancel or closed the message box
+                return None
+
+        # If it's just a normal video without a playlist, return the original URL
+        return url
+
     # دالة لإنشاء عناصر واجهة المستخدم الرسومية 
     def create_widgets(self):
         """
@@ -1016,7 +1071,7 @@ class YouTubeDownloaderApp:
             # إذا اختار المستخدم "إلغاء"، يتم إلغاء عملية التحميل والعودة إلى الواجهة الرئيسية دون بدء التحميل أو إغلاق الحاسوب، مما يسمح له بتعديل خياراته أو إعادة النظر في قراره قبل المتابعة.
             if self.warning_shutdown.get() == "Cancel":
                 return  # إلغاء عملية التحميل إذا اختار المستخدم "إلغاء"
-
+        new_url = self.process_youtube_url(url)
         # تعطيل زر التحميل وتفعيل زر الإيقاف أثناء عملية التحميل
         self.download_button.configure(state="disabled")
         self.stop_button.configure(state="normal")
@@ -1026,7 +1081,7 @@ class YouTubeDownloaderApp:
         self.status_label.configure(text=self.lang.get("fetching_info", "Fetching videos info..."))
 
         # بدء خيط جديد للتحميل لمنع تجميد واجهة المستخدم
-        self.current_download_thread = threading.Thread(target=self.prepare_and_download, args=(url,))
+        self.current_download_thread = threading.Thread(target=self.prepare_and_download, args=(new_url,))
         self.current_download_thread.daemon = True  # الخيط ينتهي عند إنهاء البرنامج الرئيسي
         self.current_download_thread.start()
     
