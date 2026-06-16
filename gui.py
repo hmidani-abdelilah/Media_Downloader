@@ -291,16 +291,16 @@ class YouTubeDownloaderApp:
         if 'list' in query_params:
             # Prompt the user with CTkMessagebox
             msg = CTkMessagebox(
-                title="Playlist Detected", 
-                message="This link contains a playlist. What do you want to download?",
+                title=self.lang.get("playlist_detected", "Playlist Detected"), 
+                message=self.lang.get("playlist_detected_msg", "This link contains a playlist. What do you want to download?"),
                 icon="question", 
-                option_1="Single Video", 
-                option_2="Entire Playlist",
-                option_3="Cancel"
+                option_1=self.lang.get("single_video", "Single Video"), 
+                option_2=self.lang.get("entire_playlist", "Entire Playlist"),
+                option_3=self.lang.get("cancel", "Cancel")
             )
             response = msg.get()
             
-            if response == "Single Video":
+            if response == self.lang.get("single_video", "Single Video"):
                 # Extract just the video part to ignore the playlist
                 if 'v' in query_params:
                     video_id = query_params['v'][0]
@@ -311,7 +311,7 @@ class YouTubeDownloaderApp:
                 else:
                     return url # Fallback
                     
-            elif response == "Entire Playlist":
+            elif response == self.lang.get("entire_playlist", "Entire Playlist"):
                 # Extract just the playlist ID and build a clean playlist link
                 #playlist_id = query_params['list'][0]
                 #return f"https://www.youtube.com/playlist?list={playlist_id}"
@@ -1053,11 +1053,11 @@ class YouTubeDownloaderApp:
         elif self.aria2c.get() == True and not aria2c:
             # إظهار خطأ إذا لم يتم تثبيت Aria2c
             CTkMessagebox(
-                title=self.lang.get("Warning Message!", "Error"),
+                title=self.lang.get("warning", "Warning"),
                 message=self.lang.get("please_install_Aria2c", "Please install Aria2."),
                 icon="warning",
-                option_1="Cancel",
-                option_2="Retry"
+                option_1=self.lang.get("cancel", "Cancel"),
+                option_2=self.lang.get("retry", "Retry")
             )
             return
 
@@ -1068,11 +1068,11 @@ class YouTubeDownloaderApp:
                 title=self.lang.get("warning", "Warning"),
                 message=self.lang.get("shutdown_without_closing", "You have selected to shutdown the computer after download without selecting to close the application. This may cause the computer to shutdown while the application is still running. Do you want to proceed?"),
                 icon="warning",
-                option_1="Cancel",
-                option_2="Proceed"
+                option_1=self.lang.get("cancel", "Cancel"),
+                option_2=self.lang.get("proceed", "Proceed")
             )
             # إذا اختار المستخدم "إلغاء"، يتم إلغاء عملية التحميل والعودة إلى الواجهة الرئيسية دون بدء التحميل أو إغلاق الحاسوب، مما يسمح له بتعديل خياراته أو إعادة النظر في قراره قبل المتابعة.
-            if self.warning_shutdown.get() == "Cancel":
+            if self.warning_shutdown.get() == self.lang.get("cancel", "Cancel"):
                 return  # إلغاء عملية التحميل إذا اختار المستخدم "إلغاء"
         new_url = self.process_youtube_url(url)
         # تعطيل زر التحميل وتفعيل زر الإيقاف أثناء عملية التحميل
@@ -1099,7 +1099,7 @@ class YouTubeDownloaderApp:
             self.msg = CTkMessagebox(title=self.lang.get("exit_prompt", "Exit?"), message=self.lang.get("ask_to_stop_download_on_exit", "A download is in progress. Are you sure you want to exit?"),
                             icon="question", option_1=self.lang.get("cancel", "Cancel"), option_2=self.lang.get("no", "No"), option_3=self.lang.get("yes", "Yes"))
             self.response = self.msg.get() # الحصول على استجابة المستخدم
-            if self.response == "Yes":
+            if self.response == self.lang.get("yes", "Yes"):
                 stop_download() # استدعاء دالة إيقاف التحميل من مكتبة التحميل
                 # Wait for the thread to finish (with timeout)
                 # إذا كان الخيط لا يزال يعمل بعد محاولة إيقاف التحميل، ننتظر لفترة قصيرة (مثلاً 2 ثانية) قبل إغلاق النافذة، لضمان أن عملية إيقاف التحميل قد تمت بشكل صحيح وتجنب إغلاق النافذة أثناء وجود عمليات غير مستقرة في الخلفية.   
@@ -1233,7 +1233,6 @@ class YouTubeDownloaderApp:
                 os.system("shutdown -h now")  
         except Exception as e:
             # استيراد محلي لتفادي أي مشاكل
-            from CTkMessagebox import CTkMessagebox
             CTkMessagebox(
                 title=self.lang.get("error", "Error"),
                 message=f"{self.lang.get('shutdown_error', 'Failed to shutdown the computer:')} {str(e)}",
@@ -1252,7 +1251,7 @@ class YouTubeDownloaderApp:
             self.msg = CTkMessagebox(title=self.lang.get("exit_prompt", "Exit?"), message=self.lang.get("ask_to_stop_download", "Are you sure to stop the download?"),
                             icon="question", option_1=self.lang.get("cancel", "Cancel"), option_2=self.lang.get("no", "No"), option_3=self.lang.get("yes", "Yes"))
             self.response = self.msg.get() # الحصول على استجابة المستخدم
-            if self.response == "Yes":
+            if self.response == self.lang.get("yes", "Yes"):
                 # إيقاف التحميل وإعادة تعيين حالة التطبيق
                 stop_download() # استدعاء دالة إيقاف التحميل من مكتبة التحميل
                 self.status_label.configure(text=self.lang.get("download_stopped", "Download stopped."))
@@ -1368,7 +1367,7 @@ class YouTubeDownloaderApp:
                 return
 
             # 👇 الكشف عن الفيديوهات الخاصة أو المحمية
-            elif "Private video" in error_message or "Sign in" in error_message or "cookies" in error_message: # التحقق من وجود رسائل خاصة بالفيديو الخاص أو المحمي
+            elif "Private video" in error_message or "Sign in" in error_message or "cookies" in error_message or "Join" in error_message: # التحقق من وجود رسائل خاصة بالفيديو الخاص أو المحمي
                 # طلب من المستخدم اختيار ملف cookies
                 response = CTkMessagebox(
                     title=self.lang.get("private_video", "Private Video Detected"),
