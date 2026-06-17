@@ -8,3 +8,5 @@ tkinterdnd2
 #ffmpeg-python
 winotify
 desktop-notifier
+arabic-reshaper
+python-bidi
