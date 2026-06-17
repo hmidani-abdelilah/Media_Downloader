@@ -242,6 +242,22 @@ class YouTubeDownloaderApp:
             base_path = os.path.abspath(".")  # في حالة التشغيل العادي
         return os.path.join(base_path, relative_path)    #full_path = os.path.join(base_path, relative_path)
 
+    def reshape_arabic(self, text):
+        """
+        إعادة تشكيل النص العربي ليظهر بشكل صحيح على Linux.
+        Windows يفعل هذا تلقائياً، لكن Tkinter على Linux يحتاجه صريحاً.
+        """
+        if platform.system() == "Linux":
+            try:
+                import arabic_reshaper
+                from bidi.algorithm import get_display
+                reshaped = arabic_reshaper.reshape(text)
+                return get_display(reshaped)
+            except ImportError:
+                pass  # إذا لم تُثبَّت المكتبات، أعد النص كما هو
+        return text
+
+
     # دالة لتحميل ملف اللغة المناسب
     def load_language(self, lang_code):
         """
@@ -252,22 +268,27 @@ class YouTubeDownloaderApp:
             
         الإرجاع:
             قاموس يحتوي على ترجمات النصوص
+            
         """
         try:
-            # فتح ملف اللغة وتحميل البيانات
             with open(self.resource_path(f"languages/{lang_code}.json"), "r", encoding="utf-8") as f:
-                lang_data = json.load(f) # تحميل بيانات اللغة من الملف
-            return lang_data # إرجاع بيانات اللغة
-        except FileNotFoundError:
-            #File not found: languages/{lang_code}.json
-            # استخدام اللغة الإنجليزية كلغة افتراضية في حالة عدم وجود ملف اللغة المطلوبة
-            try:
-                # فتح ملف اللغة الإنجليزية وتحميل البيانات
-                with open(self.resource_path("languages/en.json"), "r", encoding="utf-8") as f:
-                    return json.load(f) # إرجاع بيانات اللغة الإنجليزية
-            except:
-                return {}  # إرجاع قاموس فارغ في حالة عدم وجود أي ملف لغة
+                lang_data = json.load(f)
+            
+            # ✅ إعادة تشكيل النصوص العربية على Linux فقط
+            if lang_code == "ar" and platform.system() == "Linux":
+                lang_data = {
+                    key: self.reshape_arabic(value) if isinstance(value, str) else value
+                    for key, value in lang_data.items()
+                }
+            
+            return lang_data
 
+        except FileNotFoundError:
+            try:
+                with open(self.resource_path("languages/en.json"), "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except:
+                return {}
     # دالة لمعالجة روابط يوتيوب واستخراج الرابط المناسب بناءً على ما إذا كانت تحتوي على قائمة تشغيل أم لا، مع تقديم خيار للمستخدم لاختيار ما يريد تحميله (فيديو واحد أو قائمة تشغيل كاملة)
     def process_youtube_url(self,url):
         """
