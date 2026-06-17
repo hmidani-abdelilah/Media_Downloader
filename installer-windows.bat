@@ -33,10 +33,26 @@ if %errorlevel% neq 0 (
 )
 if %errorlevel% neq 0 (echo Echec pour Python. & pause )
 
+echo Installation ou Mise a jour de git...
+winget upgrade -e --id Git.Git
+if %errorlevel% neq 0 (
+    echo Tentative d'installation de git...
+    winget install -e --id Git.Git
+)
+if %errorlevel% neq 0 (echo Echec pour git. & pause )
+
 echo Rechargement dynamique du PATH...
 for /f "tokens=2*" %%a in ('reg query "HKLM\System\CurrentControlSet\Control\Session Manager\Environment" /v Path') do set "syspath=%%b"
 for /f "tokens=2*" %%a in ('reg query "HKCU\Environment" /v Path') do set "userpath=%%b"
 set "PATH=%syspath%;%userpath%"
+
+echo cloune repository git...
+git clone https://github.com/hmidani-abdelilah/Media_Downloader.git 
+::"%~dp0yourrepository"
+if %errorlevel% neq 0 (echo Echec du clonage du repository git. & pause )
+
+echo enter dans le dossier du projet...
+cd Media_Downloader
 
 echo Mise a jour de pip...
 python -m pip install --upgrade pip
