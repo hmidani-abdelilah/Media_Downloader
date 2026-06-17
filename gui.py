@@ -247,14 +247,13 @@ class YouTubeDownloaderApp:
         إعادة تشكيل النص العربي ليظهر بشكل صحيح على Linux.
         Windows يفعل هذا تلقائياً، لكن Tkinter على Linux يحتاجه صريحاً.
         """
-        if platform.system() == "Linux":
-            try:
-                import arabic_reshaper
-                from bidi.algorithm import get_display
-                reshaped = arabic_reshaper.reshape(text)
-                return get_display(reshaped)
-            except ImportError:
-                pass  # إذا لم تُثبَّت المكتبات، أعد النص كما هو
+        try:
+            import arabic_reshaper
+            from bidi.algorithm import get_display
+            reshaped = arabic_reshaper.reshape(text)
+            return get_display(reshaped)
+        except ImportError:
+            pass  # إذا لم تُثبَّت المكتبات، أعد النص كما هو
         return text
 
 
@@ -275,7 +274,7 @@ class YouTubeDownloaderApp:
                 lang_data = json.load(f)
             
             # ✅ إعادة تشكيل النصوص العربية على Linux فقط
-            if lang_code == "ar" and platform.system() == "Linux":
+            if lang_code == "ar" :
                 lang_data = {
                     key: self.reshape_arabic(value) if isinstance(value, str) else value
                     for key, value in lang_data.items()
