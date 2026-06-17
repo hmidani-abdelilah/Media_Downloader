@@ -56,7 +56,6 @@ USER_HOME=$(eval echo ~$REAL_USER)
 CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 
-
 # Uninstall support
 if [[ "$1" == "uninstall" || "$1" == "--uninstall" ]]; then
     DESKTOP_FILE="/usr/share/applications/media-downloader.desktop"
@@ -145,6 +144,15 @@ install_system_deps() {
             ;;
     esac
 }
+
+# Install system dependencies (Python3, pip, ffmpeg) based on the detected distribution
+if ! command -v python3 &> /dev/null || ! command -v ffmpeg &> /dev/null || ! command -v git &> /dev/null || ! command -v pip &> /dev/null ; then
+    echo -e "${BLUE}[ INSTALL ] Installing system dependencies...${NC}"
+    install_system_deps
+else
+    echo -e "${BLUE}[ INFO ] Required system dependencies (Python3 and pip and ffmpeg and git) are already installed.${NC}"
+fi
+
 #change to current directory
 CURRENT_DIR="$(dirname "${BASH_SOURCE[0]}")"
 
@@ -160,8 +168,6 @@ else
     su - "$REAL_USER" -c "cd $(pwd) && git pull origin main"
 fi
 
-# Install system dependencies (Python3, pip, ffmpeg) based on the detected distribution
-install_system_deps
 
 # 3. Set up the virtual environment and install requirements.txt
 APP_DIR="$(pwd)"
