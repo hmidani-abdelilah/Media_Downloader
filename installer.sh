@@ -216,7 +216,8 @@ Version=1.0
 Type=Application
 Name=Media Downloader
 Comment=Download videos and audio from the internet using CustomTkinter & yt-dlp
-Exec="$VENV_DIR/bin/python3" "$MAIN_SCRIPT"
+Path=$APP_DIR
+Exec=env PYTHONIOENCODING=utf-8 "$VENV_DIR/bin/python3" "$MAIN_SCRIPT"
 Icon=$ICON_PATH
 Terminal=false
 Categories=Network;Utility;
