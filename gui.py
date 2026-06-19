@@ -20,7 +20,7 @@ from PIL import Image, ImageTk # لتضمين أيقونة للتطبيق مهم
 import tkinter as tk  # استيراد مكتبة tkinter لإنشاء قائمة السياق
 from customtkinter import filedialog  # لفتح مربع حوار اختيار الملفات
 import CTkFileDialog  # لفتح مربع حوار اختيار المجلدات
-from CTkFileDialog.Constants import HOME # مسار مجلد المستخدم الافتراضي
+from CTkFileDialog.Constants import DOWNLOAD_DIR # مسار مجلد المستخدم الافتراضي
 from CTkMessagebox import CTkMessagebox  # لعرض رسائل منبثقة للمستخدم 
 from CTkMenuBar import * #  استيراد مكتبة القوائم الافقية 
 from downloader import download_video, get_videos_info, get_gpu_encoders, stop_download # استيراد وظائف التحميل
@@ -61,7 +61,7 @@ class YouTubeDownloaderApp:
         self.root = root # تعيين نافذة الجذر
         self.lang = self.load_language(lang_code) # تحميل ملف اللغة المناسب
         self.lang_code = lang_code # تعيين رمز اللغة الحالي
-        self.save_dir = os.path.expanduser("~")  # مجلد المستخدم الافتراضي كمسار حفظ
+        self.save_dir = DOWNLOAD_DIR  # مجلد المستخدم الافتراضي كمسار حفظ
         self.cookiefile_dir = "\U0001F36A" # مسار ملف cookies 
         self.current_download_thread = None  # خيط التنزيل الحالي
         self.is_downloading = False  # مؤشر على حالة التنزيل
@@ -108,7 +108,7 @@ class YouTubeDownloaderApp:
         # تهيئة متغيرات اللغة والحالة
         self.lang = self.load_language(lang_code) # تحميل ملف اللغة المناسب
         self.lang_code = lang_code # تعيين رمز اللغة الحالي
-        self.save_dir = os.path.expanduser("~")  # مجلد المستخدم الافتراضي كمسار حفظ
+        self.save_dir = DOWNLOAD_DIR  # مجلد المستخدم الافتراضي كمسار حفظ
         self.cookiefile_dir = "\U0001F36A" # مسار ملف cookies 
         self.current_download_thread = None  # خيط التنزيل الحالي
         self.is_downloading = False  # مؤشر على حالة التنزيل
@@ -135,6 +135,8 @@ class YouTubeDownloaderApp:
                     msg="Your video is ready!",
                     icon=icon_path
                 )
+                toast.set_audio("Notification.Default", loop=False)
+                toast.add_actions(label="Open Folder", launch=f"explorer.exe {self.save_dir}")
                 toast.show()
             threading.Thread(target=show).start()
 
@@ -960,7 +962,7 @@ class YouTubeDownloaderApp:
         """
         فتح مربع حوار لاختيار مجلد حفظ الملفات
         """
-        selected = CTkFileDialog.askdirectory(autocomplete=True,initial_dir=HOME,style='Mini',title=self.lang.get("select_directory", "Select Directory")) # فتح مربع حوار لاختيار المجلد
+        selected = CTkFileDialog.askdirectory(autocomplete=True,initial_dir=DOWNLOAD_DIR,style='Mini',title=self.lang.get("select_directory", "Select Directory")) # فتح مربع حوار لاختيار المجلد
         # تحديث مسار الحفظ إذا تم اختيار مجلد
         if selected:
             try:
@@ -985,7 +987,7 @@ class YouTubeDownloaderApp:
         selectedfile = CTkFileDialog.askopenfilename(style='Mini',
                                        title=self.lang.get("select_cookies_file_dialog", "Select your cookies.txt file"),
                                        autocomplete=True ,
-                                       initial_dir=HOME,
+                                       initial_dir=DOWNLOAD_DIR,
                                        filetypes=[("Text files", "*.txt")]
                                        
                                        ) # فتح مربع حوار لاختيار الملف
@@ -1410,7 +1412,7 @@ class YouTubeDownloaderApp:
                             autocomplete=True,
                             style='Mini',
                             title=self.lang.get("select_cookies_file_dialog", "Select your cookies.txt file"),
-                            initial_dir=HOME,
+                            initial_dir=DOWNLOAD_DIR,
                             filetypes=[("Text files", "*.txt")]
                         )
                         file_event.set()
