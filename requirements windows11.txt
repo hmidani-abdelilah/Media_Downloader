@@ -1,0 +1,14 @@
+customtkinter
+ctkmessagebox
+CTkMenuBar
+yt-dlp
+aria2
+CTKFileDialog-plus
+tkinterdnd2
+#ffmpeg-python
+winotify
+desktop-notifier
+arabic-reshaper
+python-bidi
+win11toast
+pystray
