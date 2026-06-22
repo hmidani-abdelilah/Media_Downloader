@@ -58,6 +58,7 @@ class YouTubeDownloaderApp:
             root: نافذة الجذر في Tkinter
             lang_code: رمز اللغة المستخدمة (الافتراضي: الإنجليزية)
         """
+        # تهيئة متغيرات اللغة والحالة
         self.root = root # تعيين نافذة الجذر
         self.lang = self.load_language(lang_code) # تحميل ملف اللغة المناسب
         self.lang_code = lang_code # تعيين رمز اللغة الحالي
@@ -65,7 +66,9 @@ class YouTubeDownloaderApp:
         self.cookiefile_dir = "\U0001F36A" # مسار ملف cookies 
         self.current_download_thread = None  # خيط التنزيل الحالي
         self.is_downloading = False  # مؤشر على حالة التنزيل
+        self.warning_shutdown = None  # حالة رسالة التحذير لإغلاق الحاسوب بعد التحميل
 
+        
         # Initialize the menu bar
         # --- UI ELEMENTS ---
         # إنشاء شريط القائمة العلوي باستخدام CTkMenuBar من مكتبة customtkinter
@@ -102,17 +105,6 @@ class YouTubeDownloaderApp:
             icon_tk = ImageTk.PhotoImage(icon_image) # تحويل الصورة إلى تنسيق يمكن لـ Tkinter استخدامه
             # تعيين الأيقونة لنافذة التطبيق
             self.root.wm_iconphoto(True, icon_tk) # تعيين الأيقونة لنافذة التطبيق (متوافق مع معظم أنظمة التشغيل)
-
-        
-        
-        # تهيئة متغيرات اللغة والحالة
-        self.lang = self.load_language(lang_code) # تحميل ملف اللغة المناسب
-        self.lang_code = lang_code # تعيين رمز اللغة الحالي
-        self.save_dir = DOWNLOAD_DIR  # مجلد المستخدم الافتراضي كمسار حفظ
-        self.cookiefile_dir = "\U0001F36A" # مسار ملف cookies 
-        self.current_download_thread = None  # خيط التنزيل الحالي
-        self.is_downloading = False  # مؤشر على حالة التنزيل
-        self.warning_shutdown = None  # حالة رسالة التحذير لإغلاق الحاسوب بعد التحميل
 
         # إنشاء عناصر واجهة المستخدم
         self.create_widgets()
