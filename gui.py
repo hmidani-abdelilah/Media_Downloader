@@ -331,7 +331,6 @@ class YouTubeDownloaderApp:
                 #return f"https://www.youtube.com/playlist?list={playlist_id}"
                 # في حالة اختيار المستخدم تحميل قائمة التشغيل كاملة، يتم استخراج معرف قائمة التشغيل من الرابط وبناء رابط نظيف يشير مباشرة إلى قائمة التشغيل بدلاً من الفيديو الفردي، مما يضمن أن عملية التحميل ستشمل جميع الفيديوهات الموجودة في تلك القائمة.
                 return url
-                
             else:
                 # The user pressed Cancel or closed the message box
                 return None
@@ -1089,6 +1088,8 @@ class YouTubeDownloaderApp:
             if self.warning_shutdown.get() == self.lang.get("cancel", "Cancel"):
                 return  # إلغاء عملية التحميل إذا اختار المستخدم "إلغاء"
         new_url = self.process_youtube_url(url)
+        if new_url is None:
+            return
         # تعطيل زر التحميل وتفعيل زر الإيقاف أثناء عملية التحميل
         self.download_button.configure(state="disabled")
         self.stop_button.configure(state="normal")
