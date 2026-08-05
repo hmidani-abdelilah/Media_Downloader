@@ -33,11 +33,7 @@ Compression support:
 - After a video is downloaded the app can optionally compress/re-encode it using FFmpeg (CRF + preset, encoder selection).
 - Compression runs as a separate post-download step so the UI shows a "Compressing video..." state.
 - The Stop button cancels both downloading and any ongoing FFmpeg compression (requires FFmpeg on the system).
--
-دعم الضغط:
-- بعد تحميل الفيديو، يمكن للتطبيق اختياريًا ضغط/إعادة ترميز الفيديو باستخدام FFmpeg (قيمة CRF + الإعداد المسبق، واختيار الترميز).
-- يعمل الضغط كخطوة منفصلة بعد التحميل لذلك تعرض واجهة المستخدم حالة "Compressing video...".
-- زر الإيقاف يُلغي كلاً من التحميل وأي عملية ضغط FFmpeg جارية (يتطلب توفر FFmpeg على النظام).
+
 ### 🧰 Requirements
 
 - Python 3.8+
@@ -245,6 +241,10 @@ pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset
 - إمكانية إيقاف التحميلات الجارية
 - شريط قوائم مع المساعدة والخيارات
 - يعمل على Windows وLinux وmacOS
+- دعم الضغط:
+- بعد تحميل الفيديو، يمكن للتطبيق اختياريًا ضغط/إعادة ترميز الفيديو باستخدام FFmpeg (قيمة CRF + الإعداد المسبق، واختيار الترميز).
+- يعمل الضغط كخطوة منفصلة بعد التحميل لذلك تعرض واجهة المستخدم حالة "Compressing video...".
+- زر الإيقاف يُلغي كلاً من التحميل وأي عملية ضغط FFmpeg جارية (يتطلب توفر FFmpeg على النظام).
 
 ### 🧰 المتطلبات
 
@@ -391,6 +391,7 @@ pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset
 ```
 ├── app.py                  # نقطة التشغيل الرئيسية
 ├── downloader.py           # منطق التحميل باستخدام yt-dlp و Aria2c
+├── convert.py             # FFmpeg الضغط ب / conversion helpers مساعد فيضغط الفيديو
 ├── gui.py                  # واجهة المستخدم والمنطق
 ├── notification.py         # نظام الإشعارات عند اكتمال التحميلواجهة المستخدم
 ├── ffmpeg_check.py         # التحقق من FFmpeg
