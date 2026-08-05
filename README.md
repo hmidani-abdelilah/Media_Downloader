@@ -29,6 +29,15 @@ A graphical application for downloading videos and audio from YouTube and other 
 - Menu bar with help and options
 - Cross-platform (Windows/Linux/macOS)
 
+Compression support:
+- After a video is downloaded the app can optionally compress/re-encode it using FFmpeg (CRF + preset, encoder selection).
+- Compression runs as a separate post-download step so the UI shows a "Compressing video..." state.
+- The Stop button cancels both downloading and any ongoing FFmpeg compression (requires FFmpeg on the system).
+-
+دعم الضغط:
+- بعد تحميل الفيديو، يمكن للتطبيق اختياريًا ضغط/إعادة ترميز الفيديو باستخدام FFmpeg (قيمة CRF + الإعداد المسبق، واختيار الترميز).
+- يعمل الضغط كخطوة منفصلة بعد التحميل لذلك تعرض واجهة المستخدم حالة "Compressing video...".
+- زر الإيقاف يُلغي كلاً من التحميل وأي عملية ضغط FFmpeg جارية (يتطلب توفر FFmpeg على النظام).
 ### 🧰 Requirements
 
 - Python 3.8+
@@ -181,6 +190,7 @@ pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset
 ```
 ├── app.py                  # Main entry point
 ├── downloader.py           # Core download logic using yt-dlp & Aria2c
+├── convert.py             # FFmpeg compression / conversion helpers
 ├── gui.py                  # GUI logic and interface
 ├── notification.py         # Notification system for download completion
 ├── ffmpeg_check.py         # FFmpeg presence checker
