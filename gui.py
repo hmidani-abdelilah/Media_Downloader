@@ -978,6 +978,7 @@ class YouTubeDownloaderApp:
         selectedfile = CTkFileDialog.askopenfilename(style='Mini',
                                        title=self.lang.get("select_cookies_file_dialog", "Select your cookies.txt file"),
                                        autocomplete=True ,
+                                       foldercreation=False,
                                        initial_dir=DOWNLOAD_DIR,
                                        filetypes=[("Text files", "*.txt")]
                                        
@@ -1102,7 +1103,8 @@ class YouTubeDownloaderApp:
         self.current_download_thread = threading.Thread(target=self.prepare_and_download, args=(new_url,))
         self.current_download_thread.daemon = True  # الخيط ينتهي عند إنهاء البرنامج الرئيسي
         self.current_download_thread.start()
-    
+
+                
     # دالة للتعامل مع إغلاق النافذة (مثل الضغط على زر الإغلاق)، حيث يتم التحقق مما إذا كان هناك عملية تحميل جارية، وإذا كان الأمر كذلك، يتم طلب تأكيد من المستخدم قبل إغلاق النافذة، وإذا وافق المستخدم على الإغلاق، يتم استدعاء دالة إيقاف التحميل من مكتبة التحميل وإغلاق النافذة، أما إذا لم يكن هناك تحميل جاري، يتم إغلاق النافذة مباشرة.
     def on_closing(self):
         """
@@ -1469,6 +1471,10 @@ class YouTubeDownloaderApp:
                 elif d.get("status") == "finished":
                     # اكتمال التحميل
                     self.progress.set(1.0)
+                elif d.get("status") == "compressing":
+                    # عرض حالة الضغط بعد انتهاء التحميل
+                    self.status_label.configure(text=self.lang.get("compressing", "Compressing video ... may take a while depending on the video size and your computer performance"))
+                    self.progress.set(0.0)
 
             # تنفيذ عملية التحميل باستخدام الإعدادات المحددة
             download_video(

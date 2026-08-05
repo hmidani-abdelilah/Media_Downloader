@@ -1,6 +1,6 @@
 # downloader.py
-import subprocess # استيراد مكتبة subprocess لتشغيل أوامر النظام من داخل بايثون
-import platform # استيراد مكتبة platform للكشف عن نظام التشغيل
+import time
+
 import yt_dlp as youtube_dl #  استيراد مكتبة yt_dlp لتحميل الفيديوهات من يوتيوب ومنصات أخرى
 import os # استيراد مكتبة التعامل مع نظام الملفات
 import threading # استيراد مكتبة threading لدعم العمليات المتعددة
@@ -8,7 +8,7 @@ import re # استيراد مكتبة التعبيرات النمطية للتع
 import urllib.parse
 from utils import resource_path # استيراد الدالة resource_path من ملف utils
 from path_ffmpeg import ffmpeg_find_path # استيراد دالة تحديد مسار ffmpeg من ملف path_ffmpeg
-
+from convert import compress_video, get_gpu_encoders, is_encoder_supported # استيراد دوال الضغط والترميزات من ملف convert
 # تحديد مسار ffmpeg من داخل bin
 # مجلد ffmpeg
 ffmpeg_path = ffmpeg_find_path()
@@ -29,152 +29,6 @@ def stop_download():
     """تعيين حدث الإيقاف لإيقاف التحميل الحالي"""
     stop_event.set()
 
-# -------------- دعم GPU --------------
-def detect_gpu():
-    """كشف نوع GPU لتحديد خيارات الترميز المناسبة"""
-    # الكشف عن نظام التشغيل
-    system = platform.system()
-    gpu_type = "CPU"
-
-    # 🔹 1. الكشف عن NVIDIA
-    try:
-        if system != "Darwin":  # macOS لا يحتوي nvidia-smi
-            result = subprocess.run(["nvidia-smi"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            if result.returncode == 0:
-                return "NVIDIA"
-    except Exception:
-        pass
-
-    # 🔹 2. الكشف عبر FFmpeg عن Intel أو AMD
-    try:
-        # تشغيل ffmpeg للتحقق من وحدات تسريع الأجهزة
-        result = subprocess.run(
-            [ffmpeg_path, "-hide_banner", "-hwaccels"],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        # تحليل المخرجات للبحث عن مؤشرات GPU
-        output = (result.stdout.decode() + result.stderr.decode()).lower()
-        # تحقق من وجود مؤشرات Intel أو AMD
-        if "qsv" in output:
-            gpu_type = "Intel"
-        elif "amf" in output or "vaapi" in output:
-            gpu_type = "AMD"
-    except Exception:
-        pass
-
-    # 🔹 3. macOS يعتمد videotoolbox
-    if system == "Darwin":
-        gpu_type = "Apple"
-
-    return gpu_type
-
-# -------------- دعم GPU - ترميزات الفيديو --------------
-def is_encoder_supported(encoder):
-    """يتحقق ما إذا كان الترميز مدعوماً فعلياً في FFmpeg"""
-    try:
-        # تشغيل ffmpeg للتحقق من الترميزات المدعومة
-        result = subprocess.run(
-            [ffmpeg_path, "-hide_banner", "-encoders"],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-        )
-        return encoder in result.stdout
-    except Exception:
-        return False
-
-# -------------- دعم GPU - اختيار الترميز --------------
-def get_gpu_encoders():
-    """إرجاع قائمة الترميزات المتاحة بناءً على GPU المكتشف"""
-    # اكتشاف نوع GPU
-    gpu = detect_gpu()
-    encoders = ["libx264", "libx265"]  # الترميزات الافتراضية CPU
-    candidates = [] # قائمة الترميزات المحتملة بناءً على نوع GPU
-    
-    # تحديد الترميزات المحتملة بناءً على نوع GPU
-    if gpu == "NVIDIA":
-        candidates = ["h264_nvenc", "hevc_nvenc"]
-    elif gpu == "Intel":
-        candidates = ["h264_qsv", "hevc_qsv", "h264_vaapi", "hevc_vaapi"]
-    elif gpu == "AMD":
-        candidates = ["h264_amf", "hevc_amf", "h264_vaapi", "hevc_vaapi"]
-    elif gpu == "Apple":
-        candidates = ["h264_videotoolbox", "hevc_videotoolbox"]
-
-    # تحقق من الترميزات الفعلية الموجودة في FFmpeg
-    for enc in candidates:
-        if is_encoder_supported(enc):
-            encoders.insert(0, enc)  # أضفها في بداية القائمة حسب الأولوية
-
-    return encoders
-
-# -------------- دعم GPU - اختيار أفضل ترميز --------------
-def choose_best_encoder():
-    """اختيار أفضل ترميز بناءً على ما هو مدعوم فعلاً"""
-    # الحصول على الترميزات المدعومة
-    encoders = get_gpu_encoders()
-
-    # تحديد الأولويات للترميزات
-    priority = [
-        "hevc_nvenc", "h264_nvenc",     # NVIDIA
-        "hevc_qsv", "h264_qsv",         # Intel
-        "hevc_amf", "h264_amf",         # AMD
-        "hevc_videotoolbox", "h264_videotoolbox",  # macOS
-        "libx265", "libx264"            # CPU fallback
-    ]
-
-    # اختيار أفضل ترميز متاح 
-    for p in priority:
-        if p in encoders:
-            return p
-    return "libx264"
-
-
-# -------------- ضغط الفيديو --------------
-def compress_video(input_path, output_path, encoder=None, crf=23, preset='medium', copy_codec=False):
-    """
-    ضغط الفيديو باستخدام FFmpeg مع دعم GPU واختيار الترميز الأفضل تلقائياً
-    """
-    # إذا تم اختيار نسخ الترميز الأصلي
-    if copy_codec:
-        cmd = [ffmpeg_path, '-i', input_path, '-c', 'copy', output_path]
-    else:
-        # اختيار الترميز المناسب
-        if encoder is None:
-            encoder = choose_best_encoder()
-        
-        # بناء أمر FFmpeg للضغط
-        cmd = [
-            ffmpeg_path if os.path.exists(ffmpeg_path) else 'ffmpeg',
-            '-i', input_path,
-            '-c:v', encoder,
-            '-crf', str(crf),
-            '-preset', preset,
-            '-c:a', 'copy',
-            output_path ,
-            '-y'
-        ]
-
-    # تنفيذ أمر FFmpeg
-    try:
-        subprocess.run(cmd, check=True)
-        #✅ تم ضغط الفيديو بنجاح: {output_path}
-    # التعامل مع أخطاء FFmpeg
-    except subprocess.CalledProcessError as e:
-        # في حال فشل الترميز، العودة إلى libx264
-        if encoder != "libx264":
-
-            fallback_cmd = [
-                ffmpeg_path, '-i', input_path,
-                '-c:v', 'libx264',
-                '-crf', str(crf),
-                '-preset', preset,
-                '-c:a', 'copy',
-                output_path ,
-                '-y'
-            ]
-
-            subprocess.run(fallback_cmd, check=True)
-        else:
-            raise Exception(f"❌ فشل ضغط الفيديو نهائياً: {e}")
 
 # -------------- دوال مساعدة --------------
 def get_format(quality, file_type):
@@ -346,7 +200,7 @@ def sanitize_filename(filename):
         # إرجاع الاسم المنظف
     return filename.strip()
 
-
+# -------------- تنظيف مسار الدليل --------------
 def sanitize_path(path):
     """
     تنظيف مسار دليل متعدد المستويات مع الحفاظ على بنية المجلد.
@@ -356,6 +210,66 @@ def sanitize_path(path):
     parts = re.split(r'[\\/]+', str(path))
     sanitized_parts = [sanitize_filename(part) for part in parts if part]
     return os.path.join(*sanitized_parts) if sanitized_parts else ""
+
+# -------------- ضغط الفيديو بعد التحميل --------------
+def compress_downloaded_video(
+    downloaded_path,
+    file_type,
+    final_download_dir,
+    encoder='libx264',
+    crf=23,
+    preset='medium',
+    copy_codec=False,
+    stop_event=None,
+    progress_hook=None,
+) -> str:
+    """Compress a downloaded video file after yt-dlp finishes.
+
+    This helper keeps the compression logic separate from download logic so the
+    UI can show compression state and the stop event can cancel ffmpeg.
+    """
+    video_containers = {'mp4', 'mkv', 'avi', 'flv', 'webm', 'mov'}
+    if file_type not in video_containers:
+        return downloaded_path
+
+    base_name = os.path.splitext(os.path.basename(downloaded_path))[0]
+    out_ext = file_type
+    out_file = os.path.join(final_download_dir, f"compressed_{base_name}.{out_ext}")
+    final_encoder = encoder
+
+    if out_ext == 'webm':
+        webm_encoders = ['libaom-av1', 'libvpx-vp9', 'libvpx']
+        found = None
+        for e in webm_encoders:
+            try:
+                if is_encoder_supported(e):
+                    found = e
+                    break
+            except Exception:
+                continue
+        if found:
+            final_encoder = found
+        else:
+            if is_encoder_supported('libx264'):
+                print('No WebM encoder available; switching compressed output to MP4 using libx264')
+                out_file = os.path.join(final_download_dir, f"compressed_{base_name}.mp4")
+                final_encoder = 'libx264'
+            else:
+                raise Exception('No WebM encoder (libvpx/libaom) available. Install one or choose MP4/MKV output.')
+
+    if progress_hook:
+        progress_hook({'status': 'compressing'})
+
+    compress_video(
+        downloaded_path,
+        out_file,
+        encoder=final_encoder,
+        crf=crf,
+        preset=preset,
+        copy_codec=copy_codec,
+        stop_event=stop_event,
+    )
+    return out_file
 
 # تابع التحميل الرئيسي مع دعم GPU
 # -------------- تحميل الفيديو --------------
@@ -616,18 +530,63 @@ def download_video(url, download_dir, quality, file_type, download_subtitles, pr
     try:
         # بدء التحميل
         with youtube_dl.YoutubeDL(options) as ydl:
-            ydl.download([url])
+            #ydl.download([url])
 
-            # بعد التحميل، ضغط الفيديو إذا لم يكن mp3
-            if file_type == 'mp4' and not copy_codec:
-                # ضغط جميع ملفات الفيديو في المجلد النهائي
-                video_files = [os.path.join(final_download_dir, f) for f in os.listdir(final_download_dir) if f.endswith(".mp4")]
-                for vf in video_files:
-                    # إنشاء اسم ملف جديد للفيديو المضغوط
-                    out_file = os.path.join(final_download_dir, "compressed_" + os.path.basename(vf))
-                    # ضغط الفيديو
-                    compress_video(vf, out_file, encoder=encoder, crf=crf, preset=preset, copy_codec=copy_codec)
-                    
+            # extract_info تقوم بجلب البيانات وتحميل الملف في نفس الوقت
+            # سجل وقت البدء حتى نتمكن من اكتشاف الملف الفعلي عند الانتهاء
+            start_time = time.time()
+            info = ydl.extract_info(url, download=True)
+
+            # حاول استخراج اسم الملف المتوقع أولًا
+            expected_path = ydl.prepare_filename(info)
+
+            # إذا لم يوجد الملف في المسار المتوقع (قد غُيّر الامتداد أثناء المعالجة اللاحقة)،
+            # فابحث عن أحدث ملف تم إنشاؤه/تعديله في مجلد التحميل
+            downloaded_path = None
+            if os.path.exists(expected_path):
+                downloaded_path = expected_path
+            else:
+                # جمع الملفات العادية في مجلد التحميل
+                try:
+                    candidates = [os.path.join(final_download_dir, f) for f in os.listdir(final_download_dir)]
+                    candidates = [p for p in candidates if os.path.isfile(p)]
+                    # تجاهل ملفات الجزء المؤقتة
+                    candidates = [p for p in candidates if not p.endswith('.part')]
+                    # احتفظ بالملفات الأحدث من وقت البدء - مع هامش صغير
+                    recent = [p for p in candidates if os.path.getmtime(p) >= start_time - 2]
+                    if recent:
+                        downloaded_path = max(recent, key=os.path.getmtime)
+                except Exception:
+                    downloaded_path = None
+
+            # أخيراً، احتفظ بالمسار المتوقع إذا لم نعثر على أي ملف آخر
+            if not downloaded_path:
+                downloaded_path = expected_path
+
+            print(f"File downloaded path: \n {downloaded_path}\n")
+
+            # بعد التحميل، ضغط الفيديو إذا كان فيديو فعليًا ولم يطلب المستخدم نسخ الترميز
+            if file_type not in ('mp3', 'opus', 'aac', 'flac', 'wav', 'alac', 'm4a', 'ogg') and not copy_codec:
+                if os.path.exists(downloaded_path):                    
+                    try:
+                        downloaded_path = compress_downloaded_video(
+                            downloaded_path,
+                            file_type,
+                            final_download_dir,
+                            encoder=encoder,
+                            crf=crf,
+                            preset=preset,
+                            copy_codec=copy_codec,
+                            stop_event=stop_event,
+                            progress_hook=progress_hook,
+                        )
+                    except Exception as e:
+                        err_msg = str(e)
+                        print(f"Compression failed: {err_msg}")
+                        raise
+                else:
+                    # إذا لم نتمكن من تحديد الملف، اطرح تحذيراً بدلًا من محاولة ضغط ملف غير موجود
+                    raise Exception(f"Cannot find downloaded file to compress: {downloaded_path}")
     except youtube_dl.DownloadError as e:
         # التعامل مع أخطاء التحميل
         raise Exception(f"Error downloading video: {str(e)}")
