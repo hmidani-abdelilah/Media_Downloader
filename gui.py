@@ -22,7 +22,7 @@ from customtkinter import filedialog  # لفتح مربع حوار اختيار 
 import CTkFileDialog  # لفتح مربع حوار اختيار المجلدات
 from CTkFileDialog.Constants import DOWNLOAD_DIR # مسار مجلد المستخدم الافتراضي
 from CTkMessagebox import CTkMessagebox  # لعرض رسائل منبثقة للمستخدم 
-from CTkMenuBar import * #  استيراد مكتبة القوائم الافقية 
+from CTkMenuBarPlus import * #  استيراد مكتبة القوائم الافقية 
 from downloader import download_video, get_videos_info, get_gpu_encoders, stop_download # استيراد وظائف التحميل
 from ffmpeg_check import check_ffmpeg_installed  # للتحقق من تثبيت FFmpeg
 from aria2_check import check_aria2_installed # للتحقق من تثبيت Aria2c
@@ -76,7 +76,7 @@ class YouTubeDownloaderApp:
         # Add top-level buttons to the menu bar
         # إضافة زر "خيارات" إلى شريط القائمة وربطه بدالة show_options (غير موجودة حاليا، لكن يمكن إضافتها لاحقا لعرض إعدادات التطبيق)
         self.file_button = self.menu_bar.add_cascade(self.lang.get("options", "Options")) # إضافة زر "خيارات" إلى شريط القائمة
-        #self.edit_button = self.menu_bar.add_cascade("Edit")
+        self.edit_button = self.menu_bar.add_cascade(self.lang.get("edit", "Edit")) # إضافة زر "تحرير" إلى شريط القائمة 
         # اضافة زر "مساعدة" إلى شريط القائمة وربطه بدالة show_help لعرض رسالة مساعدة للمستخدم
         self.menu_bar.add_cascade(self.lang.get("help", "Help"), command=self.show_help) # إضافة زر "مساعدة" إلى شريط القائمة وربطه بدالة show_help
         
@@ -87,6 +87,12 @@ class YouTubeDownloaderApp:
         self.dropdown.add_option(option=self.lang.get("check_updates", "Check for Updates"), command=self.run_update)
         self.dropdown.add_separator()
         self.dropdown.add_option(option=self.lang.get("exit", "Exit"), command=self.root.destroy)
+        # انشاء قائمة منسدلة (Dropdown menu) مرتبطة بزر "تحرير" لعرض خيارات إضافية مثل "قص" و "لصق" و "مسح"
+        self.edit_dropdown = CustomDropdownMenu(widget=self.edit_button)
+        self.edit_dropdown.add_option(option=self.lang.get("cut", "Cut"), command=self.copy_to_clipboard, accelerator="Ctrl+C")
+        self.edit_dropdown.add_option(option=self.lang.get("paste", "Paste"), command=self.paste, accelerator="Ctrl+V")
+        self.edit_dropdown.add_separator()
+        self.edit_dropdown.add_option(option=self.lang.get("clear", "Clear"), command=self.clear_url, accelerator="Delete")
         # ربط المفاتيح لتكبير الشاشة والخروج من ملء الشاشة
         self.root.bind("<F11>", self.toggle_fullscreen) # ربط مفتاح F11 لتبديل وضع ملء الشاشة
         self.root.bind("<Escape>", self.exit_fullscreen) # ربط مفتاح Escape للخروج من وضع ملء الشاشة
@@ -421,16 +427,17 @@ class YouTubeDownloaderApp:
 
         
         # إنشاء قائمة منبثقة (Popup menu) بدون حافة علوية
-        self.menu = tk.Menu(self.url_frame, tearoff=0)
+        self.menu = ContextMenu(self.url_frame)
 
         # إضافة عنصر "قص" إلى القائمة وربطه بالدالة copy_to_clipboard
-        self.menu.add_command(label=self.lang.get("cut", "Cut"),command=self.copy_to_clipboard)  # إضافة أمر "قص" للقائمة
+        self.menu.add_option(option=self.lang.get("cut", "Cut"),command=self.copy_to_clipboard , accelerator="Ctrl+C")  # إضافة أمر "قص" للقائمة
         # إضافة عنصر "لصق" إلى القائمة وربطه بالدالة paste
-        self.menu.add_command(label=self.lang.get("paste", "Paste"), command=self.paste)  # إضافة أمر "لصق" للقائمة
+        self.menu.add_option(option=self.lang.get("paste", "Paste"), command=self.paste , accelerator="Ctrl+V")  # إضافة أمر "لصق" للقائمة
+        self.menu.add_separator()
         # إضافة عنصر "مسح" الى القائمة و ربطه بالدالة clear_url
-        self.menu.add_command(label=self.lang.get("clear", "clear"),command=self.clear_url)   # إضافة أمر "مسح" للقائمة
+        self.menu.add_option(option=self.lang.get("clear", "clear"),command=self.clear_url , accelerator="Delete")   # إضافة أمر "مسح" للقائمة
         # ربط حدث النقر بزر الفأرة الأيمن (الزر رقم 3) بالحقل لعرض القائمة
-        self.url_entry.bind("<Button-3>", self.show_menu)
+        #self.url_entry.bind("<Button-3>", self.show_menu)
 
        # زر المسح
         self.clear_button = ctk.CTkButton(
@@ -930,13 +937,13 @@ class YouTubeDownloaderApp:
             self.url_entry.delete(0, ctk.END) # مسح ما بداخل الحقل
     
     # دالة لإظهار القائمة عند النقر بزر الفأرة الأيمن
-    def show_menu(self,event):
-        try:
-            # عرض القائمة في موضع مؤشر الفأرة
-            self.menu.tk_popup(event.x_root, event.y_root)
-        finally:
-            # تحرير التحكم بالقائمة (ضروري أحيانًا لتجنب تجميد القائمة)
-            self.menu.grab_release()
+    # def show_menu(self,event):
+    #     try:
+    #         # عرض القائمة في موضع مؤشر الفأرة
+    #         self.menu.tk_popup(event.x_root, event.y_root)
+    #     finally:
+    #         # تحرير التحكم بالقائمة (ضروري أحيانًا لتجنب تجميد القائمة)
+    #         self.menu.grab_release()
 
     # دالة لمسح حقل رابط URL وإعادة تعيين مؤشرات الحالة
     def clear_url(self):
