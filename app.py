@@ -6,6 +6,11 @@ import sys # استيراد مكتبة sys للتعامل مع إعدادات ا
 import io # استيراد مكتبة io لإعادة توجيه تدفقات الإدخال والإخراج لضمان دعم UTF-8
 from tkinterdnd2 import TkinterDnD # استيراد مكتبة TkinterDnD لدعم السحب والإفلات في واجهة المستخدم
 
+# Base directory of the application, used to set the working directory and locate resources
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+os.chdir(BASE_DIR)
+
+
 # إنشاء فئة DnDCTk التي ترث من ctk.CTk و TkinterDnD.DnDWrapper لتمكين دعم السحب والإفلات في واجهة المستخدم
 class DnDCTk(ctk.CTk, TkinterDnD.DnDWrapper):
     def __init__(self, *args, **kwargs):

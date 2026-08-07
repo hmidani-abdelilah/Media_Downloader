@@ -1,5 +1,6 @@
 import os, sys
 
+
 def resource_path(relative_path):
     """
     إرجاع المسار الصحيح للملفات سواء أثناء التطوير أو بعد التحزيم بـ PyInstaller.
@@ -8,7 +9,7 @@ def resource_path(relative_path):
         relative_path (str): المسار النسبي للملف داخل المشروع.
     Returns:
         str: المسار الكامل (المطلق) للملف.
-    
+
     الاستخدام:
     ----------
     >>> resource_path("assets/icon.png")
@@ -17,6 +18,7 @@ def resource_path(relative_path):
     try:
         base_path = sys._MEIPASS  # إذا البرنامج مجمع
     except Exception:
-        base_path = os.path.abspath(".")  # إذا شغال عادي
+        #base_path = os.path.abspath(".")  # إذا شغال عادي
+        base_path = os.path.dirname(os.path.abspath(__file__))  # إذا شغال عادي
     return os.path.join(base_path, relative_path)
 
