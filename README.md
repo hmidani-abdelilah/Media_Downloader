@@ -440,3 +440,8 @@ deno --version
 ```bash
 pip install nodeenv && nodeenv -p
 ```
+or 
+
+```bash
+apt/pacman install deno
+```
