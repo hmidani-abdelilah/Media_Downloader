@@ -419,4 +419,24 @@ pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset
 ```bash 
 sudo update-desktop-database
 ``` 
+---
+```bash
+pip install "yt-dlp[default,curl-cffi]"
+```
+```bash
+pip install -U "yt-dlp[default]"
+```
 
+```bash
+curl -fsSL https://deno.land | sh
+```
+
+```bash
+node -v 
+```
+```bash
+deno --version
+```
+```bash
+pip install nodeenv && nodeenv -p
+```
