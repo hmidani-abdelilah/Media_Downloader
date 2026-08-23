@@ -468,11 +468,11 @@ class YouTubeDownloaderApp:
         self.quality_label = ctk.CTkLabel(self.settings_frame, text="Quality:")
         self.quality_label.grid(row=0, column=2, padx=5, pady=5)
         
-        self.quality = ctk.StringVar(value="medium") # متغير لتخزين مستوى الجودة المختار
+        self.quality = ctk.StringVar(value="Medium (720)") # متغير لتخزين مستوى الجودة المختار
         # قائمة منبثقة لاختيار مستوى الجودة
         self.quality_menu = ctk.CTkOptionMenu(
             self.settings_frame, 
-            values=["low", "medium", "high"],  # مستويات الجودة المتاحة
+            values=["Low (360)", "Medium (720)", "High (1080)", "Ultra (1440)"],  # مستويات الجودة المتاحة
             variable=self.quality
         )
         self.quality_menu.grid(row=0, column=3, padx=5, pady=5)
@@ -514,6 +514,93 @@ class YouTubeDownloaderApp:
             variable=self.shutdown_after_download
         )
         self.shutdown_after_download_checkbox.grid(row=0, column=7, padx=5, pady=5)
+
+
+        # ===== إعدادات القص والترجمة =====
+        self.cut_frame = ctk.CTkFrame(self.main_frame)
+        self.cut_frame.pack(fill="x", padx=20, pady=5)
+
+        self.cut_enabled = ctk.BooleanVar(value=False)
+        self.cut_checkbox = ctk.CTkCheckBox(
+            self.cut_frame,
+            text=self.lang.get("enable_cut", "Enable Cut"),
+            variable=self.cut_enabled
+        )
+        self.cut_checkbox.grid(
+            row=0, column=0, padx=5, pady=5
+        )
+
+        self.cut_start_label = ctk.CTkLabel(
+            self.cut_frame,
+            text=self.lang.get("cut_start", "Start:")
+        )
+        self.cut_start_label.grid(
+            row=0, column=1, padx=5, pady=5
+        )
+
+        self.cut_start = ctk.StringVar(value="0")
+        self.cut_start_entry = ctk.CTkEntry(
+            self.cut_frame,
+            textvariable=self.cut_start,
+            width=110,
+            placeholder_text="0 / 1:30 / 1h30m"
+        )
+        self.cut_start_entry.grid(
+            row=0, column=2, padx=5, pady=5
+        )
+
+        self.cut_end_label = ctk.CTkLabel(
+            self.cut_frame,
+            text=self.lang.get("cut_end", "End:")
+        )
+        self.cut_end_label.grid(
+            row=0, column=3, padx=5, pady=5
+        )
+
+        self.cut_end = ctk.StringVar(value="-1")
+        self.cut_end_entry = ctk.CTkEntry(
+            self.cut_frame,
+            textvariable=self.cut_end,
+            width=110,
+            placeholder_text="-1 = end"
+        )
+        self.cut_end_entry.grid(
+            row=0, column=4, padx=5, pady=5
+        )
+
+        self.subtitle_lang_label = ctk.CTkLabel(
+            self.cut_frame,
+            text=self.lang.get(
+                "subtitle_languages",
+                "Subtitle languages:"
+            )
+        )
+        self.subtitle_lang_label.grid(
+            row=0, column=5, padx=5, pady=5
+        )
+
+        self.subtitle_lang_entry = ctk.CTkEntry(
+            self.cut_frame,
+            width=130,
+            placeholder_text="ar,fr,en (default)"
+        )
+        self.subtitle_lang_entry.grid(
+            row=0, column=6, padx=5, pady=5
+        )
+
+        # ملاحظة: إذا كان Enable Cut غير مفعّل، يتم تجاهل Start/End.
+        self.cut_hint_label = ctk.CTkLabel(
+            self.cut_frame,
+            text=self.lang.get(
+                "cut_hint",
+                "Time: seconds or HH:MM:SS | -1 = end"
+            ),
+            font=ctk.CTkFont(size=11)
+        )
+        self.cut_hint_label.grid(
+            row=1, column=0, columnspan=7,
+            padx=5, pady=(0, 5)
+        )
 
         # ===== قسم اختيار مجلد الحفظ =====
         self.directory_frame = ctk.CTkFrame(self.main_frame)
@@ -669,9 +756,9 @@ class YouTubeDownloaderApp:
         self.title_label.configure(text=self.lang.get("title", "Media Downloader",)) # تحديث عنوان التطبيق
         self.url_entry.configure(placeholder_text=self.lang.get("enter_url", "Enter Media URL")) # تحديث نص الحقل
         self.clear_button.configure(text=self.lang.get("clear", "Clear")) # تحديث نص زر المسح
-        self.menu.entryconfig(0, label=self.lang.get("cut", "Cut")) # تحديث نص أمر "قص" في القائمة
-        self.menu.entryconfig(1, label=self.lang.get("paste", "Paste")) # تحديث نص أمر "لصق" في القائمة
-        self.menu.entryconfig(2, label=self.lang.get("clearing", "Clear")) # تحديث نص أمر "مسح" في القائمة
+        self.menu.configure(option=self.lang.get("cut", "Cut")) # تحديث نص أمر "قص" في القائمة
+        self.menu.configure(option=self.lang.get("paste", "Paste")) # تحديث نص أمر "لصق" في القائمة
+        self.menu.configure(option=self.lang.get("clearing", "Clear")) # تحديث نص أمر "مسح" في القائمة
         self.download_button.configure(text=self.lang.get("download", "Download")) # تحديث نص زر التحميل
         self.sub_checkbox.configure(text=self.lang.get("download_subtitles", "Download Subtitles")) # تحديث نص مربع اختيار الترجمة
         self.aria2_checkbox.configure(text=self.lang.get("use_aria2", "Download with aria2")) # تحديث نص مربع اختيار Aria2c
@@ -691,7 +778,10 @@ class YouTubeDownloaderApp:
         self.appearance_mode_label.configure(text=self.lang.get("appearance_mode", "Theme:")) # تحديث نص تسمية إعدادات المظهر
         self.language_label.configure(text=self.lang.get("language", "Language:")) # تحديث نص تسمية إعدادات اللغة
         #self.file_button.configure(str(self.lang.get("options", "Options"))) # تحديث نص زر "خيارات" في شريط القائمة
-
+        self.cut_checkbox.configure(text=self.lang.get("enable_cut","Enable Cut"))
+        self.cut_start_label.configure(text=self.lang.get("cut_start", "Start:"))
+        self.cut_end_label.configure(text=self.lang.get("cut_end", "End:"))
+        self.subtitle_lang_label.configure(text=self.lang.get("subtitle_languages", "Subtitle languages:"))
 
     # دالة للحصول على الحزم المثبتة وإصداراتها في النظام
     def get_installed_packages(self):
@@ -1334,8 +1424,8 @@ class YouTubeDownloaderApp:
                 
                 # عرض معلومات التقدم: رقم الفيديو الحالي/العدد الكلي + عنوان الفيديو
                 self.status_label.configure(
-                    text=f"{idx}/{total} --> {video['title'][:70]}"
-                )
+                    text=self.reshape_arabic(f"{idx}/{total} --> {video['title'][:70]}"
+                    ))
                 self.progress.set(0)  # إعادة تعيين شريط التقدم لكل فيديو
                 
                 try:
@@ -1497,7 +1587,11 @@ class YouTubeDownloaderApp:
                 progress_hook=progress_hook,
                 playlist_title=playlist_title,
                 use_aria2=self.aria2c.get(),
-                cookies_path=self.cookiefile_dir
+                cookies_path=self.cookiefile_dir,
+                cut_enabled=self.cut_enabled.get(),
+                cut_start=self.cut_start.get(),
+                cut_end=self.cut_end.get(),
+                subtitle_languages=self.subtitle_lang_entry.get().strip()
                 )
         except Exception as e:
             raise e  # إعادة رفع الاستثناء للتعامل معه في الدالة الأعلى
