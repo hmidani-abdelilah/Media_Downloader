@@ -1,6 +1,6 @@
 customtkinter
 ctkmessagebox
-CTkMenuBarPlus 
+CTkMenuBarPlus
 CTKFileDialog-plus
 tkinterdnd2
 #ffmpeg-python
@@ -8,8 +8,5 @@ winotify
 desktop-notifier
 arabic-reshaper
 python-bidi
-yt-dlp
+yt-dlp[default]
 aria2
-
-
-
