@@ -11,11 +11,12 @@ A graphical application for downloading videos and audio from YouTube and other 
 - Download from **YouTube**, **Facebook**, **Instagram**, and **X.com (Twitter)**
 - Download video (`mp4` `mkv` , `avi`, `flv` , `webm` ) or audio (`mp3`, `aac` , `flac` , `wav` , `opus` , `alac` , `m4a` , `ogg` )
 - Select quality: Low (360p), Medium (720p), High (1080p)
-- Optional **subtitles** download (supports English, Arabic, French)
+- Optional **subtitles** download with language selection (supports English, Arabic, French)
 - Full **GUI** using `customtkinter`
 - Multilingual: **English**, **Arabic**, **French**
 - Theme support: Light / Dark / System
-- Playlist support with auto-folder creation
+- Playlist support with auto-folder creation and an optional inclusive video range (for example, 5–10; leave the end empty to continue to the last video)
+- Optional video/audio cutting by start/end time, with subtitle timestamps adjusted to the selected clip
 - Checks for **FFmpeg** and **Aria2c** availability (local or system)
 - Supports **Aria2c** as external downloader for faster downloads
 - Cookies file support for private/protected videos
@@ -181,6 +182,47 @@ pyinstaller --onedir --windowed --collect-all typeguard --collect-all CTkFileDia
 pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset/Icon.png:asset --add-data=bin/aria2c:aria2 --add-data=bin/ffmpeg:ffmpeg --icon=asset/Icon.png app.py -n MediaDownloader
 ```
 
+### 🛠️ Troubleshooting Subtitle Downloads
+
+If subtitles are not downloaded, try the following steps in the **same Python environment** used to run the application.
+
+1. Install `yt-dlp` with its default dependencies and `curl-cffi`:
+
+   ```bash
+   pip install "yt-dlp[default,curl-cffi]"
+   ```
+
+2. Install a supported JavaScript runtime. **Deno is recommended on macOS/Linux**. On macOS, you can use:
+
+   ```bash
+   brew install deno
+   deno --version
+   ```
+
+   On Linux, install a current Deno release using the method available for your distribution, such as its `apt` or `pacman` package when available. The bundled `yt-dlp` version requires Deno 2.3.0 or newer.
+
+3. Alternatively, use **Node.js 22.0.0 or newer**. Check the installed version:
+
+   ```bash
+   node -v
+   ```
+
+   If Node.js is missing or too old, activate the project's Python virtual environment, then install Node.js into it with `nodeenv`:
+
+   ```bash
+   pip install nodeenv && nodeenv -p
+   ```
+
+4. When using `yt-dlp` directly from the terminal, enable Node.js with:
+
+   ```bash
+   yt-dlp --js-runtimes node "VIDEO_URL"
+   ```
+
+   Replace `VIDEO_URL` with the actual video or playlist link.
+
+The Media Downloader GUI detects supported Deno and Node.js runtimes automatically; restart the application after installing one. These steps help with JavaScript challenge or HTTP/403-related subtitle failures, but subtitles may still be unavailable for the requested language or require valid cookies.
+
 ### 📁 Project Structure
 
 ```
@@ -224,11 +266,12 @@ pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset
 - يدعم التحميل من **يوتيوب**، **فيسبوك**، **إنستغرام** و **X.com (تويتر)** و **تيك توك** وغرهم الكثير 
 - تحميل الفيديوهات بصيغة (`mp4` `mkv` , `avi`, `flv` , `webm` ) أو الصوت فقط بصيغة (`mp3`, `aac` , `flac` , `wav` , `opus` , `alac` , `m4a` , `ogg` )
 - اختيار الجودة: منخفضة (360p)، متوسطة (720p)، عالية (1080p)
-- إمكانية تحميل الترجمة (عربي، إنجليزي، فرنسي)
+- إمكانية تحميل الترجمة مع اختيار اللغة (عربي، إنجليزي، فرنسي)
 - واجهة رسومية تفاعلية باستخدام `customtkinter`
 - يدعم اللغات: **العربية**، **الإنجليزية**، **الفرنسية**
 - تغيير المظهر: فاتح / داكن / تلقائي
-- دعم تحميل قوائم التشغيل وإنشاء مجلد تلقائي لها
+- دعم تحميل قوائم التشغيل وإنشاء مجلد تلقائي لها، مع إمكانية تحديد نطاق شامل (مثل 5–10، وترك النهاية فارغة يعني المتابعة حتى آخر فيديو)
+- إمكانية قص الفيديو أو الصوت بتحديد وقت البداية والنهاية، مع ضبط توقيت الترجمة ليتوافق مع المقطع
 - يتحقق من وجود برنامج **FFmpeg** و **Aria2c** (محلي أو من النظام)
 - دعم التحميل السريع عبر **Aria2c**
 - دعم ملفات الكوكيز للفيديوهات الخاصة أو المحمية 
@@ -386,6 +429,47 @@ pyinstaller --onefile --windowed --add-data=languages;languages --add-data=asset
 pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset/Icon.png:asset --add-data=bin/aria2c:aria2 --add-data=bin/ffmpeg:ffmpeg --icon=asset/Icon.png app.py -n MediaDownloader
 ```
 
+### 🛠️ حل مشكلة عدم تحميل الترجمة
+
+إذا لم تُحمَّل الترجمة، جرّب الخطوات التالية داخل **بيئة Python نفسها** التي يُشغَّل منها التطبيق.
+
+1. ثبّت `yt-dlp` مع الاعتماديات الافتراضية و`curl-cffi`:
+
+   ```bash
+   pip install "yt-dlp[default,curl-cffi]"
+   ```
+
+2. ثبّت محرك JavaScript مدعومًا. يُنصح باستخدام **Deno على macOS/Linux**. على macOS يمكنك استعمال:
+
+   ```bash
+   brew install deno
+   deno --version
+   ```
+
+   على Linux، ثبّت إصدارًا حديثًا من Deno بالطريقة المتاحة لتوزيعتك، مثل حزمة `apt` أو `pacman` عند توفرها. إصدار `yt-dlp` المرفق يتطلب Deno 2.3.0 أو أحدث.
+
+3. يمكن بدلًا من ذلك استخدام **Node.js بالإصدار 22.0.0 أو أحدث**. تحقق من الإصدار المثبت:
+
+   ```bash
+   node -v
+   ```
+
+   إذا لم يكن Node.js مثبتًا أو كان إصداره قديمًا، فعّل بيئة Python الافتراضية الخاصة بالمشروع ثم ثبّته داخلها باستخدام `nodeenv`:
+
+   ```bash
+   pip install nodeenv && nodeenv -p
+   ```
+
+4. عند استخدام `yt-dlp` مباشرة من الطرفية، فعّل Node.js هكذا:
+
+   ```bash
+   yt-dlp --js-runtimes node "VIDEO_URL"
+   ```
+
+   استبدل `VIDEO_URL` برابط الفيديو أو قائمة التشغيل الفعلي.
+
+يكتشف تطبيق Media Downloader محركات Deno وNode.js المدعومة تلقائيًا؛ أعد تشغيل التطبيق بعد تثبيت أحدهما. تساعد هذه الخطوات عند فشل الترجمة بسبب تحديات JavaScript أو أخطاء HTTP/403، لكن قد تبقى الترجمة غير متاحة للغة المطلوبة أو تحتاج إلى ملف cookies صالح.
+
 ### 📁 هيكل المشروع
 
 ```
@@ -418,30 +502,4 @@ pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset
 ```
 ```bash 
 sudo update-desktop-database
-``` 
----
-```bash
-pip install "yt-dlp[default,curl-cffi]"
-```
-```bash
-pip install -U "yt-dlp[default]"
-```
-
-```bash
-curl -fsSL https://deno.land | sh
-```
-
-```bash
-node -v 
-```
-```bash
-deno --version
-```
-```bash
-pip install nodeenv && nodeenv -p
-```
-or 
-
-```bash
-apt/pacman install deno
 ```
