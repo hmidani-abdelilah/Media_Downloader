@@ -55,5 +55,15 @@
   "single_video": "Single Video",
   "entire_playlist": "Entire Playlist",
   "playlist_detected": "Playlist Detected",
-  "playlist_detected_msg": "This link contains a playlist. What do you want to download?"
+  "playlist_detected_msg": "This link contains a playlist. What do you want to download?",
+  "enable_cut": "Enable Cut",
+  "cut_start": "Start:",
+  "cut_end": "End:",
+  "subtitle_languages": "Subtitle languages:",
+  "cut_hint": "Time: seconds or HH:MM:SS | -1 = end",
+  "enable_playlist_range": "Playlist Range",
+  "playlist_start": "From:",
+  "playlist_end": "To:",
+  "playlist_end_placeholder": "Last video",
+  "invalid_playlist_range": "Playlist start must be a positive integer, and the end must be empty or greater than or equal to the start."
 }

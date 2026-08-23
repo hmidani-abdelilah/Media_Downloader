@@ -55,5 +55,16 @@
   "single_video": "فيديو واحد",
   "entire_playlist": "قائمة التشغيل كاملة",
   "playlist_detected": "تم اكتشاف قائمة تشغيل",
-  "playlist_detected_msg": "يحتوي هذا الرابط على قائمة تشغيل. ماذا تريد أن تحمل؟"
+  "playlist_detected_msg": "يحتوي هذا الرابط على قائمة تشغيل. ماذا تريد أن تحمل؟",
+  "enable_cut": "تفعيل القص",
+  "cut_start": "البداية:",
+  "cut_end": "النهاية:",
+  "subtitle_languages": "لغات الترجمة:",
+  "cut_hint": "الوقت: ثوانٍ أو HH:MM:SS | -1 = نهاية الملف",
+  "enable_playlist_range": "نطاق قائمة التشغيل",
+  "playlist_start": "من رقم:",
+  "playlist_end": "إلى رقم:",
+  "playlist_end_placeholder": "آخر فيديو",
+  "invalid_playlist_range": "يجب أن تكون البداية عددًا صحيحًا موجبًا، والنهاية فارغة أو عددًا لا يقل عن البداية."
+
 }

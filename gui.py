@@ -23,7 +23,7 @@ import CTkFileDialog  # لفتح مربع حوار اختيار المجلدات
 from CTkFileDialog.Constants import DOWNLOAD_DIR # مسار مجلد المستخدم الافتراضي
 from CTkMessagebox import CTkMessagebox  # لعرض رسائل منبثقة للمستخدم 
 from CTkMenuBarPlus import * #  استيراد مكتبة القوائم الافقية 
-from downloader import download_video, get_videos_info, get_gpu_encoders, stop_download # استيراد وظائف التحميل
+from downloader import download_video, get_videos_info, get_gpu_encoders, normalize_playlist_range, stop_download # استيراد وظائف التحميل
 from ffmpeg_check import check_ffmpeg_installed  # للتحقق من تثبيت FFmpeg
 from aria2_check import check_aria2_installed # للتحقق من تثبيت Aria2c
 import threading  # للتنفيذ المتزامن للمهام
@@ -587,7 +587,7 @@ class YouTubeDownloaderApp:
         self.subtitle_lang_entry.grid(
             row=0, column=6, padx=5, pady=5
         )
-
+        
         # ملاحظة: إذا كان Enable Cut غير مفعّل، يتم تجاهل Start/End.
         self.cut_hint_label = ctk.CTkLabel(
             self.cut_frame,
@@ -595,12 +595,78 @@ class YouTubeDownloaderApp:
                 "cut_hint",
                 "Time: seconds or HH:MM:SS | -1 = end"
             ),
-            font=ctk.CTkFont(size=11)
+            font=ctk.CTkFont(size=12 ,weight='bold')
         )
         self.cut_hint_label.grid(
-            row=1, column=0, columnspan=7,
-            padx=5, pady=(0, 5)
+            row=1, column=0, columnspan=6,
+            padx=10, pady=(0.5)
         )
+
+        # تحديد نطاق الفيديوهات المطلوب تنزيلها من قائمة التشغيل.
+        self.playlist_range_enabled = ctk.BooleanVar(value=False)
+        self.playlist_range_checkbox = ctk.CTkCheckBox(
+            self.cut_frame,
+            text=self.lang.get(
+                "enable_playlist_range",
+                "Select Playlist Range"
+            ),
+            variable=self.playlist_range_enabled,
+            command=self.toggle_playlist_range_fields
+        )
+        self.playlist_range_checkbox.grid(
+            row=2, column=0, padx=5, pady=(0, 5)
+        )
+
+        self.playlist_start_label = ctk.CTkLabel(
+            self.cut_frame,
+            text=self.lang.get(
+                "playlist_start",
+                "From video:"
+            )
+        )
+        self.playlist_start_label.grid(
+            row=2, column=1, padx=5, pady=(0, 5)
+        )
+
+        self.playlist_start = ctk.StringVar(value="1")
+        self.playlist_start_entry = ctk.CTkEntry(
+            self.cut_frame,
+            textvariable=self.playlist_start,
+            width=80,
+            placeholder_text="1",
+            state="disabled"
+        )
+        self.playlist_start_entry.grid(
+            row=2, column=2, padx=5, pady=(0, 5)
+        )
+
+        self.playlist_end_label = ctk.CTkLabel(
+            self.cut_frame,
+            text=self.lang.get(
+                "playlist_end",
+                "To video:"
+            )
+        )
+        self.playlist_end_label.grid(
+            row=2, column=3, padx=5, pady=(0, 5)
+        )
+
+        self.playlist_end = ctk.StringVar(value="")
+        self.playlist_end_entry = ctk.CTkEntry(
+            self.cut_frame,
+            textvariable=self.playlist_end,
+            width=90,
+            placeholder_text=self.lang.get(
+                "playlist_end_placeholder",
+                "Last video"
+            ),
+            state="disabled"
+        )
+        self.playlist_end_entry.grid(
+            row=2, column=4, padx=5, pady=(0, 5)
+        )
+
+
 
         # ===== قسم اختيار مجلد الحفظ =====
         self.directory_frame = ctk.CTkFrame(self.main_frame)
@@ -709,6 +775,12 @@ class YouTubeDownloaderApp:
 
         #self.loading_frame.pack(pady=10, padx=20, fill="x")
 
+    def toggle_playlist_range_fields(self):
+        """تفعيل أو تعطيل حقلي نطاق قائمة التشغيل."""
+        state = "normal" if self.playlist_range_enabled.get() else "disabled"
+        self.playlist_start_entry.configure(state=state)
+        self.playlist_end_entry.configure(state=state)
+
     # دالة لتغيير مظهر التطبيق
     def change_appearance_mode_event(self, new_appearance_mode: str):
         """
@@ -782,6 +854,11 @@ class YouTubeDownloaderApp:
         self.cut_start_label.configure(text=self.lang.get("cut_start", "Start:"))
         self.cut_end_label.configure(text=self.lang.get("cut_end", "End:"))
         self.subtitle_lang_label.configure(text=self.lang.get("subtitle_languages", "Subtitle languages:"))
+        self.playlist_range_checkbox.configure(text=self.lang.get("enable_playlist_range", "Select Playlist Range"))
+        self.playlist_start_label.configure(text=self.lang.get("playlist_start", "From video:"))
+        self.playlist_end_label.configure(text=self.lang.get("playlist_end", "To video:"))
+        self.playlist_end_entry.configure(placeholder_text=self.lang.get("playlist_end_placeholder", "Last video"))
+        self.cut_hint_label.configure(text=self.lang.get("cut_hint", "Time: seconds or HH:MM:SS | -1 = end"))
 
     # دالة للحصول على الحزم المثبتة وإصداراتها في النظام
     def get_installed_packages(self):
@@ -1172,6 +1249,26 @@ class YouTubeDownloaderApp:
             )
             return
 
+        # التحقق من نطاق قائمة التشغيل قبل إنشاء خيط التنزيل.
+        playlist_start = None
+        playlist_end = None
+        if self.playlist_range_enabled.get():
+            try:
+                playlist_start, playlist_end = normalize_playlist_range(
+                    self.playlist_start.get(),
+                    self.playlist_end.get()
+                )
+            except ValueError:
+                CTkMessagebox(
+                    title=self.lang.get("error", "Error"),
+                    message=self.lang.get(
+                        "invalid_playlist_range",
+                        "Playlist start must be a positive integer, and the end must be empty or greater than or equal to the start."
+                    ),
+                    icon="warning"
+                )
+                return
+
         # تنبيه المستخدم اذا اختار إغلاق الحاسوب بعد التحميل دون اختيار إغلاق التطبيق
         if self.shutdown_after_download.get():
             # إظهار تحذير إذا اختار المستخدم إغلاق الحاسوب بعد التحميل دون اختيار إغلاق التطبيق
@@ -1197,7 +1294,10 @@ class YouTubeDownloaderApp:
         self.status_label.configure(text=self.lang.get("fetching_info", "Fetching videos info..."))
 
         # بدء خيط جديد للتحميل لمنع تجميد واجهة المستخدم
-        self.current_download_thread = threading.Thread(target=self.prepare_and_download, args=(new_url,))
+        self.current_download_thread = threading.Thread(
+            target=self.prepare_and_download,
+            args=(new_url, playlist_start, playlist_end)
+        )
         self.current_download_thread.daemon = True  # الخيط ينتهي عند إنهاء البرنامج الرئيسي
         self.current_download_thread.start()
 
@@ -1376,19 +1476,31 @@ class YouTubeDownloaderApp:
                 self.is_downloading = False
     
     # دالة لتحضير وتحميل الفيديوهات من الرابط
-    def prepare_and_download(self, url):
+    def prepare_and_download(
+        self,
+        url,
+        playlist_start=None,
+        playlist_end=None
+    ):
         """
         تحضير وتحميل الفيديوهات من الرابط (قد يكون فيديو واحد أو قائمة تشغيل)
         
         المعلمات:
                  url: رابط الفيديو أو قائمة التشغيل
+            playlist_start: رقم أول فيديو مطلوب من القائمة
+            playlist_end: رقم آخر فيديو مطلوب، أو None لآخر القائمة
         cookies_path: استخدام cookies لحل مشاكل الفيديوهات المحمية 
         """
 
          # التحقق من وجود مجلد الحفظ         
         try:
             # جلب معلومات الفيديوهات من الرابط
-            result = get_videos_info(url,cookies_path=self.cookiefile_dir) # استدعاء دالة جلب معلومات الفيديوهات من مكتبة التحميل
+            result = get_videos_info(
+                url,
+                cookies_path=self.cookiefile_dir,
+                playlist_start=playlist_start,
+                playlist_end=playlist_end
+            ) # استدعاء دالة جلب معلومات الفيديوهات من مكتبة التحميل
             videos = result["videos"] # قائمة الفيديوهات المستخرجة
             playlist_title = result["playlist_title"] # عنوان قائمة التشغيل (إن وجدت)
             channel_title = result.get("channel_title")
@@ -1519,7 +1631,11 @@ class YouTubeDownloaderApp:
                         self.cookiefile_label.configure(text=self.lang.get("file_path", "File PATH:") + f" {self.cookiefile_dir}")
                         
                         # إعادة المحاولة بعد اختيار الملف
-                        self.prepare_and_download(url)
+                        self.prepare_and_download(
+                            url,
+                            playlist_start,
+                            playlist_end
+                        )
                         return
 
                 # في حال إلغاء المستخدم

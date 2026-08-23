@@ -59,6 +59,43 @@ def get_js_runtime_options():
     }
 
 
+PLAYLIST_RANGE_ERROR = (
+    "Playlist start must be a positive integer, and the end must be empty "
+    "or an integer greater than or equal to the start."
+)
+
+
+def _normalize_playlist_index(value):
+    """تحويل موضع فيديو في قائمة التشغيل إلى عدد صحيح موجب."""
+    if isinstance(value, bool):
+        raise ValueError(PLAYLIST_RANGE_ERROR)
+
+    value_text = "" if value is None else str(value).strip()
+    if not value_text.isdecimal():
+        raise ValueError(PLAYLIST_RANGE_ERROR)
+
+    index = int(value_text)
+    if index < 1:
+        raise ValueError(PLAYLIST_RANGE_ERROR)
+
+    return index
+
+
+def normalize_playlist_range(start, end=None):
+    """تطبيع نطاق شامل؛ النهاية الفارغة تعني آخر فيديو."""
+    end_text = "" if end is None else str(end).strip()
+    if start is None and not end_text:
+        return None, None
+
+    start_index = _normalize_playlist_index(start)
+    end_index = None if not end_text else _normalize_playlist_index(end_text)
+
+    if end_index is not None and end_index < start_index:
+        raise ValueError(PLAYLIST_RANGE_ERROR)
+
+    return start_index, end_index
+
+
 def is_youtube_url(url):
     """التحقق من أن الرابط تابع لـ YouTube."""
     try:
@@ -111,7 +148,13 @@ def get_format(quality, file_type):
         return f'bv*[height<={quality_value}]+ba/best'
 
 # -------------- جلب معلومات الفيديو --------------
-def get_videos_info(url,cookies_path="\U0001F36A",ffmpeg_path=ffmpeg_path):
+def get_videos_info(
+    url,
+    cookies_path="\U0001F36A",
+    ffmpeg_path=ffmpeg_path,
+    playlist_start=None,
+    playlist_end=None
+):
     """
     جلب معلومات الفيديوهات (العنوان والرابط) من الرابط المدخل (فيديو أو قائمة تشغيل)
 
@@ -119,6 +162,8 @@ def get_videos_info(url,cookies_path="\U0001F36A",ffmpeg_path=ffmpeg_path):
                  url: رابط الفيديو أو قائمة التشغيل
         cookies_path: استخدام cookies لحل مشاكل الفيديوهات المحمية 
         ffmpeg_path: مسار اذات ffmpeg من مجلد جانبي ان وجد والى فمن النظام
+        playlist_start: رقم أول فيديو مطلوب من قائمة التشغيل
+        playlist_end: رقم آخر فيديو مطلوب، أو None للمتابعة حتى نهاية القائمة
     Returns:
         dict يحتوي على قائمة الفيديوهات والعنوان إذا كانت قائمة تشغيل
     """
@@ -131,6 +176,15 @@ def get_videos_info(url,cookies_path="\U0001F36A",ffmpeg_path=ffmpeg_path):
         "js_runtimes": get_js_runtime_options(),
         # Explicitly verify SSL (should be default, but verify)
     }
+
+    playlist_start, playlist_end = normalize_playlist_range(
+        playlist_start,
+        playlist_end
+    )
+    if playlist_start is not None:
+        # صيغة START:END شاملة، والنهاية الفارغة تعني آخر عنصر.
+        end_spec = "" if playlist_end is None else str(playlist_end)
+        ydl_opts["playlist_items"] = f"{playlist_start}:{end_spec}"
 
     # ✅ التحقق من ffmpeg المحلي
     if ffmpeg_path != "ffmpeg":
@@ -185,8 +239,16 @@ def get_videos_info(url,cookies_path="\U0001F36A",ffmpeg_path=ffmpeg_path):
             if "entries" in info:
 
                 playlist_title = info.get("title", "playlist")
+                selection_applied = info.get("requested_entries") is not None
                 # روابط الفيديوهات داخل قائمة التشغيل
-                for entry in info["entries"]:
+                for position, entry in enumerate(info["entries"], start=1):
+                    # fallback للمستخرجات التي تتجاهل playlist_items.
+                    if playlist_start is not None and not selection_applied:
+                        if position < playlist_start:
+                            continue
+                        if playlist_end is not None and position > playlist_end:
+                            break
+
                     # تحقق من وجود البيانات قبل الإضافة
                     if not entry:
                         continue
@@ -681,7 +743,7 @@ def process_cut_subtitles(
                 cut_end
             )
         except Exception as e:
-            print(
+            raise(
                 f"Subtitle processing failed for "
                 f"{subtitle_file}: {e}"
             )
@@ -1158,23 +1220,23 @@ def download_video(url, download_dir, quality, file_type, download_subtitles, pr
             )
 
             if selected_languages:
-                if missing_languages:
-                    print(
-                        "⚠️ لغات الترجمة غير المتاحة: "
-                        + ", ".join(missing_languages)
-                    )
+                # if missing_languages:
+                #     print(
+                #         "⚠️ لغات الترجمة غير المتاحة: "
+                #         + ", ".join(missing_languages)
+                #     )
 
                 # yt-dlp يحمّل اليدوية والتلقائية في نفس العملية،
                 # ويفضّل الترجمة اليدوية عند توفر النوعين للرمز نفسه.
                 options['subtitleslangs'] = selected_languages
-            else:
-                print(
-                    "⚠️ لا توجد ترجمة مطابقة للغات: "
-                    + ", ".join(requested_languages)
-                )
+            # else:
+            #     print(
+            #         "⚠️ لا توجد ترجمة مطابقة للغات: "
+            #         + ", ".join(requested_languages)
+            #     )
 
         except Exception as e:
-            print(f"⚠️ تعذر تجهيز الترجمة: {e}")
+            raise(f"⚠️ تعذر تجهيز الترجمة: {e}")
 
 
 
@@ -1256,18 +1318,18 @@ def download_video(url, download_dir, quality, file_type, download_subtitles, pr
             if not downloaded_path:
                 downloaded_path = expected_path
 
-            print(f"File downloaded path: \n {downloaded_path}\n")
+            #print(f"File downloaded path: \n {downloaded_path}\n")
 
-                        # ========================================================
+            # ========================================================
             # قص الفيديو/الصوت + مزامنة الترجمة
             # يجب أن يتم القص قبل الضغط النهائي.
             # ========================================================
             if cut_enabled:
                 if os.path.exists(downloaded_path):
                     try:
-                        print(
-                            f"✂️ Cutting: {cut_start} -> {cut_end}"
-                        )
+                       #print(
+                       #     f"✂️ Cutting: {cut_start} -> {cut_end}"
+                       # )
 
                         subtitle_files = []
                         if download_subtitles:
@@ -1286,9 +1348,9 @@ def download_video(url, download_dir, quality, file_type, download_subtitles, pr
                         )
 
                         if subtitle_files:
-                            print(
-                                "📝 Adjusting subtitle timestamps..."
-                            )
+                            # print(
+                            #     "📝 Adjusting subtitle timestamps..."
+                            # )
                             process_cut_subtitles(
                                 subtitle_files,
                                 actual_start,
@@ -1302,19 +1364,19 @@ def download_video(url, download_dir, quality, file_type, download_subtitles, pr
                             try:
                                 os.remove(downloaded_path)
                             except Exception as e:
-                                print(
+                                raise (
                                     f"⚠️ تعذر حذف الملف الأصلي بعد القص: {e}"
                                 )
 
                         downloaded_path = cut_file
 
-                        print(
-                            f"✅ Cut completed: {downloaded_path}"
-                        )
+                        # print(
+                        #     f"✅ Cut completed: {downloaded_path}"
+                        # )
 
                     except Exception as e:
                         # لا نحذف الملف الأصلي إذا فشل القص.
-                        print(
+                        raise (
                             f"❌ Cut failed: {e}"
                         )
                 else:
@@ -1340,8 +1402,8 @@ def download_video(url, download_dir, quality, file_type, download_subtitles, pr
                         )
                     except Exception as e:
                         err_msg = str(e)
-                        print(f"Compression failed: {err_msg}")
-                        raise
+                        #print(f"Compression failed: {err_msg}")
+                        raise (f"Compression failed: {err_msg}")
                 else:
                     # إذا لم نتمكن من تحديد الملف، اطرح تحذيراً بدلًا من محاولة ضغط ملف غير موجود
                     raise Exception(f"Cannot find downloaded file to compress: {downloaded_path}")

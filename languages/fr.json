@@ -55,5 +55,15 @@
   "single_video": "Vidéo unique",
   "entire_playlist": "Playlist entière",
   "playlist_detected": "Playlist détectée",
-  "playlist_detected_msg": "Ce lien contient une playlist. Que voulez-vous télécharger ?"
+  "playlist_detected_msg": "Ce lien contient une playlist. Que voulez-vous télécharger ?",
+  "enable_cut": "Activer le découpage",
+  "cut_start": "Début :",
+  "cut_end": "Fin :",
+  "subtitle_languages": "Langues des sous-titres :",
+  "cut_hint": "Temps : secondes ou HH:MM:SS | -1 = fin",
+  "enable_playlist_range": "Plage de la playlist",
+  "playlist_start": "De :",
+  "playlist_end": "À :",
+  "playlist_end_placeholder": "Dernière vidéo",
+  "invalid_playlist_range": "Le début doit être un entier positif et la fin doit être vide ou supérieure ou égale au début."
 }
