@@ -1,6 +1,6 @@
 # <div align="center"> Media Downloader </div>   
 
-![Media Downloader GUI Screenshot Application ](https://raw.githubusercontent.com/hmidani-abdelilah/Media_Downloader/refs/heads/main/Screenshot%20From%202026-03-31%2013-45-22.png "Media Downloader GUI")
+![Media Downloader GUI Screenshot Application ](https://raw.githubusercontent.com/hmidani-abdelilah/Media_Downloader/refs/heads/main/Screenshot%20From%202026-08-24%2013-22-57.png "Media Downloader GUI")
 
 ## 🌐 English
 
