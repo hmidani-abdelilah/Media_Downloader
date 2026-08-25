@@ -1,0 +1,294 @@
+name: Build AppImage
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  appimage-x86_64:
+    name: Build Media Downloader AppImage (x86_64)
+    runs-on: ubuntu-24.04
+
+    env:
+      APP_NAME: MediaDownloader
+      APP_ID: media-downloader
+      ARCH: x86_64
+      PYTHON_SERIES: '3.13'
+      FFMPEG_URL: https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz
+      ARIA2_URL: https://github.com/dmesg00/aria2-static-builds/releases/download/v1.37.0/aria2-1.37.0-linux-gnu-64bit-build1.tar.bz2
+      ARIA2_SHA256: 80c0a04aabaedf1f3cf8ec77861547823b7ecc317fb61220b06c28edf97bb964
+      APPIMAGETOOL_URL: https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            ca-certificates curl jq file xz-utils bzip2 tar desktop-file-utils
+
+      - name: Determine version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION="3.0.0-${GITHUB_SHA::7}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Building version: $VERSION"
+
+      - name: Prepare AppDir
+        shell: bash
+        run: |
+          set -euxo pipefail
+          rm -rf build
+          mkdir -p \
+            build/AppDir/usr/bin \
+            build/AppDir/usr/lib/media-downloader/site-packages \
+            build/AppDir/usr/share/media-downloader \
+            build/AppDir/usr/share/applications \
+            build/AppDir/usr/share/icons/hicolor/256x256/apps \
+            build/downloads
+
+          # Copy application source. Exclude repository/build-only directories.
+          tar \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='build' \
+            --exclude='dist' \
+            --exclude='__pycache__' \
+            --exclude='*.pyc' \
+            --exclude='test files' \
+            -cf - . | tar -xf - -C build/AppDir/usr/share/media-downloader
+
+          # AppImage Linux runtime does not need the Windows-only Python module
+          # or the unrelated PyPI package named "aria2". aria2c itself is bundled below.
+          awk '
+            BEGIN { IGNORECASE=1 }
+            /^[[:space:]]*winotify([[:space:];<>=!~]|$)/ { next }
+            /^[[:space:]]*aria2([[:space:];<>=!~]|$)/ { next }
+            { print }
+          ' requirements.txt > build/AppDir/usr/share/media-downloader/requirements.txt
+
+      - name: Download portable CPython
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          RELEASE_JSON="$(curl -fsSL https://api.github.com/repos/astral-sh/python-build-standalone/releases/latest)"
+
+          PY_URL="$(
+            printf '%s' "$RELEASE_JSON" | jq -r --arg series "$PYTHON_SERIES" '
+              .assets[]
+              | select(.name | test("^cpython-" + $series + "\\.[0-9]+\\+[0-9]+-x86_64-unknown-linux-gnu-install_only_stripped\\.tar\\.gz$"))
+              | .browser_download_url
+            ' | head -n1
+          )"
+
+          if [[ -z "$PY_URL" || "$PY_URL" == "null" ]]; then
+            echo "Could not find a CPython $PYTHON_SERIES x86_64 GNU install_only_stripped asset." >&2
+            exit 1
+          fi
+
+          echo "Downloading Python: $PY_URL"
+          curl -fL --retry 5 --retry-delay 2 "$PY_URL" -o build/downloads/python.tar.gz
+          mkdir -p build/python
+          tar -xzf build/downloads/python.tar.gz -C build/python
+
+          # python-build-standalone install_only archives contain a top-level python/ directory.
+          cp -a build/python/python/. build/AppDir/usr/
+
+          build/AppDir/usr/bin/python3 --version
+          build/AppDir/usr/bin/python3 -m pip --version
+          build/AppDir/usr/bin/python3 -c 'import tkinter; print("tkinter OK", tkinter.TkVersion)'
+
+      - name: Install Python dependencies into AppImage
+        shell: bash
+        run: |
+          set -euxo pipefail
+          BASE_PKGS="$GITHUB_WORKSPACE/build/AppDir/usr/lib/media-downloader/site-packages"
+          REQ="$GITHUB_WORKSPACE/build/AppDir/usr/share/media-downloader/requirements.txt"
+
+          # Install a complete baseline in the read-only AppImage.
+          # Runtime updates are installed to a writable user overlay via PIP_TARGET.
+          build/AppDir/usr/bin/python3 -m pip install \
+            --upgrade \
+            --target "$BASE_PKGS" \
+            -r "$REQ"
+
+          PYTHONPATH="$BASE_PKGS" build/AppDir/usr/bin/python3 - <<'PY'
+          import customtkinter
+          import yt_dlp
+          import tkinterdnd2
+          print("Python dependencies OK")
+          print("yt-dlp:", yt_dlp.version.__version__)
+          PY
+
+      - name: Bundle FFmpeg and ffprobe
+        shell: bash
+        run: |
+          set -euxo pipefail
+          curl -fL --retry 5 --retry-delay 2 "$FFMPEG_URL" -o build/downloads/ffmpeg.tar.xz
+          mkdir -p build/ffmpeg
+          tar -xJf build/downloads/ffmpeg.tar.xz -C build/ffmpeg --strip-components=1
+          install -m 0755 build/ffmpeg/bin/ffmpeg build/AppDir/usr/bin/ffmpeg
+          install -m 0755 build/ffmpeg/bin/ffprobe build/AppDir/usr/bin/ffprobe
+          build/AppDir/usr/bin/ffmpeg -version | head -n1
+          build/AppDir/usr/bin/ffprobe -version | head -n1
+
+      - name: Bundle static aria2c
+        shell: bash
+        run: |
+          set -euxo pipefail
+          curl -fL --retry 5 --retry-delay 2 "$ARIA2_URL" -o build/downloads/aria2.tar.bz2
+          echo "$ARIA2_SHA256  build/downloads/aria2.tar.bz2" | sha256sum -c -
+          mkdir -p build/aria2
+          tar -xjf build/downloads/aria2.tar.bz2 -C build/aria2 --strip-components=1
+          ARIA2_BIN="$(find build/aria2 -type f -name aria2c -perm -111 | head -n1)"
+          test -n "$ARIA2_BIN"
+          install -m 0755 "$ARIA2_BIN" build/AppDir/usr/bin/aria2c
+          build/AppDir/usr/bin/aria2c --version | head -n1
+
+      - name: Create AppRun and desktop metadata
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          cat > build/AppDir/AppRun <<'EOF'
+          #!/bin/bash
+          set -e
+
+          APPDIR="$(dirname "$(readlink -f "$0")")"
+          APP_SRC="$APPDIR/usr/share/media-downloader"
+          BASE_PKGS="$APPDIR/usr/lib/media-downloader/site-packages"
+
+          DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+          USER_DATA="$DATA_HOME/media-downloader"
+          USER_PKGS="$USER_DATA/python-packages"
+
+          mkdir -p "$USER_PKGS"
+
+          # Prefer binaries bundled with the AppImage.
+          export PATH="$APPDIR/usr/bin:$PATH"
+
+          # Updated packages installed by the application's existing update button
+          # override the baseline packages bundled in the AppImage.
+          export PYTHONPATH="$USER_PKGS:$BASE_PKGS${PYTHONPATH:+:$PYTHONPATH}"
+
+          # The existing GUI runs: sys.executable -m pip install PACKAGE --upgrade.
+          # PIP_TARGET redirects those writes away from the read-only AppImage.
+          export PIP_TARGET="$USER_PKGS"
+          export PIP_DISABLE_PIP_VERSION_CHECK=1
+
+          # Keep user cache/config outside the mounted AppImage.
+          export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+          export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+
+          # Help portable CPython locate its Tcl/Tk data if needed.
+          for d in "$APPDIR"/usr/lib/tcl8.*; do
+            [[ -d "$d" ]] && export TCL_LIBRARY="$d" && break
+          done
+          for d in "$APPDIR"/usr/lib/tk8.*; do
+            [[ -d "$d" ]] && export TK_LIBRARY="$d" && break
+          done
+
+          cd "$APP_SRC"
+          exec "$APPDIR/usr/bin/python3" "$APP_SRC/app.py" "$@"
+          EOF
+          chmod 0755 build/AppDir/AppRun
+
+          cat > build/AppDir/media-downloader.desktop <<'EOF'
+          [Desktop Entry]
+          Version=1.0
+          Type=Application
+          Name=Media Downloader
+          Comment=Download videos and audio using yt-dlp
+          Exec=media-downloader
+          Icon=media-downloader
+          Terminal=false
+          Categories=Network;Utility;
+          StartupNotify=true
+          EOF
+
+          cp build/AppDir/media-downloader.desktop \
+             build/AppDir/usr/share/applications/media-downloader.desktop
+
+          ICON=""
+          for candidate in asset/Icon.png icon.png asset/icon.png assets/icon.png; do
+            if [[ -f "$candidate" ]]; then
+              ICON="$candidate"
+              break
+            fi
+          done
+          test -n "$ICON"
+          cp "$ICON" build/AppDir/media-downloader.png
+          cp "$ICON" build/AppDir/usr/share/icons/hicolor/256x256/apps/media-downloader.png
+
+          desktop-file-validate build/AppDir/media-downloader.desktop
+
+      - name: Smoke-test AppDir runtime
+        shell: bash
+        run: |
+          set -euxo pipefail
+          APPDIR="$GITHUB_WORKSPACE/build/AppDir"
+          BASE="$APPDIR/usr/lib/media-downloader/site-packages"
+          export PATH="$APPDIR/usr/bin:$PATH"
+          export PYTHONPATH="$BASE"
+
+          "$APPDIR/usr/bin/python3" - <<'PY'
+          import tkinter
+          import customtkinter
+          import tkinterdnd2
+          import yt_dlp
+          print("Runtime imports OK")
+          PY
+
+          ffmpeg -version | head -n1
+          ffprobe -version | head -n1
+          aria2c --version | head -n1
+
+      - name: Build AppImage
+        shell: bash
+        run: |
+          set -euxo pipefail
+          curl -fL --retry 5 --retry-delay 2 "$APPIMAGETOOL_URL" -o build/appimagetool.AppImage
+          chmod +x build/appimagetool.AppImage
+
+          VERSION="${{ steps.version.outputs.version }}"
+          OUTPUT="MediaDownloader-${VERSION}-x86_64.AppImage"
+
+          ARCH=x86_64 APPIMAGE_EXTRACT_AND_RUN=1 \
+            build/appimagetool.AppImage build/AppDir "$OUTPUT"
+
+          chmod +x "$OUTPUT"
+          sha256sum "$OUTPUT" > "$OUTPUT.sha256"
+          file "$OUTPUT"
+          ls -lh "$OUTPUT" "$OUTPUT.sha256"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MediaDownloader-AppImage-x86_64
+          path: |
+            MediaDownloader-*.AppImage
+            MediaDownloader-*.AppImage.sha256
+          if-no-files-found: error
+          compression-level: 0
+
+      - name: Publish AppImage on GitHub Release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            MediaDownloader-*.AppImage
+            MediaDownloader-*.AppImage.sha256
+          generate_release_notes: true
