@@ -1,0 +1,252 @@
+name: Build DEB and RPM
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+env:
+  APP_NAME: media-downloader
+  APP_VERSION: "3.0.0"
+  PKG_DIR: media-downloader-pkg
+
+jobs:
+  build:
+    name: Build DEB and RPM
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            python3 \
+            python3-pip \
+            python3-venv \
+            ffmpeg \
+            aria2 \
+            binutils \
+            alien \
+            rpm \
+            rsync
+
+      - name: Resolve version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION="${APP_VERSION}"
+          fi
+
+          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
+          echo "Building version: ${VERSION}"
+
+      - name: Prepare package tree
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          rm -rf "$PKG_DIR"
+          mkdir -p "$PKG_DIR/DEBIAN"
+          mkdir -p "$PKG_DIR/usr/share/media-downloader"
+          mkdir -p "$PKG_DIR/usr/bin"
+          mkdir -p "$PKG_DIR/usr/share/applications"
+          mkdir -p "$PKG_DIR/usr/share/pixmaps"
+
+          rsync -a \
+            --exclude ".git" \
+            --exclude ".github" \
+            --exclude "__pycache__" \
+            --exclude "*.pyc" \
+            ./ "$PKG_DIR/usr/share/media-downloader/"
+
+      - name: Install application icon
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          ICON=""
+
+          for candidate in \
+            "asset/icon.png" \
+            "assets/icon.png" \
+            "icon.png" \
+            "asset/logo.png" \
+            "assets/logo.png"
+          do
+            if [[ -f "$candidate" ]]; then
+              ICON="$candidate"
+              break
+            fi
+          done
+
+          if [[ -n "$ICON" ]]; then
+            cp "$ICON" "$PKG_DIR/usr/share/pixmaps/media-downloader.png"
+            echo "Using icon: $ICON"
+          else
+            echo "No PNG icon found. Package will still be built."
+          fi
+
+      - name: Create launcher
+        shell: bash
+        run: |
+          cat > "$PKG_DIR/usr/bin/media-downloader" <<'EOS'
+          #!/bin/bash
+          set -e
+
+          APP_DIR="/usr/share/media-downloader"
+          VENV="$APP_DIR/venv"
+
+          cd "$APP_DIR"
+
+          if [[ ! -x "$VENV/bin/python3" ]]; then
+            echo "Media Downloader VENV is missing."
+            echo "Try reinstalling the package."
+            exit 1
+          fi
+
+          exec "$VENV/bin/python3" app.py "$@"
+          EOS
+
+          chmod 755 "$PKG_DIR/usr/bin/media-downloader"
+
+      - name: Create Debian control files
+        shell: bash
+        run: |
+          cat > "$PKG_DIR/DEBIAN/control" <<EOF2
+          Package: media-downloader
+          Version: ${VERSION}
+          Architecture: all
+          Maintainer: Abdelilah Hmidani <hmidani.abdelilah@example.com>
+          Depends: python3, python3-pip, python3-venv, ffmpeg, aria2
+          Section: utils
+          Priority: optional
+          Description: Graphic user interface application to download videos and audio from YouTube, Facebook, Instagram and X using yt-dlp.
+          EOF2
+
+          cat > "$PKG_DIR/DEBIAN/postinst" <<'EOS'
+          #!/bin/sh
+          set -e
+
+          APP_DIR="/usr/share/media-downloader"
+          VENV="$APP_DIR/venv"
+
+          echo "-> Creating Media Downloader virtual environment..."
+
+          rm -rf "$VENV"
+          python3 -m venv "$VENV"
+
+          echo "-> Upgrading pip..."
+          "$VENV/bin/python3" -m pip install --upgrade pip setuptools wheel
+
+          echo "-> Installing Python dependencies..."
+          "$VENV/bin/python3" -m pip install -r "$APP_DIR/requirements.txt"
+
+          exit 0
+          EOS
+
+          cat > "$PKG_DIR/DEBIAN/prerm" <<'EOS'
+          #!/bin/sh
+          set -e
+
+          rm -rf /usr/share/media-downloader/venv
+
+          exit 0
+          EOS
+
+          chmod 755 "$PKG_DIR/DEBIAN"
+          chmod 644 "$PKG_DIR/DEBIAN/control"
+          chmod 755 "$PKG_DIR/DEBIAN/postinst"
+          chmod 755 "$PKG_DIR/DEBIAN/prerm"
+
+      - name: Create desktop entry
+        shell: bash
+        run: |
+          cat > "$PKG_DIR/usr/share/applications/media-downloader.desktop" <<'EOS'
+          [Desktop Entry]
+          Version=1.0
+          Type=Application
+          Name=Media Downloader
+          Comment=Download videos and audio from social media using yt-dlp
+          Exec=media-downloader
+          Icon=media-downloader
+          Terminal=false
+          Categories=Network;Utility;
+          StartupNotify=true
+          EOS
+
+          chmod 644 "$PKG_DIR/usr/share/applications/media-downloader.desktop"
+
+      - name: Build DEB
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          DEB_FILE="media-downloader_${VERSION}_all.deb"
+
+          dpkg-deb --root-owner-group --build "$PKG_DIR" "$DEB_FILE"
+
+          echo "DEB_FILE=$DEB_FILE" >> "$GITHUB_ENV"
+
+          dpkg-deb --info "$DEB_FILE"
+          dpkg-deb --contents "$DEB_FILE"
+
+      - name: Build RPM from DEB
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          rm -f ./*.rpm
+
+          sudo alien \
+            --to-rpm \
+            --scripts \
+            --keep-version \
+            "$DEB_FILE"
+
+          RPM_FILE="$(find . -maxdepth 1 -type f -name 'media-downloader-*.rpm' -printf '%f\n' | head -n1)"
+
+          if [[ -z "$RPM_FILE" ]]; then
+            echo "RPM package was not generated."
+            exit 1
+          fi
+
+          echo "RPM_FILE=$RPM_FILE" >> "$GITHUB_ENV"
+
+          rpm -qip "$RPM_FILE" || true
+
+      - name: Generate SHA256 checksums
+        shell: bash
+        run: |
+          sha256sum "$DEB_FILE" "$RPM_FILE" > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Upload DEB and RPM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: MediaDownloader-${{ env.VERSION }}-Linux-packages
+          path: |
+            ${{ env.DEB_FILE }}
+            ${{ env.RPM_FILE }}
+            SHA256SUMS
+          if-no-files-found: error
+          compression-level: 0
+
+      - name: Publish GitHub Release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ env.DEB_FILE }}
+            ${{ env.RPM_FILE }}
+            SHA256SUMS
+          generate_release_notes: true
+
