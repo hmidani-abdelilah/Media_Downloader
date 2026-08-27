@@ -17,7 +17,8 @@ ARIA2C_PATH = resource_path("aria2/aria2c.exe")
 #cookies_path = resource_path("www.youtube.com_cookies.txt")  # أو المسار الذي تضع فيه الكوكيز
 
 DEFAULT_SUBTITLE_LANGUAGES = ("ar", "fr", "en")
-YOUTUBE_SUBTITLE_DELAY = 60
+# YOUTUBE_SUBTITLE_DELAY = 60
+YOUTUBE_SUBTITLE_DELAY = 30
 YTDLP_JS_RUNTIMES = ("deno", "node", "quickjs")
 
 SUBTITLE_LANGUAGE_ALIASES = {
