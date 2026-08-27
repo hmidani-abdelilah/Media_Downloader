@@ -60,6 +60,7 @@ jobs:
           mkdir -p "$PKG_DIR/usr/bin"
           mkdir -p "$PKG_DIR/usr/share/applications"
           mkdir -p "$PKG_DIR/usr/share/pixmaps"
+          mkdir -p "$PKG_DIR/usr/share/metainfo" 
 
           rsync -a \
             --exclude ".git" \
@@ -118,6 +119,14 @@ jobs:
 
           chmod 755 "$PKG_DIR/usr/bin/media-downloader"
 
+      - name: Install AppStream Metadata
+        shell: bash
+        run: |
+          # نسخ ملف الميتاداتا إلى المسار المعياري للمتاجر
+          cp Media_Downloader.appdata.xml "$PKG_DIR/usr/share/metainfo/io.github.hmidani_abdelilah.media-downloader.appdata.xml"
+          chmod 644 "$PKG_DIR/usr/share/metainfo/io.github.hmidani_abdelilah.media-downloader.appdata.xml"
+
+
       - name: Create Debian control files
         shell: bash
         run: |
@@ -126,7 +135,7 @@ jobs:
           Version: ${VERSION}
           Architecture: all
           Maintainer: Abdelilah Hmidani <hmidani.abdelilah@example.com>
-          Depends: python3, python3-pip, python3-venv, python3-tk, ffmpeg
+          Depends: python3, python3-pip, python3-venv, ffmpeg, aria2
           Section: utils
           Priority: optional
           Description: Graphic user interface application to download videos and audio from YouTube, Facebook, Instagram and X using yt-dlp.
@@ -166,11 +175,24 @@ jobs:
           chmod 644 "$PKG_DIR/DEBIAN/control"
           chmod 755 "$PKG_DIR/DEBIAN/postinst"
           chmod 755 "$PKG_DIR/DEBIAN/prerm"
+      
+      - name: Install application icon
+        shell: bash
+        run: |
+          set -euxo pipefail
+          
+          # مسار حفظ الأيقونات الرسمي للحزم
+          mkdir -p "$PKG_DIR/usr/share/pixmaps"
+          
+          # نسخ الأيقونة وتسميتها بدقة بالأحرف الصغيرة لتطابق نظام التشغيل
+          cp icon.png "$PKG_DIR/usr/share/pixmaps/media-downloader.png"
+
 
       - name: Create desktop entry
         shell: bash
         run: |
-          cat > "$PKG_DIR/usr/share/applications/media-downloader.desktop" <<'EOS'
+          # تأكد من كتابة الكود داخل ملف يحمل نفس المعرف العكسي
+          cat > "$PKG_DIR/usr/share/applications/io.github.hmidani_abdelilah.media-downloader.desktop" <<'EOS'
           [Desktop Entry]
           Version=1.0
           Type=Application
@@ -183,7 +205,8 @@ jobs:
           StartupNotify=true
           EOS
 
-          chmod 644 "$PKG_DIR/usr/share/applications/media-downloader.desktop"
+          chmod 644 "$PKG_DIR/usr/share/applications/io.github.hmidani_abdelilah.media-downloader.desktop"
+
 
       - name: Build DEB
         shell: bash
@@ -249,4 +272,5 @@ jobs:
             ${{ env.RPM_FILE }}
             SHA256SUMS
           generate_release_notes: true
+
 
