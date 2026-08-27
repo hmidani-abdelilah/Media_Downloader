@@ -12,8 +12,8 @@ permissions:
 jobs:
   appimage-x86_64:
     name: Build Media Downloader AppImage (x86_64)
-    # استخدام Ubuntu 20.04 إلزامي لحل مشكلة GLIBC في خوادم AppImageHub والتوزيعات القديمة
-    runs-on: ubuntu-20.04
+    # تم التحديث إلى 22.04 لحل مشكلة تعليق الخادم العالق
+    runs-on: ubuntu-22.04
 
     env:
       APP_NAME: Media_Downloader
@@ -23,7 +23,7 @@ jobs:
       ARIA2_URL: https://github.com/dmesg00/aria2-static-builds/releases/download/v1.37.0/aria2-1.37.0-linux-gnu-64bit-build1.tar.bz2
       ARIA2_SHA256: 80c0a04aabaedf1f3cf8ec77861547823b7ecc317fb61220b06c28edf97bb964
       LINUXDEPLOY_URL: https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-
+      
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -50,6 +50,7 @@ jobs:
       - name: Set up Python Environment
         uses: actions/setup-python@v5
         with:
+          # تثبيت إصدار بايثون مستقر لضمان بناء مكاتب متوافقة
           python-version: '3.10'
 
       - name: Install Python Requirements
@@ -58,7 +59,6 @@ jobs:
           pip install pyinstaller -r requirements.txt
 
       - name: Compile Application with PyInstaller
-        # تحويل تجميع الكود ليعتمد بالكامل على منطق سكريبت التجميع الخاص بك لحل مشكلة الحواف الرسومية
         run: |
           pyinstaller --noconfirm --onedir --windowed \
             --name "${{ env.APP_NAME }}" \
@@ -85,20 +85,16 @@ jobs:
             AppDir/usr/share/metainfo \
             build/downloads
 
-          # 1. نسخ ملفات التطبيق المجمعة عبر PyInstaller إلى هيكل توزيعة لينكس المعيارية
           cp -r dist/${{ env.APP_NAME }}/* AppDir/usr/bin/
 
-          # 2. إنشاء وتجهيز ملفات الـ Desktop الفريدة لمنع تعارض الأسماء بالمتجر
           cp Media_Downloader.desktop AppDir/usr/share/applications/${{ env.APP_ID }}.desktop
           cp Media_Downloader.desktop AppDir/
 
-          # 3. إعداد الأيقونات للنظام والمتجر
           ICON="icon.png"
           cp "$ICON" AppDir/usr/share/icons/hicolor/256x256/apps/${{ env.APP_NAME }}.png
           cp "$ICON" AppDir/${{ env.APP_NAME }}.png
           cp "$ICON" AppDir/.DirIcon
 
-          # 4. نسخ ملف الميتاداتا AppData التعريفي المعزول للمتجر
           cp Media_Downloader.appdata.xml AppDir/usr/share/metainfo/${{ env.APP_ID }}.appdata.xml
 
       - name: Bundle FFmpeg and ffprobe
@@ -132,7 +128,6 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           export APPIMAGE_EXTRACT_AND_RUN=1
           
-          # البناء عبر أداة linuxdeploy المعيارية المتوافقة مع الفحص التلقائي
           ./linuxdeploy-x86_64.AppImage --appdir AppDir --desktop-file Media_Downloader.desktop --output appimage
           
           OUTPUT="Media_Downloader-${VERSION}-x86_64.AppImage"
