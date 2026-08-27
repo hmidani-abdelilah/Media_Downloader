@@ -23,7 +23,8 @@ pip install --upgrade pip
 pip install pyinstaller -r requirements.txt
 
 echo "=== 3. تجميع المشروع بواسطة PyInstaller ==="
-pyinstaller --noconfirm --onedir --windowed --name "MediaDownloader" --icon=asset/Icon.ico --collect-all typeguard --collect-all CTkFileDialog --collect-all customtkinter --collect-all yt_dlp --add-data "languages:languages" --collect-submodules PIL --add-data "asset:asset" --add-data="asset/Icon.ico:asset" app.py
+
+pyinstaller --noconfirm --onedir --windowed --name "Media_Downloader" --icon=asset/Icon.ico --collect-all typeguard --collect-all CTkFileDialog --collect-all customtkinter --collect-all yt_dlp --add-data "languages:languages" --collect-submodules PIL --add-data "asset:asset" --add-data="asset/Icon.ico:asset" app.py
 
 echo "=== 4. تحميل أداة linuxdeploy ==="
 if [ ! -f "linuxdeploy-x86_64.AppImage" ]; then
