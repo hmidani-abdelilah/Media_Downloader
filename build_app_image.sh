@@ -49,8 +49,8 @@ cp icon.png AppDir/Media_Downloader.png
 cp icon.png AppDir/.DirIcon
 
 mkdir -p AppDir/usr/share/metainfo
-cp Media_Downloader.appdata.xml AppDir/usr/share/metainfo/
-mv AppDir/usr/share/metainfo/Media_Downloader.appdata.xml AppDir/usr/share/metainfo/io.github.hmidani_abdelilah.Media_Downloader.appdata.xml
+cp Media_Downloader.appdata.xml AppDir/usr/share/metainfo/io.github.hmidani_abdelilah.Media_Downloader.appdata.xml
+#mv AppDir/usr/share/metainfo/Media_Downloader.appdata.xml AppDir/usr/share/metainfo/io.github.hmidani_abdelilah.Media_Downloader.appdata.xml
 
 
 echo "=== 6. بناء ملف AppImage النهائي ==="
