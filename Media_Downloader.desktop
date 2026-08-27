@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Media Downloader
+Comment=Download any video from any site
+Exec=Media_Downloader
+Icon=Media_Downloader
+Categories=Utility;
+Terminal=false
+
+
