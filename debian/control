@@ -2,7 +2,7 @@ Source: media-downloader
 Section: utils
 Priority: optional
 Maintainer: Abdelilah Hmidani <hmidani.abdelilah@example.com>
-Build-Depends: debhelper-compat (= 13), dh-python, python3-all
+Build-Depends: debhelper-compat (= 13), dh-python, python3-all, rsync
 
 Package: media-downloader
 Architecture: all
