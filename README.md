@@ -2,11 +2,13 @@
 <div align="center">
    
 [![Python](https://img.shields.io/badge/Python-3.14-blueviolet.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-![MIT License](https://img.shields.io/badge/License-MIT-orange.svg?style=for-the-badge&logo=MIT)
-![linux](https://img.shields.io/badge/linux-Distribution-FCC624.svg?style=for-the-badge&logo=linux)
-[![Windows](https://img.shields.io/badge/Windows-OS-blue.svg?style=for-the-badge&logo=wine)](https://www.microsoft.com/en-us/windows/)
+[![MIT License](https://img.shields.io/badge/License-MIT-orange.svg?style=for-the-badge&logo=MIT)](https://github.com/hmidani-abdelilah/Media_Downloader?tab=MIT-1-ov-file)
+[![linux](https://img.shields.io/badge/linux-Distribution-FCC624.svg?style=for-the-badge&logo=linux)](#-For-Linux-Users)
+[![Windows](https://img.shields.io/badge/Windows-OS-blue.svg?style=for-the-badge&logo=wine)](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/Media_Downloader-3.1.0-Windows.zip)
 [![Ubuntu](https://img.shields.io/badge/Ubuntu-PPA-E95420.svg?style=for-the-badge&logo=ubuntu)](https://launchpad.net/~kiraxq/+archive/ubuntu/ppa)
 [![Bugs Report](https://img.shields.io/badge/Issues-Report%20a%20bug-important?style=for-the-badge&logo=github&logoColor=white)](https://github.com/hmidani-abdelilah/Media_Downloader/issues)
+<a href="https://github.com/hmidani-abdelilah/Media_Downloader/tree/main/.github/workflows" target="_blank"><img alt="Build Status" src="https://raw.githubusercontent.com/hmidani-abdelilah/Media_Downloader/c198b34776a74979d43498c161e968d85e2084f7/.github/workflows/badge.svg" /></a><br>
+<a href="https://github.com/hmidani-abdelilah/Media_Downloader/releases/latest"><img alt="Get it on GitHub" src="https://raw.githubusercontent.com/hmidani-abdelilah/Media_Downloader/refs/heads/main/get-github.png" height="45" /></a>
 </div>   
 
 ![Media Downloader GUI Screenshot Application ](https://raw.githubusercontent.com/hmidani-abdelilah/Media_Downloader/refs/heads/main/Screenshots/Screenshot%20From%202026-08-24%2013-22-57.png "Media Downloader GUI")
