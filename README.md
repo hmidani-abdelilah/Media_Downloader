@@ -1,7 +1,7 @@
 # <div align="center"> Media Downloader  </div>   
 <div align="center">
    
-[![Python](https://img.shields.io/badge/Python3-application-1423755.svg?style=for-the-badge&logo=python)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.14-blueviolet?logo=python&logoColor=white)](https://www.python.org/)
 ![MIT License](https://img.shields.io/badge/License-MIT-orange.svg?style=for-the-badge&logo=MIT)
 ![linux](https://img.shields.io/badge/linux-Distribution-FCC624.svg?style=for-the-badge&logo=linux)
 [![Windows](https://img.shields.io/badge/Windows-OS-blue.svg?style=for-the-badge&logo=wine)](https://www.microsoft.com/en-us/windows/)
