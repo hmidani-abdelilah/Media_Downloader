@@ -157,7 +157,7 @@ This script automates the setup process for Windows users:
 3. Follow any on-screen prompts if dependencies need to be installed manually
 
 **Note:** You must have Python installed and added to your system PATH. If you see an error about Python not being found, download and install Python from [python.org](https://www.python.org/downloads/) and make sure to check "Add Python to PATH" during installation.
-
+By default, the stable installation is placed in `%LOCALAPPDATA%\Programs\Media_Downloader`
 ---
 
 ##### **`run-it.bat`** ▶️
