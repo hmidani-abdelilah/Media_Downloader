@@ -1,6 +1,5 @@
-media-downloader (3.0.0-1) unstable; urgency=low
+media-downloader (3.1.0-1) focal; urgency=low
 
-  * Initial release building via Launchpad Recipes.
+  * Initial package build fixing changelog formatting.
 
  -- Abdelilah Hmidani <hmidani.abdelilah@example.com>  Fri, 28 Aug 2026 02:00:00 +0100
-
