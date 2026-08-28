@@ -118,19 +118,19 @@ This script automates the complete setup process for Linux users:
 - RHEL, CentOS, Rocky Linux, AlmaLinux
 - Arch Linux, Manjaro, EndeavourOS, Garuda Linux
 
-* Can be installed in Deb format for Debian-based distributions [Download Media_Downloader deb](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/media-downloader_3.1.0_all.deb)
----
-- or by PPA ubuntu based🐧 :
+Prebuilt packages are also available:
+
+- [DEB package](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/media-downloader_3.1.0_all.deb)
+- [RPM package](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/media-downloader-3.1.0-1.noarch.rpm)
+- [AppImage](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/Media_Downloader-3.1.0-x86_64.AppImage)
+
+Ubuntu and Ubuntu-based distributions can use the PPA:
+
 ```bash
 sudo add-apt-repository ppa:kiraxq/ppa
 sudo apt update
 sudo apt install media-downloader
 ```
----
-
-* For Red Hat-based distributions, you can install it in RPM format [Download Media_Downloader RPM](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/media-downloader-3.1.0-1.noarch.rpm)
-
-* **AppImage 🐧** [Download AppImage](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/Media_Downloader-3.1.0-x86_64.AppImage)
 
 **Note:** The script requires `sudo` privileges to install system packages. You will be prompted for your password during installation.
 
@@ -155,9 +155,10 @@ This script automates the setup process for Windows users:
 1. Simply double-click `installer-windows.bat` 
 2. Wait for the installation process to complete
 3. Follow any on-screen prompts if dependencies need to be installed manually
+By default, the stable installation is placed in `%LOCALAPPDATA%\Programs\Media_Downloader`
 
 **Note:** You must have Python installed and added to your system PATH. If you see an error about Python not being found, download and install Python from [python.org](https://www.python.org/downloads/) and make sure to check "Add Python to PATH" during installation.
-By default, the stable installation is placed in `%LOCALAPPDATA%\Programs\Media_Downloader`
+
 ---
 
 ##### **`run-it.bat`** ▶️
@@ -388,19 +389,20 @@ python app.py
 
 **ملاحظة:** السكريبت يتطلب صلاحيات sudo لتثبيت حزم النظام. ستُطلب كلمة المرور خلال التثبيت.
 
-* يمكن تنصيب بصيغة Deb لتوزيعات الدبيانية [تحميل Media_Downloader deb](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/media-downloader_3.1.0_all.deb)
+تتوفر كذلك حزم جاهزة:
 
----
-- او بواسطة PAA **ابونتو🐧** والتوزيعات المبنية عليها :
+- [حزمة DEB](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/media-downloader_3.1.0_all.deb)
+- [حزمة RPM](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/media-downloader-3.1.0-1.noarch.rpm)
+- [ملف AppImage](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/Media_Downloader-3.1.0-x86_64.AppImage)
+
+يمكن لمستخدمي Ubuntu والتوزيعات المبنية عليه استخدام PPA:
+
 ```bash
 sudo add-apt-repository ppa:kiraxq/ppa
 sudo apt update
 sudo apt install media-downloader
 ```
----
-* لتوزيعات الردهاتية يمكنك تنصيب بصيغة RPM [تحميل Media_Downloader RPM](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/media-downloader-3.1.0-1.noarch.rpm)
-* ء  **🐧 AppImage** [تحميل AppImage](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/Media_Downloader-3.1.0-x86_64.AppImage)
----
+
 
 #### **الخيار 3: استخدام سكربتات Windows Batch**
 
@@ -425,6 +427,7 @@ sudo apt install media-downloader
 
 **ملاحظة:** يجب أن يكون Python مثبتًا ومضافًا إلى مسار النظام (System PATH). إذا ظهر لك خطأ يفيد بعدم العثور على Python، فقم بتحميل وتثبيت Python من موقع [python.org](https://python.org) وتأكد من تفعيل خيار "Add Python to PATH" أثناء التثبيت.
 
+يُثبَّت التطبيق افتراضيًا داخل `%LOCALAPPDATA%\Programs\Media_Downloader`.
 ---
 
 ##### **`run-it.bat`** ▶️
