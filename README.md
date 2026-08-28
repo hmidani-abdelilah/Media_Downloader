@@ -10,7 +10,7 @@ A graphical application for downloading videos and audio from YouTube and other 
 
 - Download from **YouTube**, **Facebook**, **Instagram**, and **X.com (Twitter)**
 - Download video (`mp4` `mkv` , `avi`, `flv` , `webm` ) or audio (`mp3`, `aac` , `flac` , `wav` , `opus` , `alac` , `m4a` , `ogg` )
-- Select quality: Low (360p), Medium (720p), High (1080p)
+- Select quality: Low (360p), Medium (720p), High (1080p), Ultra (1440p)
 - Optional **subtitles** download with language selection (supports English, Arabic, French)
 - Full **GUI** using `customtkinter`
 - Multilingual: **English**, **Arabic**, **French**
@@ -103,10 +103,16 @@ This script automates the complete setup process for Linux users:
 - RHEL, CentOS, Rocky Linux, AlmaLinux
 - Arch Linux, Manjaro, EndeavourOS, Garuda Linux
 
-* Can be installed in Deb format for Debian-based distributions [Download Media_Downloader deb](https://release-assets.githubusercontent.com/github-production-release-asset/981180316/cbe7ef99-130f-41d9-ae56-79f9fec89e9b?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-08-24T23%3A24%3A38Z&rscd=attachment%3B+filename%3Dmedia-downloader-pkg.deb&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-08-24T22%3A23%3A49Z&ske=2026-08-24T23%3A24%3A38Z&sks=b&skv=2018-11-09&sig=T%2FvbtzsWRGV4wBZDjvoj19BnLje9gZTh2d11LkyOkAo%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc4NzYxMDUzMCwibmJmIjoxNzg3NjEwMjMwLCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.F6AXa-b2HI9k_GOZ8Iidruy7t1GLPPfRQAlaFbI1whE&response-content-disposition=attachment%3B%20filename%3Dmedia-downloader-pkg.deb&response-content-type=application%2Foctet-stream)
+* Can be installed in Deb format for Debian-based distributions [Download Media_Downloader deb](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/media-downloader_3.1.0_all.deb)
+- or by ppa ubuntu based:
+```bash
+sudo add-apt-repository ppa:kiraxq/ppa
+sudo apt update
+sudo apt install media-downloader
+```
+* For Red Hat-based distributions, you can install it in RPM format [Download Media_Downloader RPM](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/media-downloader-3.1.0-1.noarch.rpm)
 
-* For Red Hat-based distributions, you can install it in RPM format [Download Media_Downloader RPM](https://release-assets.githubusercontent.com/github-production-release-asset/981180316/dbc86e7e-7674-40b5-8abf-95c20ab1e62c?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-08-24T23%3A24%3A38Z&rscd=attachment%3B+filename%3Dmedia-downloader-3.0.0-2.noarch.rpm&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-08-24T22%3A23%3A49Z&ske=2026-08-24T23%3A24%3A38Z&sks=b&skv=2018-11-09&sig=WOaQ2nm7dSEuuuScCFbStjExqfxcFMhkGCku4qr8I8A%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc4NzYxMDUzMCwibmJmIjoxNzg3NjEwMjMwLCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.F6AXa-b2HI9k_GOZ8Iidruy7t1GLPPfRQAlaFbI1whE&response-content-disposition=attachment%3B%20filename%3Dmedia-downloader-3.0.0-2.noarch.rpm&response-content-type=application%2Foctet-stream)
-
+* AppImage [Download AppImage](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/Media_Downloader-3.1.0-x86_64.AppImage)
 
 **Note:** The script requires `sudo` privileges to install system packages. You will be prompted for your password during installation.
 
@@ -270,7 +276,7 @@ The Media Downloader GUI detects supported Deno and Node.js runtimes automatical
 
 - يدعم التحميل من **يوتيوب**، **فيسبوك**، **إنستغرام** و **X.com (تويتر)** و **تيك توك** وغرهم الكثير 
 - تحميل الفيديوهات بصيغة (`mp4` `mkv` , `avi`, `flv` , `webm` ) أو الصوت فقط بصيغة (`mp3`, `aac` , `flac` , `wav` , `opus` , `alac` , `m4a` , `ogg` )
-- اختيار الجودة: منخفضة (360p)، متوسطة (720p)، عالية (1080p)
+- اختيار الجودة: منخفضة (360p)، متوسطة (720p)، عالية (1080p)، عالية جدا (1440p)
 - إمكانية تحميل الترجمة مع اختيار اللغة (عربي، إنجليزي، فرنسي)
 - واجهة رسومية تفاعلية باستخدام `customtkinter`
 - يدعم اللغات: **العربية**، **الإنجليزية**، **الفرنسية**
