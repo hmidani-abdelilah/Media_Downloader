@@ -60,7 +60,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-#### **Option 2: Using Linux Installation Script**
+#### **Option 2: Using Linux Installation Script 🐧**
 
 **For Linux Users**, an automated installer script is provided:
 
@@ -97,22 +97,23 @@ This script automates the complete setup process for Linux users:
 5. Wait for the process to complete
 6. The application will be available in your applications menu
 
-**Supported Distributions:**
+**Supported Distributions 🐧:**
 - Ubuntu, Debian, Linux Mint, Kali Linux, Raspbian
 - Fedora
 - RHEL, CentOS, Rocky Linux, AlmaLinux
 - Arch Linux, Manjaro, EndeavourOS, Garuda Linux
 
 * Can be installed in Deb format for Debian-based distributions [Download Media_Downloader deb](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/media-downloader_3.1.0_all.deb)
-- or by ppa ubuntu based:
+- or by PPA ubuntu based🐧 :
 ```bash
 sudo add-apt-repository ppa:kiraxq/ppa
 sudo apt update
 sudo apt install media-downloader
 ```
+
 * For Red Hat-based distributions, you can install it in RPM format [Download Media_Downloader RPM](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/media-downloader-3.1.0-1.noarch.rpm)
 
-* AppImage [Download AppImage](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/Media_Downloader-3.1.0-x86_64.AppImage)
+* **AppImage 🐧** [Download AppImage](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/Media_Downloader-3.1.0-x86_64.AppImage)
 
 **Note:** The script requires `sudo` privileges to install system packages. You will be prompted for your password during installation.
 
@@ -325,7 +326,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-#### **الخيار 2: استخدام سكريبت التثبيت على Linux**
+#### **الخيار 2: استخدام سكريبت التثبيت على Linux 🐧**
 
 **لمستخدمي نظام Linux**، تم توفير سكريبت تثبيت آلي:
 
@@ -362,7 +363,7 @@ python app.py
 5. انتظر اكتمال عملية التثبيت
 6. سيكون التطبيق متاحاً في قائمة التطبيقات
 
-**التوزيعات المدعومة:**
+**التوزيعات المدعومة 🐧:**
 - Ubuntu, Debian, Linux Mint, Kali Linux, Raspbian
 - Fedora
 - RHEL, CentOS, Rocky Linux, AlmaLinux
@@ -373,14 +374,14 @@ python app.py
 * يمكن تنصيب بصيغة Deb لتوزيعات الدبيانية [تحميل Media_Downloader deb](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/media-downloader_3.1.0_all.deb)
 
 
-- او بواسطة PAA ابونتو والتوزيعات المبنية عليها :
+- او بواسطة PAA **ابونتو🐧** والتوزيعات المبنية عليها :
 ```bash
 sudo add-apt-repository ppa:kiraxq/ppa
 sudo apt update
 sudo apt install media-downloader
 ```
 * لتوزيعات الردهاتية يمكنك تنصيب بصيغة RPM [تحميل Media_Downloader RPM](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/media-downloader-3.1.0-1.noarch.rpm)
-* ء AppImage [تحميل AppImage](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/Media_Downloader-3.1.0-x86_64.AppImage)
+* ء  **🐧 AppImage** [تحميل AppImage](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/Media_Downloader-3.1.0-x86_64.AppImage)
 ---
 
 #### **الخيار 3: استخدام سكربتات Windows Batch**
