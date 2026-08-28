@@ -18,33 +18,32 @@ override_dh_auto_install:
 	cp icon.png debian/media-downloader/usr/share/pixmaps/media-downloader.png
 	cp Media_Downloader.appdata.xml debian/media-downloader/usr/share/metainfo/io.github.hmidani_abdelilah.media-downloader.appdata.xml
 
-	# 4. إنشاء ملف الـ Launcher لتشغيل التطبيق عبر الـ VENV
+	# 4. إنشاء ملف الـ Launcher لتشغيل التطبيق عبر الـ VENV (السطور بالداخل تبدأ من أول السطر تماماً دون مسافات)
 	cat > debian/media-downloader/usr/bin/media-downloader << 'EOF'
-	#!/bin/bash
-	set -e
-	APP_DIR="/usr/share/media-downloader"
-	VENV="$$APP_DIR/venv"
-	cd "$$APP_DIR"
-	if [[ ! -x "$$VENV/bin/python3" ]]; then
-	  echo "Media Downloader VENV is missing. Try reinstalling."
-	  exit 1
-	fi
-	exec "$$VENV/bin/python3" app.py "$$@"
-	EOF
+#!/bin/bash
+set -e
+APP_DIR="/usr/share/media-downloader"
+VENV="$APP_DIR/venv"
+cd "$APP_DIR"
+if [ ! -x "$VENV/bin/python3" ]; then
+    echo "Media Downloader VENV is missing. Try reinstalling."
+    exit 1
+fi
+exec "$VENV/bin/python3" app.py "$@"
+EOF
 	chmod 755 debian/media-downloader/usr/bin/media-downloader
 
-	# 5. إنشاء ملف الـ Desktop Entry
+	# 5. إنشاء ملف الـ Desktop Entry (السطور بالداخل تبدأ من أول السطر تماماً دون مسافات)
 	cat > debian/media-downloader/usr/share/applications/io.github.hmidani_abdelilah.media-downloader.desktop << 'EOF'
-	[Desktop Entry]
-	Version=1.0
-	Type=Application
+[Desktop Entry]
+Version=1.0
+Type=Application
 	Name=Media Downloader
-	Comment=Download videos and audio from social media using yt-dlp
-	Exec=media-downloader
-	Icon=media-downloader
-	Terminal=false
-	Categories=Network;Utility;
-	StartupNotify=true
-	EOF
+Comment=Download videos and audio from social media using yt-dlp
+Exec=media-downloader
+Icon=media-downloader
+Terminal=false
+Categories=Network;Utility;
+StartupNotify=true
+EOF
 	chmod 644 debian/media-downloader/usr/share/applications/io.github.hmidani_abdelilah.media-downloader.desktop
-
