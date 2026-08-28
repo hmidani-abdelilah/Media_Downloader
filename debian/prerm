@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
+    rm -rf /usr/share/media-downloader/venv
+fi
+
+#DEBHELPER#
+exit 0
+
