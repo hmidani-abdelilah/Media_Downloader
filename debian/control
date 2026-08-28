@@ -1,0 +1,13 @@
+Source: media-downloader
+Section: utils
+Priority: optional
+Maintainer: Abdelilah Hmidani <hmidani.abdelilah@example.com>
+Build-Depends: debhelper-compat (= 13), dh-python, python3-all
+
+Package: media-downloader
+Architecture: all
+Depends: ${misc:Depends}, ${python3:Depends}, python3, python3-pip, python3-venv, ffmpeg, aria2
+Description: Graphic user interface application to download videos and audio.
+ Graphical user interface application to download videos and audio from 
+ YouTube, Facebook, Instagram and X using yt-dlp.
+
