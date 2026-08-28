@@ -370,10 +370,17 @@ python app.py
 
 **ملاحظة:** السكريبت يتطلب صلاحيات sudo لتثبيت حزم النظام. ستُطلب كلمة المرور خلال التثبيت.
 
-* يمكن تنصيب بصيغة Deb لتوزيعات الدبيانية [تحميل Media_Downloader deb](https://release-assets.githubusercontent.com/github-production-release-asset/981180316/cbe7ef99-130f-41d9-ae56-79f9fec89e9b?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-08-24T23%3A24%3A38Z&rscd=attachment%3B+filename%3Dmedia-downloader-pkg.deb&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-08-24T22%3A23%3A49Z&ske=2026-08-24T23%3A24%3A38Z&sks=b&skv=2018-11-09&sig=T%2FvbtzsWRGV4wBZDjvoj19BnLje9gZTh2d11LkyOkAo%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc4NzYxMDUzMCwibmJmIjoxNzg3NjEwMjMwLCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.F6AXa-b2HI9k_GOZ8Iidruy7t1GLPPfRQAlaFbI1whE&response-content-disposition=attachment%3B%20filename%3Dmedia-downloader-pkg.deb&response-content-type=application%2Foctet-stream)
+* يمكن تنصيب بصيغة Deb لتوزيعات الدبيانية [تحميل Media_Downloader deb](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/media-downloader_3.1.0_all.deb)
 
-* لتوزيعات الردهاتية يمكنك تنصيب بصيغة RPM [تحميل Media_Downloader RPM](https://release-assets.githubusercontent.com/github-production-release-asset/981180316/dbc86e7e-7674-40b5-8abf-95c20ab1e62c?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-08-24T23%3A24%3A38Z&rscd=attachment%3B+filename%3Dmedia-downloader-3.0.0-2.noarch.rpm&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-08-24T22%3A23%3A49Z&ske=2026-08-24T23%3A24%3A38Z&sks=b&skv=2018-11-09&sig=WOaQ2nm7dSEuuuScCFbStjExqfxcFMhkGCku4qr8I8A%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc4NzYxMDUzMCwibmJmIjoxNzg3NjEwMjMwLCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.F6AXa-b2HI9k_GOZ8Iidruy7t1GLPPfRQAlaFbI1whE&response-content-disposition=attachment%3B%20filename%3Dmedia-downloader-3.0.0-2.noarch.rpm&response-content-type=application%2Foctet-stream)
 
+- او بواسطة PAA ابونتو والتوزيعات المبنية عليها :
+```bash
+sudo add-apt-repository ppa:kiraxq/ppa
+sudo apt update
+sudo apt install media-downloader
+```
+* لتوزيعات الردهاتية يمكنك تنصيب بصيغة RPM [تحميل Media_Downloader RPM](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/media-downloader-3.1.0-1.noarch.rpm)
+* ء AppImage [تحميل AppImage](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/Media_Downloader-3.1.0-x86_64.AppImage)
 ---
 
 #### **الخيار 3: استخدام سكربتات Windows Batch**
