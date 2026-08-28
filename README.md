@@ -6,7 +6,7 @@
 ![linux](https://img.shields.io/badge/linux-Distribution-FCC624.svg?style=for-the-badge&logo=linux)
 [![Windows](https://img.shields.io/badge/Windows-OS-blue.svg?style=for-the-badge&logo=wine)](https://www.microsoft.com/en-us/windows/)
 [![Ubuntu](https://img.shields.io/badge/Ubuntu-PPA-E95420.svg?style=for-the-badge&logo=ubuntu)](https://launchpad.net/~kiraxq/+archive/ubuntu/ppa)
-[![Bugs Report](https://img.shields.io/badge/Issues-Report%20a%20bug-important?style=for-the-badge&logo=github&logoColor=white)](https://github.com/hmidani-abdelilah/Media_Downloader/Issues/)
+[![Bugs Report](https://img.shields.io/badge/Issues-Report%20a%20bug-important?style=for-the-badge&logo=github&logoColor=white)](https://github.com/hmidani-abdelilah/Media_Downloader/issues)
 </div>   
 
 ![Media Downloader GUI Screenshot Application ](https://raw.githubusercontent.com/hmidani-abdelilah/Media_Downloader/refs/heads/main/Screenshots/Screenshot%20From%202026-08-24%2013-22-57.png "Media Downloader GUI")
