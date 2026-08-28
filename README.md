@@ -3,7 +3,7 @@
    
 [![Python](https://img.shields.io/badge/Python-3.14-blueviolet.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![MIT License](https://img.shields.io/badge/License-MIT-orange.svg?style=for-the-badge&logo=MIT)](https://github.com/hmidani-abdelilah/Media_Downloader?tab=MIT-1-ov-file)
-[![linux](https://img.shields.io/badge/linux-Distribution-FCC624.svg?style=for-the-badge&logo=linux)](#Option-2:-Using-Linux-Installation-Script)
+[![linux](https://img.shields.io/badge/linux-Distribution-FCC624.svg?style=for-the-badge&logo=linux)](####-**Option-2:-Using-Linux-Installation-Script-🐧**)
 [![Windows](https://img.shields.io/badge/Windows-OS-blue.svg?style=for-the-badge&logo=wine)](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/Media_Downloader-3.1.0-Windows.zip)
 [![Ubuntu](https://img.shields.io/badge/Ubuntu-PPA-E95420.svg?style=for-the-badge&logo=ubuntu)](https://launchpad.net/~kiraxq/+archive/ubuntu/ppa)
 [![Bugs Report](https://img.shields.io/badge/Issues-Report%20a%20bug-important?style=for-the-badge&logo=github&logoColor=white)](https://github.com/hmidani-abdelilah/Media_Downloader/issues)
