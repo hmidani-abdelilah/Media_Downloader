@@ -9,6 +9,10 @@
 [![Bugs Report](https://img.shields.io/badge/Issues-Report%20a%20bug-important?style=for-the-badge&logo=github&logoColor=white)](https://github.com/hmidani-abdelilah/Media_Downloader/issues)<br>
 <a href="https://github.com/hmidani-abdelilah/Media_Downloader/tree/main/.github/workflows" target="_blank"><img alt="Build Status" src="https://raw.githubusercontent.com/hmidani-abdelilah/Media_Downloader/c198b34776a74979d43498c161e968d85e2084f7/.github/workflows/badge.svg" /></a><br>
 <a href="https://github.com/hmidani-abdelilah/Media_Downloader/releases/latest"><img alt="Get it on GitHub" src="https://raw.githubusercontent.com/hmidani-abdelilah/Media_Downloader/refs/heads/main/get-github.png" height="45" /></a>
+
+**[English](#english) · [العربية](#العربية)**
+
+
 </div>   
 
 ![Media Downloader GUI Screenshot Application ](https://raw.githubusercontent.com/hmidani-abdelilah/Media_Downloader/refs/heads/main/Screenshots/Screenshot%20From%202026-08-24%2013-22-57.png "Media Downloader GUI")
