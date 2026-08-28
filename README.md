@@ -256,33 +256,46 @@ The Media Downloader GUI detects supported Deno and Node.js runtimes automatical
 ### 📁 Project Structure
 
 ```
-├── app.py                  # Main entry point
-├── downloader.py           # Core download logic using yt-dlp & Aria2c
-├── convert.py             # FFmpeg compression / conversion helpers
-├── gui.py                  # GUI logic and interface
-├── notification.py         # Notification system for download completion
-├── ffmpeg_check.py         # FFmpeg presence checker
-├── path_ffmpeg.py          # Find FFmpeg and return the PATH 
-├── aria2_check.py          # Aria2c presence checker
-├── utils.py                # Resource path utility
-├── installer.sh            # Linux setup script (automated installation)
-├── installer-windows.bat   # Windows setup script (automated installation)
-├── run-it.bat              # Windows batch script to run the application
-├── Media_Downloader.desktop # Desktop file for Linux integration
-├── requirements.txt        # Python dependencies
-├── languages/              # Language files (en/ar/fr)
-│   ├── en.json
-│   ├── ar.json
-│   └── fr.json
-├── asset/                  # Icons and visuals
+Media_Downloader/
+├── app.py                         # Application entry point
+├── gui.py                         # Main window and user interactions
+├── downloader.py                  # Aria2c,yt-dlp download and playlist logic
+├── convert.py                     # FFmpeg conversion and compression helpers
+├── ffmpeg_check.py                # FFmpeg availability checks
+├── path_ffmpeg.py                 # FFmpeg executable path resolution
+├── aria2_check.py                 # Aria2c availability checks
+├── notification.py                # Cross-platform desktop notifications
+├── utils.py                       # Shared resource-path helpers
+├── languages/                     # Interface translations
+│   ├── en.json                    # English
+│   ├── ar.json                    # Arabic
+│   └── fr.json                    # French
+├── asset/                         # Icons used by packaged applications
 │   ├── Icon.ico
 │   └── Icon.png
-├── ffmpeg/                 # FFmpeg binaries (Windows)
+├── Screenshots/                   # README and application screenshots
+├── debian/                        # Debian / Ubuntu PPA package metadata and maintainer scripts
+│   ├── control
+│   ├── rules
+│   ├── changelog
+│   ├── postinst
+│   └── prerm
+├── installer.sh                   # Linux installer and uninstaller
+├── installer-windows.bat          # Windows installer and repair 
+├── run-it.bat                     # Windows launcher 
+├── build_app_image.sh             # AppImage build script
+├── build_deb_rmp.sh               # DEB and RPM build script
+├── Media_Downloader.desktop       # Linux desktop entry
+├── Media_Downloader.appdata.xml   # AppStream application metadata
+├── requirements.txt               # Python dependencies
+├── test files/                    # Experimental scripts and packaging tests
+├── LICENSE                        # MIT license
+├── ffmpeg/                        # FFmpeg binaries (Windows)
 │   └── bin/
 │       └── ffmpeg.exe
-├── aria2/                  # Aria2c binaries (Windows)
+├── aria2/                         # Aria2c binaries (Windows)
 │   └── aria2c.exe
-└── README.md
+└── README.md                      # Project documentation
 ```
 
 ---
@@ -517,32 +530,47 @@ pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset
 ### 📁 هيكل المشروع
 
 ```
-├── app.py                  # نقطة التشغيل الرئيسية
-├── downloader.py           # منطق التحميل باستخدام yt-dlp و Aria2c
-├── convert.py             # FFmpeg الضغط ب / conversion helpers مساعد فيضغط الفيديو
-├── gui.py                  # واجهة المستخدم والمنطق
-├── notification.py         # نظام الإشعارات عند اكتمال التحميلواجهة المستخدم
-├── ffmpeg_check.py         # التحقق من FFmpeg
-├── path_ffmpeg.py          # ايجاد مسار تشغيل FFmpeg وارجاعه
-├── aria2_check.py          # التحقق من Aria2c
-├── utils.py                # دوال المسارات
-├── installer.sh            # سكريبت Linux (تثبيت آلي)
-├── installer-windows.bat   # سكريبت Windows (تثبيت آلي)
-├── run-it.bat              # سكريبت Windows لتشغيل التطبيق
-├── requirements.txt        # ملف الاعتماديات
-├── languages/              # ملفات الترجمة
-│   ├── en.json
-│   ├── ar.json
-│   └── fr.json
-├── asset/                  # الأيقونات والمظهر
+Media_Downloader/
+├── app.py                         # نقطة تشغيل التطبيق
+├── gui.py                         # النافذة الرئيسية وتفاعلات المستخدم
+├── downloader.py                  # منطق التحميل وقوائم التشغيل عبر yt-dlp , Aria2c
+├── convert.py                     # أدوات التحويل والضغط عبر FFmpeg
+├── ffmpeg_check.py                # التحقق من توفر FFmpeg
+├── path_ffmpeg.py                 # تحديد مسار ملف FFmpeg التنفيذي
+├── aria2_check.py                 # التحقق من توفر Aria2c
+├── notification.py                # إشعارات سطح المكتب عبر الأنظمة
+├── utils.py                       # أدوات مشتركة لتحديد مسارات الموارد
+├── languages/                     # ترجمات واجهة التطبيق
+│   ├── en.json                    # الإنجليزية
+│   ├── ar.json                    # العربية
+│   └── fr.json                    # الفرنسية
+├── asset/                         # أيقونات الحزم التنفيذية
 │   ├── Icon.ico
 │   └── Icon.png
-├── ffmpeg/                 # ملفات FFmpeg (ويندوز)
+├── Screenshots/                   # صور التطبيق المستخدمة في التوثيق
+├── debian/                        # بيانات حزمة Debian / Ubuntu PPA وسكربتات الصيانة
+│   ├── control
+│   ├── rules
+│   ├── changelog
+│   ├── postinst
+│   └── prerm
+├── installer.sh                   # مثبّت Linux وأداة إلغاء التثبيت
+├── installer-windows.bat          # مثبّت Windows ومسار الإصلاح
+├── run-it.bat                     # مشغّل Windows وأداة التشخيص
+├── build_app_image.sh             # سكربت بناء AppImage
+├── build_deb_rmp.sh               # سكربت بناء حزمتَي DEB وRPM
+├── Media_Downloader.desktop       # اختصار التطبيق على Linux
+├── Media_Downloader.appdata.xml   # بيانات AppStream الخاصة بالتطبيق
+├── requirements.txt               #  ملف إعتماديات بايتون
+├── test files/                    # سكربتات تجريبية واختبارات الحزم
+├── LICENSE                        # رخصة MIT
+├── ffmpeg/                        # ملفات FFmpeg (ويندوز)
 │   └── bin/
 │       └── ffmpeg.exe
-├── aria2/                  # ملفات Aria2c (ويندوز)
+├── aria2/                         # ملفات Aria2c (ويندوز)
 │   └── aria2c.exe
-└── README.md
+└── README.md                      # توثيق المشروع
+```
 ```
 ```bash 
 sudo update-desktop-database
