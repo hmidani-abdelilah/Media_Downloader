@@ -111,12 +111,14 @@ This script automates the complete setup process for Linux users:
 - Arch Linux, Manjaro, EndeavourOS, Garuda Linux
 
 * Can be installed in Deb format for Debian-based distributions [Download Media_Downloader deb](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/media-downloader_3.1.0_all.deb)
+---
 - or by PPA ubuntu based🐧 :
 ```bash
 sudo add-apt-repository ppa:kiraxq/ppa
 sudo apt update
 sudo apt install media-downloader
 ```
+---
 
 * For Red Hat-based distributions, you can install it in RPM format [Download Media_Downloader RPM](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/media-downloader-3.1.0-1.noarch.rpm)
 
@@ -380,13 +382,14 @@ python app.py
 
 * يمكن تنصيب بصيغة Deb لتوزيعات الدبيانية [تحميل Media_Downloader deb](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/media-downloader_3.1.0_all.deb)
 
-
+---
 - او بواسطة PAA **ابونتو🐧** والتوزيعات المبنية عليها :
 ```bash
 sudo add-apt-repository ppa:kiraxq/ppa
 sudo apt update
 sudo apt install media-downloader
 ```
+---
 * لتوزيعات الردهاتية يمكنك تنصيب بصيغة RPM [تحميل Media_Downloader RPM](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/media-downloader-3.1.0-1.noarch.rpm)
 * ء  **🐧 AppImage** [تحميل AppImage](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/Media_Downloader-3.1.0-x86_64.AppImage)
 ---
