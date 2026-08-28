@@ -1,0 +1,21 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = "configure" ]; then
+    APP_DIR="/usr/share/media-downloader"
+    VENV="$APP_DIR/venv"
+
+    echo "-> Creating Media Downloader virtual environment..."
+    rm -rf "$VENV"
+    python3 -m venv "$VENV"
+
+    echo "-> Upgrading pip..."
+    "$VENV/bin/python3" -m pip install --upgrade pip setuptools wheel
+
+    echo "-> Installing Python dependencies..."
+    "$VENV/bin/python3" -m pip install -r "$APP_DIR/requirements.txt"
+fi
+
+#DEBHELPER#
+exit 0
+
