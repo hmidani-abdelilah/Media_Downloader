@@ -1,4 +1,11 @@
-# <div align="center"> Media Downloader </div>   
+# <div align="center"> Media Downloader  </div>   
+<div align="center">
+   
+[![Python](https://img.shields.io/badge/Python3-application-1423755.svg?style=plastics&logo=python)](https://www.python.org/)
+![MIT License](https://img.shields.io/badge/License-MIT-orange.svg?style=plastics&logo=MIT)
+![linux](https://img.shields.io/badge/linux-Distribution-FCC624.svg?style=plastics&logo=linux)
+[![Windows](https://img.shields.io/badge/Windows-OS-800000.svg?style=plastics&logo=wine)](https://www.microsoft.com/en-us/windows/)
+</div>   
 
 ![Media Downloader GUI Screenshot Application ](https://raw.githubusercontent.com/hmidani-abdelilah/Media_Downloader/refs/heads/main/Screenshots/Screenshot%20From%202026-08-24%2013-22-57.png "Media Downloader GUI")
 
