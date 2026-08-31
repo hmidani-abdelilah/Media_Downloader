@@ -1,7 +1,11 @@
 # downloader.py
 import time
 import subprocess
-import yt_dlp as youtube_dl #  استيراد مكتبة yt_dlp لتحميل الفيديوهات من يوتيوب ومنصات أخرى
+from ytdlp_manager import load_ytdlp
+
+# في AppImage تُحمّل النسخة القابلة للتحديث من مجلد إعدادات المستخدم.
+# أثناء التطوير تُستخدم حزمة البيئة الافتراضية كالمعتاد.
+youtube_dl = load_ytdlp()
 import os # استيراد مكتبة التعامل مع نظام الملفات
 import threading # استيراد مكتبة threading لدعم العمليات المتعددة
 import re # استيراد مكتبة التعبيرات النمطية للتعامل مع النصوص
@@ -20,6 +24,7 @@ DEFAULT_SUBTITLE_LANGUAGES = ("ar", "fr", "en")
 # YOUTUBE_SUBTITLE_DELAY = 60
 YOUTUBE_SUBTITLE_DELAY = 30
 YTDLP_JS_RUNTIMES = ("deno", "node", "quickjs")
+YTDLP_REMOTE_COMPONENTS = ("ejs:github",)
 
 SUBTITLE_LANGUAGE_ALIASES = {
     "arabic": "ar",
@@ -175,6 +180,7 @@ def get_videos_info(
         "skip_download": True,
         "socket_timeout": 30,
         "js_runtimes": get_js_runtime_options(),
+        "remote_components": list(YTDLP_REMOTE_COMPONENTS),
         # Explicitly verify SSL (should be default, but verify)
     }
 
@@ -1019,6 +1025,7 @@ def download_video(url, download_dir, quality, file_type, download_subtitles, pr
         'quiet': False,
         'progress_hooks': [custom_progress_hook],
         'js_runtimes': get_js_runtime_options(),
+        'remote_components': list(YTDLP_REMOTE_COMPONENTS),
     }
 
     # ✅ التحقق من ffmpeg المحلي
@@ -1201,6 +1208,7 @@ def download_video(url, download_dir, quality, file_type, download_subtitles, pr
                 'writesubtitles': True,
                 'writeautomaticsub': True,
                 'js_runtimes': get_js_runtime_options(),
+                'remote_components': list(YTDLP_REMOTE_COMPONENTS),
             }
 
             if ffmpeg_path != "ffmpeg":

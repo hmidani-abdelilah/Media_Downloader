@@ -39,7 +39,7 @@ A graphical application for downloading videos and audio from YouTube and other 
 - **Drag-and-drop URL support** - Simply drag URLs into the input field
 - Context menu for URL input (cut, paste, clear)
 - Notification on download completion
-- Automatic update checker for dependencies
+- Automatic external yt-dlp updates in AppImage builds
 - Option to shutdown computer after download
 - Ability to stop ongoing downloads
 - Menu bar with help and options
@@ -52,7 +52,7 @@ Compression support:
 
 ### 🧰 Requirements
 
-- Python 3.8+
+- Python 3.10+
 - FFmpeg (included in `ffmpeg` folder or installed on system) [FFmpeg _Windows](https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip) or install by command CMD by package manager
 
 ```bash
@@ -207,10 +207,29 @@ or
 pyinstaller --onedir --windowed --collect-all typeguard --collect-all CTkFileDialog --add-data "languages;languages" --add-data "asset/Icon.ico;asset" --add-data "aria2;aria2" --add-data "ffmpeg;ffmpeg" --icon "asset/Icon.ico" -n MediaDownloader app.py
 ```
 
-**For Linux/macOS:**
+**For Linux/macOS development builds (not the release AppImage):**
 ```bash
 pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset/Icon.png:asset --add-data=bin/aria2c:aria2 --add-data=bin/ffmpeg:ffmpeg --icon=asset/Icon.png app.py -n MediaDownloader
 ```
+
+For the release AppImage, use `./build_app_image.sh` instead of the generic
+PyInstaller command. The build stores `yt-dlp[default]` as seed data. A frozen
+copy is retained only so PyInstaller collects the complete import graph; a
+priority loader ensures normal operation uses the writable external copy. On
+first launch the application copies the seed to:
+
+```text
+$XDG_CONFIG_HOME/media-downloader/yt-dlp/
+# fallback: $HOME/.config/media-downloader/yt-dlp/
+```
+
+The application checks PyPI at most once every 24 hours before loading
+yt-dlp. A downloaded wheel is verified against PyPI's SHA-256 digest, installed
+in a versioned directory, and activated atomically. Offline starts keep using
+the last known-good copy; a broken update is rolled back automatically. The
+Options → Check for Updates action forces an immediate check. Set
+`MEDIA_DOWNLOADER_DISABLE_YTDLP_AUTO_UPDATE=1` only when automatic checks must
+be disabled.
 
 ### 🛠️ Troubleshooting Subtitle Downloads
 
@@ -260,6 +279,7 @@ Media_Downloader/
 ├── app.py                         # Application entry point
 ├── gui.py                         # Main window and user interactions
 ├── downloader.py                  # Aria2c,yt-dlp download and playlist logic
+├── ytdlp_manager.py               # Writable yt-dlp seed, updates, and rollback for AppImage
 ├── convert.py                     # FFmpeg conversion and compression helpers
 ├── ffmpeg_check.py                # FFmpeg availability checks
 ├── path_ffmpeg.py                 # FFmpeg executable path resolution
@@ -322,7 +342,7 @@ Media_Downloader/
 - **دعم السحب والإفلات للروابط** - يمكنك ببساطة سحب الروابط إلى حقل الإدخال
 - قائمة سياق لحقل الرابط (قص، لصق، مسح)
 - إشعارات عند اكتمال التحميل
-- فاحص تحديثات تلقائي للاعتماديات
+- تحديث تلقائي لنسخة yt-dlp الخارجية في إصدار AppImage
 - خيار إغلاق الحاسوب بعد التحميل
 - إمكانية إيقاف التحميلات الجارية
 - شريط قوائم مع المساعدة والخيارات
@@ -334,7 +354,7 @@ Media_Downloader/
 
 ### 🧰 المتطلبات
 
-- Python 3.8 أو أحدث
+- Python 3.10 أو أحدث
 - FFmpeg (موجود في مجلد ffmpeg أو مثبت على النظام) [FFmpeg _Windows](https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip) او نصب الاداة عبر CMD بواسطة مدير الحزم في  Windows 
 
 ```bash
@@ -481,10 +501,28 @@ sudo apt install media-downloader
 pyinstaller --onefile --windowed --add-data=languages;languages --add-data=asset/Icon.ico;asset --add-data=aria2;aria2 --add-data=ffmpeg;ffmpeg --icon=asset/Icon.ico app.py -n MediaDownloader.exe
 ```
 
-**للينكس/macOS:**
+**لبناءات التطوير على لينكس/macOS (وليس AppImage النهائي):**
 ```bash
 pyinstaller --onefile --windowed --add-data=languages:languages --add-data=asset/Icon.png:asset --add-data=bin/aria2c:aria2 --add-data=bin/ffmpeg:ffmpeg --icon=asset/Icon.png app.py -n MediaDownloader
 ```
+
+لبناء إصدار AppImage النهائي استعمل `./build_app_image.sh` بدل أمر PyInstaller
+العام. يضع البناء نسخة أولية من `yt-dlp[default]` كبيانات احتياطية. تبقى نسخة
+مجمّدة فقط كي يجمع PyInstaller شجرة الاستيراد كاملة؛ لكن محمّلًا ذا أولوية
+يضمن أن التشغيل العادي يستخدم النسخة الخارجية القابلة للكتابة. عند أول تشغيل
+تُنسخ إلى:
+
+```text
+$XDG_CONFIG_HOME/media-downloader/yt-dlp/
+# المسار الافتراضي: $HOME/.config/media-downloader/yt-dlp/
+```
+
+يفحص التطبيق PyPI مرة واحدة كحد أقصى كل 24 ساعة قبل تحميل yt-dlp. يتحقق من
+بصمة SHA-256 المنشورة، ويثبت كل إصدار في مجلد مستقل، ثم يفعّله بطريقة ذرية.
+عند انقطاع الإنترنت يستمر آخر إصدار سليم، وإذا كان التحديث تالفًا يرجع التطبيق
+تلقائيًا إلى الإصدار السابق. خيار «التحقق من التحديثات» يفرض فحصًا مباشرًا.
+يمكن تعطيل الفحص التلقائي فقط عند الحاجة عبر
+`MEDIA_DOWNLOADER_DISABLE_YTDLP_AUTO_UPDATE=1`.
 
 ### 🛠️ حل مشكلة عدم تحميل الترجمة
 
@@ -534,6 +572,7 @@ Media_Downloader/
 ├── app.py                         # نقطة تشغيل التطبيق
 ├── gui.py                         # النافذة الرئيسية وتفاعلات المستخدم
 ├── downloader.py                  # منطق التحميل وقوائم التشغيل عبر yt-dlp , Aria2c
+├── ytdlp_manager.py               # نسخ yt-dlp الخارجية وتحديثها والرجوع الآمن في AppImage
 ├── convert.py                     # أدوات التحويل والضغط عبر FFmpeg
 ├── ffmpeg_check.py                # التحقق من توفر FFmpeg
 ├── path_ffmpeg.py                 # تحديد مسار ملف FFmpeg التنفيذي
