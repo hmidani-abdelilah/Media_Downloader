@@ -20,11 +20,29 @@ echo "=== 2. إعداد البيئة الوهمية وتثبيت المكتبا�
 python3 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip
-pip install pyinstaller -r requirements.txt
+python -m pip install pyinstaller -r requirements.txt
+
+# نحتفظ بـ seed كامل لنسخه إلى مجلد المستخدم. نسخة PyInstaller المجمّدة
+# مطلوبة لجمع import graph فقط، والمحمّل يعطي النسخة الخارجية الأولوية.
+YTDLP_SEED_DIR="$PWD/build/ytdlp_seed"
+rm -rf "$YTDLP_SEED_DIR"
+python -m pip install --no-compile --target "$YTDLP_SEED_DIR" "yt-dlp[default]"
 
 echo "=== 3. تجميع المشروع بواسطة PyInstaller ==="
 
-pyinstaller --noconfirm --onedir --windowed --name "Media_Downloader" --icon=asset/Icon.ico --collect-all typeguard --collect-all CTkFileDialog --collect-all customtkinter --collect-all yt_dlp --add-data "languages:languages" --collect-submodules PIL --add-data "asset:asset" --add-data="asset/Icon.ico:asset" app.py
+pyinstaller --noconfirm --onedir --windowed \
+    --name "Media_Downloader" \
+    --icon=asset/Icon.ico \
+    --collect-all typeguard \
+    --collect-all CTkFileDialog \
+    --collect-all customtkinter \
+    --collect-all yt_dlp \
+    --add-data "$YTDLP_SEED_DIR:ytdlp_seed" \
+    --add-data "languages:languages" \
+    --collect-submodules PIL \
+    --add-data "asset:asset" \
+    --add-data="asset/Icon.ico:asset" \
+    app.py
 
 echo "=== 4. تحميل أداة linuxdeploy ==="
 if [ ! -f "linuxdeploy-x86_64.AppImage" ]; then

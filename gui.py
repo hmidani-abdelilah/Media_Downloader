@@ -31,6 +31,7 @@ import json  # للتعامل مع ملفات اللغة
 import os  # للتعامل مع نظام الملفات
 import sys  # للوصول إلى معلومات النظام
 from utils import resource_path # لمعالجة مسارات الملفات بشكل صحيح
+from ytdlp_manager import external_management_enabled, update_ytdlp
 import subprocess # لتنفيذ أوامر النظام لتحديث الحزم
 import ctypes # دوال من نظام التشغيل (Windows API)
 
@@ -66,6 +67,7 @@ class YouTubeDownloaderApp:
         self.cookiefile_dir = "\U0001F36A" # مسار ملف cookies 
         self.current_download_thread = None  # خيط التنزيل الحالي
         self.is_downloading = False  # مؤشر على حالة التنزيل
+        self._update_in_progress = False  # يمنع تشغيل أكثر من محدّث في الوقت نفسه
         self.warning_shutdown = None  # حالة رسالة التحذير لإغلاق الحاسوب بعد التحميل
 
         
@@ -879,6 +881,9 @@ class YouTubeDownloaderApp:
 
     # دالة لبدء عملية تحديث الحزم المطلوبة للتطبيق، حيث يتم إظهار إطار التحميل وتحديث واجهة المستخدم بشكل آمن أثناء عملية التحديث التي تتم في خيط منفصل لمنع تجميد واجهة المستخدم.
     def run_update(self):
+        if self._update_in_progress:
+            return
+        self._update_in_progress = True
         # إظهار إطار التحميل وإعادة تعيين مؤشرات التقدم والحالة
         self.loading_frame.pack(pady=20, fill="x", padx=20)
         self.progress_bar.set(0)
@@ -891,6 +896,32 @@ class YouTubeDownloaderApp:
     def update_task(self):
         # الحزم التي سيتم تحديثها
         try:
+            # داخل AppImage لا يوجد مفسر pip قابل للكتابة. yt-dlp مُدار
+            # كحزمة خارجية مستقلة داخل مجلد إعدادات المستخدم.
+            if external_management_enabled():
+                result = update_ytdlp()
+                self.root.after(0, self.progress_bar.set, 1)
+                if result.status == "updated":
+                    change = (
+                        f"yt-dlp: {result.previous_version or '?'}"
+                        f" → {result.current_version}"
+                    )
+                    self.root.after(
+                        0,
+                        lambda item=change: self.show_update_results([item])
+                    )
+                elif result.status in {"up_to_date", "ready", "seeded"}:
+                    self.root.after(0, lambda: self.show_update_results([]))
+                else:
+                    message = result.message or "yt-dlp update failed"
+                    self.root.after(
+                        0,
+                        lambda error=message: self.update_finished(
+                            f"error: {error}"
+                        )
+                    )
+                return
+
             # الحصول على المسار الصحيح لملف requirements.txt
             base_dir = os.path.dirname(os.path.abspath(__file__))
             # في حالة التشغيل من ملف تنفيذي، يتم تعديل المسار ليتناسب مع بنية الملفات في PyInstaller
@@ -962,10 +993,17 @@ class YouTubeDownloaderApp:
         # إذا حدث أي خطأ أثناء عملية التحديث، عرض رسالة خطأ في واجهة المستخدم بشكل آمن
         except Exception as e:
             # عرض رسالة خطأ في واجهة المستخدم مع تفاصيل الخطأ الذي حدث أثناء التحديث
-            self.root.after(0, lambda: self.update_finished(f"error: {str(e)}"))
+            error_message = str(e)
+            self.root.after(
+                0,
+                lambda error=error_message: self.update_finished(
+                    f"error: {error}"
+                )
+            )
 
     # دالة لعرض نتائج تحديث الحزم في واجهة المستخدم
     def show_update_results(self, upgraded):
+        self._update_in_progress = False
         # إعادة تعيين مؤشرات التقدم والحالة في واجهة المستخدم
         self.current_package_label.configure(text="")
         # تعيين شريط التقدم إلى 100% لإظهار اكتمال العملية
@@ -976,24 +1014,28 @@ class YouTubeDownloaderApp:
         if upgraded:
             # يوجد تحديثات
             message = "Updated Packages:\n\n" + "\n".join(upgraded)
+            restart_now_label = self.lang.get("restart_now", "Restart Now")
 
             msg = CTkMessagebox(
                 title=self.lang.get("update_complete", "Update Complete"),
                 message=message + "\n\n" + self.lang.get("restart_application", "Restart application to apply changes."),
                 icon="check",
-                option_1=self.lang.get("restart_now", "Restart Now"),
+                option_1=restart_now_label,
                 option_2=self.lang.get("later", "Later")
             )
             # إذا اختار المستخدم إعادة التشغيل الآن، يتم إعادة تشغيل التطبيق لتطبيق التغييرات. إذا اختار لاحقًا، لا يتم فعل أي شيء والسماح له بإعادة التشغيل يدويًا في وقت لاحق.
-            if msg.get() == "Restart Now":
+            if msg.get() == restart_now_label:
                 # إعادة تشغيل التطبيق لتطبيق التغييرات
                 self.root.destroy()
-                # إعادة تشغيل التطبيق باستخدام نفس الأمر الذي تم تشغيله به
-                os.execl(
-                    sys.executable,
-                    sys.executable,
-                    *sys.argv
-                )
+                # داخل AppImage نعيد تشغيل ملف الصورة الأصلي، لا الملف الموجود
+                # داخل نقطة التركيب المؤقتة.
+                restart_target = os.environ.get("APPIMAGE") or sys.executable
+                if os.environ.get("APPIMAGE") or getattr(sys, "frozen", False):
+                    restart_args = sys.argv[1:]
+                else:
+                    # عند التشغيل من المصدر يحتاج python إلى app.py كأول وسيط.
+                    restart_args = sys.argv
+                os.execl(restart_target, restart_target, *restart_args)
 
         else:
             # لا يوجد أي تحديث
@@ -1005,6 +1047,7 @@ class YouTubeDownloaderApp:
 
     # دالة لإنهاء عملية التحديث وعرض رسالة في حالة حدوث خطأ أثناء التحديث
     def update_finished(self, status):
+        self._update_in_progress = False
         self.progress_bar.stop()
         self.loading_frame.pack_forget()
         # إذا كان هناك خطأ أثناء التحديث، عرض رسالة خطأ للمستخدم. وإلا، عرض رسالة نجاح مع خيار إعادة تشغيل التطبيق لتطبيق التغييرات
