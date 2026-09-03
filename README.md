@@ -231,6 +231,67 @@ Options → Check for Updates action forces an immediate check. Set
 `MEDIA_DOWNLOADER_DISABLE_YTDLP_AUTO_UPDATE=1` only when automatic checks must
 be disabled.
 
+
+---
+
+#### **Option 4: Flatpak** 📦
+
+Media Downloader can be distributed and installed as a sandboxed Flatpak.
+
+##### **Requirements**
+
+Flatpak sandboxing requires the **X11** socket because the Tkinter-based UI
+does not support Wayland natively. Install the build tools:
+
+```bash
+sudo apt install flatpak flatpak-builder
+flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+```
+
+##### **Build & Install (one command)**
+
+A helper script automates building, installing, and forcing X11:
+[`build_flatpak.sh`](build_flatpak.sh)
+
+```bash
+chmod +x build_flatpak.sh
+./build_flatpak.sh            # build + install
+./build_flatpak.sh --bundle   # also generate a distributable .flatpak file
+```
+
+Or do it manually:
+
+```bash
+flatpak-builder --force-clean --disable-rofiles-fuse --repo=repo builddir flatpak/io.github.hmidani_abdelilah.Media_Downloader.json
+flatpak remote-add --user --if-not-exists --no-gpg-verify media-downloader-local repo
+flatpak install --user media-downloader-local io.github.hmidani_abdelilah.Media_Downloader
+# Force X11 only (required on Wayland sessions — Tkinter needs X11):
+flatpak override --user --socket=x11 io.github.hmidani_abdelilah.Media_Downloader
+```
+
+##### **Run**
+
+```bash
+flatpak run io.github.hmidani_abdelilah.Media_Downloader
+```
+
+> **Note about the `fallback-x11` fix:** The manifest keeps only `--socket=x11`.
+> If `--socket=wayland` and `--socket=fallback-x11` are present together, Flatpak
+> on Wayland sessions prefers Wayland and drops X11, which makes the Tkinter
+> window fail with `no display name and no $DISPLAY environment variable`.
+> Keeping only `--socket=x11` makes the GUI work on both X11 and Wayland
+> (via XWayland) sessions.
+
+##### **Create a distributable bundle**
+
+```bash
+flatpak build-bundle repo io.github.hmidani_abdelilah.Media_Downloader.flatpak io.github.hmidani_abdelilah.Media_Downloader master
+# Install it on another machine:
+flatpak install --user io.github.hmidani_abdelilah.Media_Downloader.flatpak
+```
+
+---
+
 ### 🛠️ Troubleshooting Subtitle Downloads
 
 If subtitles are not downloaded, try the following steps in the **same Python environment** used to run the application.
@@ -524,6 +585,64 @@ $XDG_CONFIG_HOME/media-downloader/yt-dlp/
 يمكن تعطيل الفحص التلقائي فقط عند الحاجة عبر
 `MEDIA_DOWNLOADER_DISABLE_YTDLP_AUTO_UPDATE=1`.
 
+
+---
+
+#### **الخيار 4: Flatpak** 📦
+
+يمكن توزيع وتثبيت Media Downloader كحزمة Flatpak معزولة (Sandboxed).
+
+##### **المتطلبات**
+
+تتطلب بيئة Flatpak مقبس **X11** لأن واجهة Tkinter لا تدعم Wayland بشكل أصلي.
+
+```bash
+sudo apt install flatpak flatpak-builder
+flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+```
+
+##### **البناء والتثبيت (أمر واحد)**
+
+سكريبت مساعد يؤتمت البناء والتثبيت وفرض X11:
+[`build_flatpak.sh`](build_flatpak.sh)
+
+```bash
+chmod +x build_flatpak.sh
+./build_flatpak.sh            # البناء + التثبيت
+./build_flatpak.sh --bundle   # وأيضًا توليد ملف .flatpak للتوزيع
+```
+
+أو يدويًا:
+
+```bash
+flatpak-builder --force-clean --disable-rofiles-fuse --repo=repo builddir flatpak/io.github.hmidani_abdelilah.Media_Downloader.json
+flatpak remote-add --user --if-not-exists --no-gpg-verify media-downloader-local repo
+flatpak install --user media-downloader-local io.github.hmidani_abdelilah.Media_Downloader
+# فرض مقبس X11 فقط (مطلوب في جلسات Wayland — Tkinter يحتاج X11):
+flatpak override --user --socket=x11 io.github.hmidani_abdelilah.Media_Downloader
+```
+
+##### **التشغيل**
+
+```bash
+flatpak run io.github.hmidani_abdelilah.Media_Downloader
+```
+
+> **ملاحظة إصلاح `fallback-x11`:** يحتفظ الـ manifest بـ `--socket=x11` فقط. إذا
+> وُجد `--socket=wayland` و`--socket=fallback-x11` معًا، فإن Flatpak في جلسات
+> Wayland يفضّل Wayland ويهمل X11، فيفشل تطبيق Tkinter بالخطأ
+> `no display name and no $DISPLAY environment variable`. إبقاء `--socket=x11`
+> فقط يجعل الواجهة تعمل في جلسات X11 وWayland (عبر XWayland).
+
+##### **توليد ملف قابل للنشر**
+
+```bash
+flatpak build-bundle repo io.github.hmidani_abdelilah.Media_Downloader.flatpak io.github.hmidani_abdelilah.Media_Downloader master
+# تثبيته على جهاز آخر:
+flatpak install --user io.github.hmidani_abdelilah.Media_Downloader.flatpak
+```
+
+---
 ### 🛠️ حل مشكلة عدم تحميل الترجمة
 
 إذا لم تُحمَّل الترجمة، جرّب الخطوات التالية داخل **بيئة Python نفسها** التي يُشغَّل منها التطبيق.
