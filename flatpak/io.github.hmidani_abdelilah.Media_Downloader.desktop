@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Media Downloader
+GenericName=Media Downloader
+Comment=Download videos and audio from YouTube and other platforms
+Exec=media-downloader %u
+Icon=io.github.hmidani_abdelilah.Media_Downloader
+Terminal=false
+Categories=Network;AudioVideo;Utility;
+StartupNotify=true
+MimeType=x-scheme-handler/youtube;x-scheme-handler/https;
+Keywords=video;audio;download;youtube;yt-dlp;

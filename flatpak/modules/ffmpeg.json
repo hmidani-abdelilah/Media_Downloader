@@ -1,0 +1,35 @@
+{
+  "name": "ffmpeg",
+  "buildsystem": "autotools",
+  "config-opts": [
+    "--enable-shared",
+    "--disable-static",
+    "--disable-doc",
+    "--disable-debug",
+    "--enable-gpl",
+    "--enable-version3",
+    "--enable-pthreads",
+    "--enable-libx264",
+    "--enable-libx265",
+    "--enable-libmp3lame",
+    "--enable-libopus",
+    "--enable-libxml2",
+    "--enable-gnutls",
+    "--enable-zlib",
+    "--enable-vaapi",
+    "--enable-vdpau"
+  ],
+  "cleanup": [
+    "/include",
+    "/lib/pkgconfig",
+    "/share/ffmpeg/examples",
+    "/share/man"
+  ],
+  "sources": [
+    {
+      "type": "archive",
+      "url": "https://ffmpeg.org/releases/ffmpeg-7.1.1.tar.xz",
+      "sha256": "733984395e0dbbe5c046abda2dc49a5544e7e0e1e2366bba849222ae9e3a03b1"
+    }
+  ]
+}

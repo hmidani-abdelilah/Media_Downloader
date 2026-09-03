@@ -1,0 +1,21 @@
+{
+  "name": "x265",
+  "buildsystem": "simple",
+  "build-commands": [
+    "cmake -S source -B build -G Ninja -DCMAKE_INSTALL_PREFIX=/app -DENABLE_SHARED=ON -DENABLE_STATIC=OFF -DENABLE_CLI=OFF -DHIGH_BIT_DEPTH=OFF -DEXPORT_C_API=ON",
+    "ninja -C build",
+    "ninja -C build install",
+    "mkdir -p /app/lib/pkgconfig",
+    "install -m755 build/libx265.so.216 /app/lib/",
+    "ln -sf libx265.so.216 /app/lib/libx265.so",
+    "rm -f /app/lib/libx265.a",
+    "printf 'prefix=/app\\nexec_prefix=${prefix}\\nlibdir=${prefix}/lib\\nincludedir=${prefix}/include\\n\\nName: x265\\nDescription: H.265/HEVC video encoder\\nVersion: 3.6\\nLibs: -L${libdir} -lx265\\nLibs.private: -lstdc++ -lm\\nCflags: -I${includedir}\\n' > /app/lib/pkgconfig/x265.pc"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://bitbucket.org/multicoreware/x265_git.git",
+      "commit": "b81f650e21e8aacbe6a9ad04ce14aefc05b932c0"
+    }
+  ]
+}

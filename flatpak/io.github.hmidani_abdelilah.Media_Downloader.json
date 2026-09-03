@@ -1,0 +1,64 @@
+{
+  "app-id": "io.github.hmidani_abdelilah.Media_Downloader",
+  "runtime": "org.freedesktop.Platform",
+  "runtime-version": "24.08",
+  "sdk": "org.freedesktop.Sdk",
+  "command": "media-downloader",
+  "separate-locales": false,
+  "finish-args": [
+    "--share=network",
+    "--share=ipc",
+    "--socket=x11",
+    "--device=dri",
+    "--talk-name=org.freedesktop.Notifications",
+    "--talk-name=org.kde.StatusNotifierWatcher",
+    "--filesystem=home"
+  ],
+  "build-options": {
+    "env": {
+      "PIP_DISABLE_PIP_VERSION_CHECK": "1",
+      "PYTHONDONTWRITEBYTECODE": "1"
+    }
+  },
+  "cleanup": [
+    "/include",
+    "/lib/pkgconfig",
+    "/share/man",
+    "/lib/python3*/site-packages/*.dist-info",
+    "/lib/python3*/site-packages/__pycache__",
+    "*.la",
+    "*.a"
+  ],
+  "modules": [
+    "modules/python3-dependencies.json",
+    "modules/x264.json",
+    "modules/x265.json",
+    "modules/opus.json",
+    "modules/lame.json",
+    "modules/ffmpeg.json",
+    {
+      "name": "media-downloader",
+      "buildsystem": "simple",
+      "build-commands": [
+        "mkdir -p /app/share/media-downloader",
+        "mkdir -p /app/share/applications",
+        "mkdir -p /app/share/icons/hicolor/512x512/apps",
+        "mkdir -p /app/share/metainfo",
+        "mkdir -p /app/bin",
+        "cp -r app.py gui.py downloader.py convert.py utils.py notification.py aria2_check.py ffmpeg_check.py path_ffmpeg.py ytdlp_manager.py /app/share/media-downloader/",
+        "cp -r languages /app/share/media-downloader/",
+        "cp -r asset /app/share/media-downloader/",
+        "cp icon.png /app/share/icons/hicolor/512x512/apps/io.github.hmidani_abdelilah.Media_Downloader.png",
+        "cp flatpak/io.github.hmidani_abdelilah.Media_Downloader.desktop /app/share/applications/",
+        "cp flatpak/io.github.hmidani_abdelilah.Media_Downloader.appdata.xml /app/share/metainfo/",
+        "install -Dm755 flatpak/io.github.hmidani_abdelilah.Media_Downloader.sh /app/bin/media-downloader"
+      ],
+      "sources": [
+        {
+          "type": "dir",
+          "path": ".."
+        }
+      ]
+    }
+  ]
+}

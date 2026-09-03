@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.hmidani_abdelilah.Media_Downloader</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>Media Downloader</name>
+  <summary>Download videos and audio from YouTube and other platforms</summary>
+  <summary xml:lang="ar">تحميل الفيديوهات والصوتيات من يوتيوب والمنصات الأخرى</summary>
+  <summary xml:lang="fr">Télécharger des vidéos et de la musique depuis YouTube et d'autres plateformes</summary>
+
+  <developer id="io.github.hmidani_abdelilah">
+    <name>Hmidani Abdelilah</name>
+  </developer>
+
+  <content_rating type="oars-1.1" />
+
+  <description>
+    <p>
+      Media Downloader is a cross-platform graphical application that allows you to easily download video and audio from YouTube, Facebook, Instagram, X.com, TikTok, and many other platforms. It features quality selection, speed acceleration with Aria2c, subtitle downloads, and video cutting/compression tools.
+    </p>
+    <p xml:lang="ar">
+      تطبيق Media Downloader هو برنامج رسومي يعمل على مختلف الأنظمة، يتيح لك تحميل الفيديوهات والصوت بسهولة من يوتيوب، فيسبوك، إنستغرام، تويتر، تيك توك والعديد من المنصات الأخرى. يتميز باختيار الجودة، تسريع التحميل عبر Aria2c، تحميل الترجمات، وأدوات لقص وضغط الفيديو.
+    </p>
+    <p xml:lang="fr">
+      Media Downloader est une application graphique multiplateforme qui vous permet de télécharger facilement des vidéos et de la musique depuis YouTube, Facebook, Instagram, X.com, TikTok et de nombreuses autres plateformes. Elle propose la sélection de la qualité, l'accélération avec Aria2c, le téléchargement de sous-titres et des outils de découpe/compression vidéo.
+    </p>
+  </description>
+
+  <launchable type="desktop-id">io.github.hmidani_abdelilah.Media_Downloader.desktop</launchable>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>Main application interface</caption>
+      <caption xml:lang="ar">الواجهة الرئيسية للتطبيق</caption>
+      <caption xml:lang="fr">Interface principale de l'application</caption>
+      <image type="source">https://raw.githubusercontent.com/hmidani-abdelilah/Media_Downloader/refs/heads/main/Screenshots/Screenshot%20From%202026-08-24%2013-22-57.png</image>
+    </screenshot>
+  </screenshots>
+
+  <url type="homepage">https://github.com/hmidani-abdelilah/Media_Downloader</url>
+  <url type="bugtracker">https://github.com/hmidani-abdelilah/Media_Downloader/issues</url>
+  <url type="vcs-browser">https://github.com/hmidani-abdelilah/Media_Downloader</url>
+
+  <provides>
+    <binary>media-downloader</binary>
+  </provides>
+
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </supports>
+
+  <requires>
+    <display_length compare="ge">768</display_length>
+  </requires>
+
+  <releases>
+    <release version="3.1.1" date="2026-08-28">
+      <description>
+        <p>Bug fixes and improvements.</p>
+      </description>
+    </release>
+    <release version="3.0.0" date="2026-08-24">
+      <description>
+        <p>Initial release with full feature set.</p>
+      </description>
+    </release>
+  </releases>
+
+  <recommends>
+    <memory>1024</memory>
+  </recommends>
+
+  <keywords>
+    <keyword>video</keyword>
+    <keyword>audio</keyword>
+    <keyword>download</keyword>
+    <keyword>youtube</keyword>
+    <keyword>yt-dlp</keyword>
+    <keyword>media</keyword>
+  </keywords>
+</component>
