@@ -65,5 +65,7 @@
   "playlist_start": "De :",
   "playlist_end": "À :",
   "playlist_end_placeholder": "Dernière vidéo",
-  "invalid_playlist_range": "Le début doit être un entier positif et la fin doit être vide ou supérieure ou égale au début."
+  "invalid_playlist_range": "Le début doit être un entier positif et la fin doit être vide ou supérieure ou égale au début.",
+  "flatpak_updates_title": "Mises à jour gérées par Flatpak",
+  "flatpak_updates_message": "Media Downloader et yt-dlp sont mis à jour ensemble via Flatpak. Lancez votre mise à jour Flatpak habituelle pour installer les nouvelles versions."
 }

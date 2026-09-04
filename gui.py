@@ -3,6 +3,7 @@ import sys # لإعادة توجيه الإخراج إلى UTF-8 في حالة �
 import io # لإنشاء تدفقات نصية ثنائية لتوجيه الإخراج إلى UTF-8
 import re # للتعامل مع التعبيرات العادية (غير مستخدم حاليا، لكن قد يكون مفيد في المستقبل لتحليل الروابط أو المدخلات)
 import urllib.parse # لتحليل الروابط (غير مستخدم حاليا، لكن قد يكون مفيد في المستقبل لتحليل الروابط أو المدخلات)
+from pathlib import Path
 
 # تأكد من أن sys.stdout و sys.stderr يدعمان الكتابة الثنائية (binary) وإلا قم بإنشاء تدفقات نصية ثنائية مع ترميز UTF-8
 if sys.stdout is None or not hasattr(sys.stdout, 'buffer'):
@@ -19,8 +20,37 @@ import customtkinter as ctk  # استيراد مكتبة واجهة المستخ
 from PIL import Image, ImageTk # لتضمين أيقونة للتطبيق مهما كان نوع نظام التشغيل
 import tkinter as tk  # استيراد مكتبة tkinter لإنشاء قائمة السياق
 from customtkinter import filedialog  # لفتح مربع حوار اختيار الملفات
-import CTkFileDialog  # لفتح مربع حوار اختيار المجلدات
-from CTkFileDialog.Constants import DOWNLOAD_DIR # مسار مجلد المستخدم الافتراضي
+
+# CTkFileDialog provides a richer dialog on regular installations, but its
+# optional preview stack pulls large native dependencies (OpenCV and NumPy).
+# Keep the application usable in minimal packages such as Flatpak by falling
+# back to Tk's native dialogs when CTkFileDialog is not installed.
+try:
+    import CTkFileDialog  # لفتح مربع حوار اختيار المجلدات
+    from CTkFileDialog.Constants import DOWNLOAD_DIR # مسار مجلد المستخدم الافتراضي
+except ImportError:
+    class _TkFileDialogFallback:
+        @staticmethod
+        def _options(options):
+            translated = dict(options)
+            initial_dir = translated.pop("initial_dir", None)
+            if initial_dir:
+                translated["initialdir"] = initial_dir
+            translated.pop("autocomplete", None)
+            translated.pop("foldercreation", None)
+            translated.pop("style", None)
+            return translated
+
+        @classmethod
+        def askdirectory(cls, **options):
+            return filedialog.askdirectory(**cls._options(options))
+
+        @classmethod
+        def askopenfilename(cls, **options):
+            return filedialog.askopenfilename(**cls._options(options))
+
+    CTkFileDialog = _TkFileDialogFallback
+    DOWNLOAD_DIR = str(Path.home() / "Downloads")
 from CTkMessagebox import CTkMessagebox  # لعرض رسائل منبثقة للمستخدم 
 from CTkMenuBarPlus import * #  استيراد مكتبة القوائم الافقية 
 from downloader import download_video, get_videos_info, get_gpu_encoders, normalize_playlist_range, stop_download # استيراد وظائف التحميل
@@ -896,6 +926,12 @@ class YouTubeDownloaderApp:
     def update_task(self):
         # الحزم التي سيتم تحديثها
         try:
+            # Flatpak applications are immutable. Updates must arrive through
+            # the repository so yt-dlp and yt-dlp-ejs stay compatible.
+            if os.environ.get("FLATPAK_ID"):
+                self.root.after(0, self.show_flatpak_update_info)
+                return
+
             # داخل AppImage لا يوجد مفسر pip قابل للكتابة. yt-dlp مُدار
             # كحزمة خارجية مستقلة داخل مجلد إعدادات المستخدم.
             if external_management_enabled():
@@ -1046,6 +1082,28 @@ class YouTubeDownloaderApp:
             )
 
     # دالة لإنهاء عملية التحديث وعرض رسالة في حالة حدوث خطأ أثناء التحديث
+    def show_flatpak_update_info(self):
+        """Explain the immutable update path used by Flatpak packages."""
+
+        self._update_in_progress = False
+        self.progress_bar.stop()
+        self.progress_bar.set(0)
+        self.current_package_label.configure(text="")
+        self.loading_frame.pack_forget()
+        CTkMessagebox(
+            title=self.lang.get(
+                "flatpak_updates_title",
+                "Updates Managed by Flatpak"
+            ),
+            message=self.lang.get(
+                "flatpak_updates_message",
+                "Media Downloader and yt-dlp are updated together through "
+                "Flatpak. Run your normal Flatpak update to install new "
+                "versions."
+            ),
+            icon="info"
+        )
+
     def update_finished(self, status):
         self._update_in_progress = False
         self.progress_bar.stop()

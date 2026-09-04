@@ -65,6 +65,8 @@
   "playlist_start": "من رقم:",
   "playlist_end": "إلى رقم:",
   "playlist_end_placeholder": "آخر فيديو",
-  "invalid_playlist_range": "يجب أن تكون البداية عددًا صحيحًا موجبًا، والنهاية فارغة أو عددًا لا يقل عن البداية."
+  "invalid_playlist_range": "يجب أن تكون البداية عددًا صحيحًا موجبًا، والنهاية فارغة أو عددًا لا يقل عن البداية.",
+  "flatpak_updates_title": "التحديثات مُدارة بواسطة Flatpak",
+  "flatpak_updates_message": "يُحدَّث Media Downloader وyt-dlp معًا عبر Flatpak. شغّل تحديث Flatpak المعتاد لتثبيت الإصدارات الجديدة."
 
 }
