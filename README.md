@@ -240,54 +240,82 @@ Media Downloader can be distributed and installed as a sandboxed Flatpak.
 
 ##### **Requirements**
 
-Flatpak sandboxing requires the **X11** socket because the Tkinter-based UI
-does not support Wayland natively. Install the build tools:
+The build uses Freedesktop Platform/SDK **25.08** and the
+`org.freedesktop.Platform.codecs-extra//25.08-extra` extension. On Debian or
+Ubuntu, install the local build and validation tools with:
 
 ```bash
-sudo apt install flatpak flatpak-builder
-flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+sudo apt install flatpak flatpak-builder appstream desktop-file-utils coreutils
+flatpak remote-add --user --if-not-exists flathub \
+  https://dl.flathub.org/repo/flathub.flatpakrepo
 ```
 
 ##### **Build & Install (one command)**
 
-A helper script automates building, installing, and forcing X11:
-[`build_flatpak.sh`](build_flatpak.sh)
+[`build_flatpak.sh`](build_flatpak.sh) validates the Desktop and AppStream
+metadata, installs missing Flatpak dependencies for the current user, builds
+from pinned sources, installs the app, verifies its exported Desktop entry and
+icon, refreshes their caches, and runs dependency smoke tests.
 
 ```bash
 chmod +x build_flatpak.sh
-./build_flatpak.sh            # build + install
-./build_flatpak.sh --bundle   # also generate a distributable .flatpak file
+./build_flatpak.sh              # build + user install + smoke tests
+./build_flatpak.sh --bundle     # also create a bundle and SHA-256 file
+./build_flatpak.sh --run        # launch after a successful build
+./build_flatpak.sh --no-install # build/export only
+./build_flatpak.sh --no-deps    # fail instead of installing missing runtimes
 ```
 
-Or do it manually:
-
-```bash
-flatpak-builder --force-clean --disable-rofiles-fuse --repo=repo builddir flatpak/io.github.hmidani_abdelilah.Media_Downloader.json
-flatpak remote-add --user --if-not-exists --no-gpg-verify media-downloader-local repo
-flatpak install --user media-downloader-local io.github.hmidani_abdelilah.Media_Downloader
-# Force X11 only (required on Wayland sessions — Tkinter needs X11):
-flatpak override --user --socket=x11 io.github.hmidani_abdelilah.Media_Downloader
-```
+`--run` cannot be combined with `--no-install`. Intermediate build data is
+written to `.flatpak-build/`; distributable bundles are written to
+`dist-flatpak/`.
 
 ##### **Run**
 
 ```bash
-flatpak run io.github.hmidani_abdelilah.Media_Downloader
+flatpak run --user io.github.hmidani_abdelilah.Media_Downloader
 ```
 
-> **Note about the `fallback-x11` fix:** The manifest keeps only `--socket=x11`.
-> If `--socket=wayland` and `--socket=fallback-x11` are present together, Flatpak
-> on Wayland sessions prefers Wayland and drops X11, which makes the Tkinter
-> window fail with `no display name and no $DISPLAY environment variable`.
-> Keeping only `--socket=x11` makes the GUI work on both X11 and Wayland
-> (via XWayland) sessions.
+Tkinter uses X11, so the manifest intentionally exposes only `--socket=x11`.
+On a Wayland desktop the window runs through XWayland; no manual override is
+needed.
 
-##### **Create a distributable bundle**
+##### **Install the generated bundle**
 
 ```bash
-flatpak build-bundle repo io.github.hmidani_abdelilah.Media_Downloader.flatpak io.github.hmidani_abdelilah.Media_Downloader master
-# Install it on another machine:
-flatpak install --user io.github.hmidani_abdelilah.Media_Downloader.flatpak
+flatpak install --user --reinstall \
+  ./dist-flatpak/io.github.hmidani_abdelilah.Media_Downloader-x86_64.flatpak
+```
+
+Replace `x86_64` with the output of `flatpak --default-arch` when building for
+another architecture.
+
+##### **Flatpak troubleshooting**
+
+If an older bundle fails with `Cannot find a usable init.tcl`, rebuild or
+reinstall the current bundle. The manifest now builds Tcl/Tk **9.0.0** with
+ZipFS disabled, installs the normal `init.tcl`/`tk.tcl` library trees, and the
+build script verifies them before reporting success.
+
+If the app or its icon is missing from the applications menu, first confirm
+that it is actually installed and exported:
+
+```bash
+flatpak info --user io.github.hmidani_abdelilah.Media_Downloader
+test -e "$HOME/.local/share/flatpak/exports/share/applications/io.github.hmidani_abdelilah.Media_Downloader.desktop" && echo "Desktop entry: OK"
+test -e "$HOME/.local/share/flatpak/exports/share/icons/hicolor/512x512/apps/io.github.hmidani_abdelilah.Media_Downloader.png" && echo "Icon: OK"
+```
+
+`XDG_DATA_DIRS` must contain
+`$HOME/.local/share/flatpak/exports/share`. The build script refreshes the
+Desktop and icon caches; sign out and back in if GNOME still shows stale data.
+If the script warns about a different host icon, move that old file aside and
+refresh its cache:
+
+```bash
+legacy_icon="$HOME/.local/share/icons/hicolor/512x512/apps/io.github.hmidani_abdelilah.Media_Downloader.png"
+mv -- "$legacy_icon" "$legacy_icon.disabled"
+gtk-update-icon-cache --force --ignore-theme-index "$HOME/.local/share/icons/hicolor"
 ```
 
 ---
@@ -339,7 +367,7 @@ The Media Downloader GUI detects supported Deno and Node.js runtimes automatical
 Media_Downloader/
 ├── app.py                         # Application entry point
 ├── gui.py                         # Main window and user interactions
-├── downloader.py                  # Aria2c,yt-dlp download and playlist logic
+├── downloader.py                  # Aria2c/yt-dlp download and playlist logic
 ├── ytdlp_manager.py               # Writable yt-dlp seed, updates, and rollback for AppImage
 ├── convert.py                     # FFmpeg conversion and compression helpers
 ├── ffmpeg_check.py                # FFmpeg availability checks
@@ -354,6 +382,7 @@ Media_Downloader/
 ├── asset/                         # Icons used by packaged applications
 │   ├── Icon.ico
 │   └── Icon.png
+├── icon.png                       # 512×512 Flatpak/AppImage icon
 ├── Screenshots/                   # README and application screenshots
 ├── debian/                        # Debian / Ubuntu PPA package metadata and maintainer scripts
 │   ├── control
@@ -361,21 +390,25 @@ Media_Downloader/
 │   ├── changelog
 │   ├── postinst
 │   └── prerm
+├── flatpak/                       # Flatpak manifest and application metadata
+│   ├── io.github.hmidani_abdelilah.Media_Downloader.json
+│   ├── io.github.hmidani_abdelilah.Media_Downloader.desktop
+│   ├── io.github.hmidani_abdelilah.Media_Downloader.appdata.xml
+│   ├── requirements.txt
+│   └── modules/                   # Tcl/Tk, QuickJS, Aria2, and Python modules
 ├── installer.sh                   # Linux installer and uninstaller
 ├── installer-windows.bat          # Windows installer and repair 
 ├── run-it.bat                     # Windows launcher 
 ├── build_app_image.sh             # AppImage build script
 ├── build_deb_rmp.sh               # DEB and RPM build script
+├── build_flatpak.sh               # Flatpak build, install, validation, and bundling
 ├── Media_Downloader.desktop       # Linux desktop entry
 ├── Media_Downloader.appdata.xml   # AppStream application metadata
 ├── requirements.txt               # Python dependencies
-├── test files/                    # Experimental scripts and packaging tests
+├── tests/                         # Experimental scripts and packaging tests
+├── .flatpak-build/                # Generated Flatpak work/repository data
+├── dist-flatpak/                  # Generated bundles and SHA-256 files
 ├── LICENSE                        # MIT license
-├── ffmpeg/                        # FFmpeg binaries (Windows)
-│   └── bin/
-│       └── ffmpeg.exe
-├── aria2/                         # Aria2c binaries (Windows)
-│   └── aria2c.exe
 └── README.md                      # Project documentation
 ```
 
@@ -594,52 +627,76 @@ $XDG_CONFIG_HOME/media-downloader/yt-dlp/
 
 ##### **المتطلبات**
 
-تتطلب بيئة Flatpak مقبس **X11** لأن واجهة Tkinter لا تدعم Wayland بشكل أصلي.
+يستخدم البناء منصة وحزمة تطوير Freedesktop بالإصدار **25.08**، إضافة إلى امتداد
+`org.freedesktop.Platform.codecs-extra//25.08-extra`. على Debian أو Ubuntu ثبّت
+أدوات البناء والتحقق المحلية عبر:
 
 ```bash
-sudo apt install flatpak flatpak-builder
-flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+sudo apt install flatpak flatpak-builder appstream desktop-file-utils coreutils
+flatpak remote-add --user --if-not-exists flathub \
+  https://dl.flathub.org/repo/flathub.flatpakrepo
 ```
 
 ##### **البناء والتثبيت (أمر واحد)**
 
-سكريبت مساعد يؤتمت البناء والتثبيت وفرض X11:
-[`build_flatpak.sh`](build_flatpak.sh)
+يتحقق [`build_flatpak.sh`](build_flatpak.sh) من بيانات Desktop وAppStream،
+ويثبّت اعتماديات Flatpak الناقصة للمستخدم الحالي، ويبني من مصادر ثابتة، ثم
+يثبّت التطبيق ويتحقق من تصدير اختصار قائمة البرامج والأيقونة ويحدّث الكاش،
+ويشغّل اختبارات سريعة للاعتماديات.
 
 ```bash
 chmod +x build_flatpak.sh
-./build_flatpak.sh            # البناء + التثبيت
-./build_flatpak.sh --bundle   # وأيضًا توليد ملف .flatpak للتوزيع
+./build_flatpak.sh              # البناء + تثبيت المستخدم + الاختبارات
+./build_flatpak.sh --bundle     # إضافة حزمة قابلة للنشر وملف SHA-256
+./build_flatpak.sh --run        # التشغيل بعد نجاح البناء
+./build_flatpak.sh --no-install # البناء والتصدير فقط
+./build_flatpak.sh --no-deps    # عدم تثبيت بيئات Flatpak الناقصة
 ```
 
-أو يدويًا:
-
-```bash
-flatpak-builder --force-clean --disable-rofiles-fuse --repo=repo builddir flatpak/io.github.hmidani_abdelilah.Media_Downloader.json
-flatpak remote-add --user --if-not-exists --no-gpg-verify media-downloader-local repo
-flatpak install --user media-downloader-local io.github.hmidani_abdelilah.Media_Downloader
-# فرض مقبس X11 فقط (مطلوب في جلسات Wayland — Tkinter يحتاج X11):
-flatpak override --user --socket=x11 io.github.hmidani_abdelilah.Media_Downloader
-```
+لا يمكن جمع `--run` مع `--no-install`. توضع ملفات البناء الوسيطة داخل
+`.flatpak-build/`، والحزم القابلة للنشر داخل `dist-flatpak/`.
 
 ##### **التشغيل**
 
 ```bash
-flatpak run io.github.hmidani_abdelilah.Media_Downloader
+flatpak run --user io.github.hmidani_abdelilah.Media_Downloader
 ```
 
-> **ملاحظة إصلاح `fallback-x11`:** يحتفظ الـ manifest بـ `--socket=x11` فقط. إذا
-> وُجد `--socket=wayland` و`--socket=fallback-x11` معًا، فإن Flatpak في جلسات
-> Wayland يفضّل Wayland ويهمل X11، فيفشل تطبيق Tkinter بالخطأ
-> `no display name and no $DISPLAY environment variable`. إبقاء `--socket=x11`
-> فقط يجعل الواجهة تعمل في جلسات X11 وWayland (عبر XWayland).
+تستخدم Tkinter بروتوكول X11، لذلك يكشف ملف manifest المقبس `--socket=x11`
+فقط. تعمل النافذة في جلسات Wayland عبر XWayland، ولا حاجة إلى override يدوي.
 
-##### **توليد ملف قابل للنشر**
+##### **تثبيت الحزمة الناتجة**
 
 ```bash
-flatpak build-bundle repo io.github.hmidani_abdelilah.Media_Downloader.flatpak io.github.hmidani_abdelilah.Media_Downloader master
-# تثبيته على جهاز آخر:
-flatpak install --user io.github.hmidani_abdelilah.Media_Downloader.flatpak
+flatpak install --user --reinstall \
+  ./dist-flatpak/io.github.hmidani_abdelilah.Media_Downloader-x86_64.flatpak
+```
+
+استبدل `x86_64` بناتج `flatpak --default-arch` عند البناء لمعمارية أخرى.
+
+##### **استكشاف مشكلات Flatpak**
+
+إذا ظهرت في حزمة قديمة رسالة `Cannot find a usable init.tcl`، فأعد بناء الحزمة
+الحالية أو تثبيتها. يبني manifest الآن Tcl/Tk **9.0.0** مع تعطيل ZipFS، ويثبّت
+شجرتَي `init.tcl` و`tk.tcl` الاعتياديتين، ويتحقق منهما السكربت قبل إعلان النجاح.
+
+إذا غاب التطبيق أو رمزه من قائمة البرامج، فتحقق أولًا من أنه مثبت ومصدّر فعلًا:
+
+```bash
+flatpak info --user io.github.hmidani_abdelilah.Media_Downloader
+test -e "$HOME/.local/share/flatpak/exports/share/applications/io.github.hmidani_abdelilah.Media_Downloader.desktop" && echo "Desktop entry: OK"
+test -e "$HOME/.local/share/flatpak/exports/share/icons/hicolor/512x512/apps/io.github.hmidani_abdelilah.Media_Downloader.png" && echo "Icon: OK"
+```
+
+يجب أن يتضمن `XDG_DATA_DIRS` المسار
+`$HOME/.local/share/flatpak/exports/share`. يحدّث سكربت البناء كاش الاختصار
+والأيقونة؛ سجّل الخروج ثم الدخول إذا بقيت بيانات GNOME القديمة. وإذا حذّر
+السكربت من أيقونة نظام مختلفة تحمل المعرّف نفسه، فانقل الملف القديم وحدّث كاشه:
+
+```bash
+legacy_icon="$HOME/.local/share/icons/hicolor/512x512/apps/io.github.hmidani_abdelilah.Media_Downloader.png"
+mv -- "$legacy_icon" "$legacy_icon.disabled"
+gtk-update-icon-cache --force --ignore-theme-index "$HOME/.local/share/icons/hicolor"
 ```
 
 ---
@@ -690,7 +747,7 @@ flatpak install --user io.github.hmidani_abdelilah.Media_Downloader.flatpak
 Media_Downloader/
 ├── app.py                         # نقطة تشغيل التطبيق
 ├── gui.py                         # النافذة الرئيسية وتفاعلات المستخدم
-├── downloader.py                  # منطق التحميل وقوائم التشغيل عبر yt-dlp , Aria2c
+├── downloader.py                  # منطق التحميل وقوائم التشغيل عبر yt-dlp وAria2c
 ├── ytdlp_manager.py               # نسخ yt-dlp الخارجية وتحديثها والرجوع الآمن في AppImage
 ├── convert.py                     # أدوات التحويل والضغط عبر FFmpeg
 ├── ffmpeg_check.py                # التحقق من توفر FFmpeg
@@ -705,6 +762,7 @@ Media_Downloader/
 ├── asset/                         # أيقونات الحزم التنفيذية
 │   ├── Icon.ico
 │   └── Icon.png
+├── icon.png                       # أيقونة Flatpak وAppImage بمقاس 512×512
 ├── Screenshots/                   # صور التطبيق المستخدمة في التوثيق
 ├── debian/                        # بيانات حزمة Debian / Ubuntu PPA وسكربتات الصيانة
 │   ├── control
@@ -712,24 +770,24 @@ Media_Downloader/
 │   ├── changelog
 │   ├── postinst
 │   └── prerm
+├── flatpak/                       # manifest وبيانات تطبيق Flatpak
+│   ├── io.github.hmidani_abdelilah.Media_Downloader.json
+│   ├── io.github.hmidani_abdelilah.Media_Downloader.desktop
+│   ├── io.github.hmidani_abdelilah.Media_Downloader.appdata.xml
+│   ├── requirements.txt
+│   └── modules/                   # وحدات Tcl/Tk وQuickJS وAria2 وPython
 ├── installer.sh                   # مثبّت Linux وأداة إلغاء التثبيت
 ├── installer-windows.bat          # مثبّت Windows ومسار الإصلاح
 ├── run-it.bat                     # مشغّل Windows وأداة التشخيص
 ├── build_app_image.sh             # سكربت بناء AppImage
 ├── build_deb_rmp.sh               # سكربت بناء حزمتَي DEB وRPM
+├── build_flatpak.sh               # بناء Flatpak وتثبيته والتحقق منه وتجميعه
 ├── Media_Downloader.desktop       # اختصار التطبيق على Linux
 ├── Media_Downloader.appdata.xml   # بيانات AppStream الخاصة بالتطبيق
-├── requirements.txt               #  ملف إعتماديات بايتون
-├── test files/                    # سكربتات تجريبية واختبارات الحزم
+├── requirements.txt               # اعتماديات Python
+├── tests/                         # سكربتات تجريبية واختبارات الحزم
+├── .flatpak-build/                # بيانات العمل والمستودع الناتجة عن البناء
+├── dist-flatpak/                  # الحزم الناتجة وملفات SHA-256
 ├── LICENSE                        # رخصة MIT
-├── ffmpeg/                        # ملفات FFmpeg (ويندوز)
-│   └── bin/
-│       └── ffmpeg.exe
-├── aria2/                         # ملفات Aria2c (ويندوز)
-│   └── aria2c.exe
 └── README.md                      # توثيق المشروع
-```
-```
-```bash 
-sudo update-desktop-database
 ```
