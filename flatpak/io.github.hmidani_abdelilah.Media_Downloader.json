@@ -1,7 +1,8 @@
 {
+  "$schema": "https://raw.githubusercontent.com/flatpak/flatpak-builder/main/data/flatpak-manifest.schema.json",
   "app-id": "io.github.hmidani_abdelilah.Media_Downloader",
   "runtime": "org.freedesktop.Platform",
-  "runtime-version": "24.08",
+  "runtime-version": "25.08",
   "sdk": "org.freedesktop.Sdk",
   "command": "media-downloader",
   "separate-locales": false,
@@ -10,9 +11,9 @@
     "--share=ipc",
     "--socket=x11",
     "--device=dri",
+    "--filesystem=home",
     "--talk-name=org.freedesktop.Notifications",
-    "--talk-name=org.kde.StatusNotifierWatcher",
-    "--filesystem=home"
+    "--env=MEDIA_DOWNLOADER_DISABLE_YTDLP_AUTO_UPDATE=1"
   ],
   "build-options": {
     "env": {
@@ -23,40 +24,60 @@
   "cleanup": [
     "/include",
     "/lib/pkgconfig",
+    "/share/doc",
     "/share/man",
-    "/lib/python3*/site-packages/*.dist-info",
-    "/lib/python3*/site-packages/__pycache__",
-    "*.la",
-    "*.a"
+    "/bin/tclsh*",
+    "/bin/wish*",
+    "*.a",
+    "*.la"
   ],
   "modules": [
+    "modules/tkinter.json",
+    "modules/quickjs.json",
+    "modules/aria2.json",
     "modules/python3-dependencies.json",
-    "modules/x264.json",
-    "modules/x265.json",
-    "modules/opus.json",
-    "modules/lame.json",
-    "modules/ffmpeg.json",
     {
       "name": "media-downloader",
       "buildsystem": "simple",
       "build-commands": [
-        "mkdir -p /app/share/media-downloader",
-        "mkdir -p /app/share/applications",
-        "mkdir -p /app/share/icons/hicolor/512x512/apps",
-        "mkdir -p /app/share/metainfo",
-        "mkdir -p /app/bin",
-        "cp -r app.py gui.py downloader.py convert.py utils.py notification.py aria2_check.py ffmpeg_check.py path_ffmpeg.py ytdlp_manager.py /app/share/media-downloader/",
-        "cp -r languages /app/share/media-downloader/",
-        "cp -r asset /app/share/media-downloader/",
-        "cp icon.png /app/share/icons/hicolor/512x512/apps/io.github.hmidani_abdelilah.Media_Downloader.png",
-        "cp flatpak/io.github.hmidani_abdelilah.Media_Downloader.desktop /app/share/applications/",
-        "cp flatpak/io.github.hmidani_abdelilah.Media_Downloader.appdata.xml /app/share/metainfo/",
-        "install -Dm755 flatpak/io.github.hmidani_abdelilah.Media_Downloader.sh /app/bin/media-downloader"
+        "mkdir -p /app/share/media-downloader /app/share/applications /app/share/icons/hicolor/512x512/apps /app/share/metainfo /app/share/licenses/${FLATPAK_ID}",
+        "install -m644 app.py aria2_check.py convert.py downloader.py ffmpeg_check.py gui.py notification.py path_ffmpeg.py utils.py ytdlp_manager.py /app/share/media-downloader/",
+        "cp -a languages asset /app/share/media-downloader/",
+        "install -Dm755 media-downloader.sh /app/bin/media-downloader",
+        "install -Dm644 media-downloader.desktop /app/share/applications/${FLATPAK_ID}.desktop",
+        "install -Dm644 media-downloader.appdata.xml /app/share/metainfo/${FLATPAK_ID}.metainfo.xml",
+        "install -Dm644 icon.png /app/share/icons/hicolor/512x512/apps/${FLATPAK_ID}.png",
+        "install -Dm644 LICENSE /app/share/licenses/${FLATPAK_ID}/LICENSE"
       ],
       "sources": [
+        { "type": "file", "path": "../app.py" },
+        { "type": "file", "path": "../aria2_check.py" },
+        { "type": "file", "path": "../convert.py" },
+        { "type": "file", "path": "../downloader.py" },
+        { "type": "file", "path": "../ffmpeg_check.py" },
+        { "type": "file", "path": "../gui.py" },
+        { "type": "file", "path": "../notification.py" },
+        { "type": "file", "path": "../path_ffmpeg.py" },
+        { "type": "file", "path": "../utils.py" },
+        { "type": "file", "path": "../ytdlp_manager.py" },
+        { "type": "dir", "path": "../languages", "dest": "languages" },
+        { "type": "dir", "path": "../asset", "dest": "asset" },
+        { "type": "file", "path": "../icon.png" },
+        { "type": "file", "path": "../LICENSE" },
         {
-          "type": "dir",
-          "path": ".."
+          "type": "file",
+          "path": "io.github.hmidani_abdelilah.Media_Downloader.sh",
+          "dest-filename": "media-downloader.sh"
+        },
+        {
+          "type": "file",
+          "path": "io.github.hmidani_abdelilah.Media_Downloader.desktop",
+          "dest-filename": "media-downloader.desktop"
+        },
+        {
+          "type": "file",
+          "path": "io.github.hmidani_abdelilah.Media_Downloader.appdata.xml",
+          "dest-filename": "media-downloader.appdata.xml"
         }
       ]
     }

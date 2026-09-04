@@ -1,0 +1,32 @@
+{
+  "name": "aria2",
+  "buildsystem": "autotools",
+  "config-opts": [
+    "--disable-libaria2",
+    "--disable-websocket",
+    "--disable-nls",
+    "--disable-ftp",
+    "--without-appletls",
+    "--without-cppunit",
+    "--without-gnutls",
+    "--without-libcares",
+    "--without-libcunit",
+    "--without-libgcrypt",
+    "--without-libgmp",
+    "--without-libssh2",
+    "--without-libxml2",
+    "--without-sqlite3",
+    "--with-openssl"
+  ],
+  "cleanup": [
+    "/share/doc",
+    "/share/man"
+  ],
+  "sources": [
+    {
+      "type": "archive",
+      "url": "https://github.com/aria2/aria2/releases/download/release-1.37.0/aria2-1.37.0.tar.xz",
+      "sha256": "60a420ad7085eb616cb6e2bdf0a7206d68ff3d37fb5a956dc44242eb2f79b66b"
+    }
+  ]
+}

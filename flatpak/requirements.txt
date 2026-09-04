@@ -1,0 +1,17 @@
+# Python packages shipped in the immutable Flatpak image.
+#
+# CTKFileDialog-plus is intentionally omitted. gui.py falls back to Tk's
+# native file dialog, avoiding the otherwise unused OpenCV/NumPy preview stack.
+# desktop-notifier is omitted because the Freedesktop runtime provides
+# notify-send, which is the application's preferred Linux notification path.
+customtkinter==6.0.0
+CTkMessagebox==2.7
+CTkMenuBarPlus==1.3
+tkinterdnd2==0.6.2
+# Pillow is a pinned dependency of CTkMessagebox/CTkMenuBarPlus and is emitted
+# by the generator for both supported architectures.
+arabic-reshaper==3.0.1
+# 0.4.2 is the last universal pure-Python wheel; newer releases ship a
+# per-architecture Rust extension and complicate portable Flatpak builds.
+python-bidi==0.4.2
+yt-dlp[default]==2026.8.19

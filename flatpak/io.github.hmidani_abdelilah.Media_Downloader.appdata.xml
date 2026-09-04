@@ -4,9 +4,9 @@
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>MIT</project_license>
   <name>Media Downloader</name>
-  <summary>Download videos and audio from YouTube and other platforms</summary>
-  <summary xml:lang="ar">تحميل الفيديوهات والصوتيات من يوتيوب والمنصات الأخرى</summary>
-  <summary xml:lang="fr">Télécharger des vidéos et de la musique depuis YouTube et d'autres plateformes</summary>
+  <summary>Download videos and audio from online platforms</summary>
+  <summary xml:lang="ar">تحميل الفيديو والصوت من منصات الإنترنت</summary>
+  <summary xml:lang="fr">Télécharger des vidéos et de l'audio depuis des plateformes en ligne</summary>
 
   <developer id="io.github.hmidani_abdelilah">
     <name>Hmidani Abdelilah</name>
@@ -16,13 +16,21 @@
 
   <description>
     <p>
-      Media Downloader is a cross-platform graphical application that allows you to easily download video and audio from YouTube, Facebook, Instagram, X.com, TikTok, and many other platforms. It features quality selection, speed acceleration with Aria2c, subtitle downloads, and video cutting/compression tools.
+      Media Downloader is a graphical application for downloading video and
+      audio from YouTube, Facebook, Instagram, X, TikTok, and many other
+      platforms. It supports quality selection, subtitles, playlists, media
+      cutting, compression, and accelerated downloads with Aria2.
     </p>
     <p xml:lang="ar">
-      تطبيق Media Downloader هو برنامج رسومي يعمل على مختلف الأنظمة، يتيح لك تحميل الفيديوهات والصوت بسهولة من يوتيوب، فيسبوك، إنستغرام، تويتر، تيك توك والعديد من المنصات الأخرى. يتميز باختيار الجودة، تسريع التحميل عبر Aria2c، تحميل الترجمات، وأدوات لقص وضغط الفيديو.
+      Media Downloader تطبيق رسومي لتحميل الفيديو والصوت من يوتيوب وفيسبوك
+      وإنستغرام وإكس وتيك توك ومنصات أخرى كثيرة. يدعم اختيار الجودة والترجمات
+      وقوائم التشغيل وقص الوسائط وضغطها وتسريع التحميل عبر Aria2.
     </p>
     <p xml:lang="fr">
-      Media Downloader est une application graphique multiplateforme qui vous permet de télécharger facilement des vidéos et de la musique depuis YouTube, Facebook, Instagram, X.com, TikTok et de nombreuses autres plateformes. Elle propose la sélection de la qualité, l'accélération avec Aria2c, le téléchargement de sous-titres et des outils de découpe/compression vidéo.
+      Media Downloader est une application graphique permettant de télécharger
+      des vidéos et de l'audio depuis YouTube, Facebook, Instagram, X, TikTok
+      et de nombreuses autres plateformes. Elle prend en charge la qualité,
+      les sous-titres, les playlists, le découpage, la compression et Aria2.
     </p>
   </description>
 
@@ -54,6 +62,10 @@
     <display_length compare="ge">768</display_length>
   </requires>
 
+  <recommends>
+    <memory>1024</memory>
+  </recommends>
+
   <releases>
     <release version="3.1.1" date="2026-08-28">
       <description>
@@ -62,14 +74,10 @@
     </release>
     <release version="3.0.0" date="2026-08-24">
       <description>
-        <p>Initial release with full feature set.</p>
+        <p>Initial release with the full feature set.</p>
       </description>
     </release>
   </releases>
-
-  <recommends>
-    <memory>1024</memory>
-  </recommends>
 
   <keywords>
     <keyword>video</keyword>

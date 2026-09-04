@@ -1,34 +1,39 @@
-#!/bin/bash
-# Generate Python dependencies for Flatpak build
-#
-# This script uses flatpak-pip-generator to create a list of all
-# required Python packages and their transitive dependencies so they
-# can be downloaded and added to the manifest as sources.
-#
-# The manifest builds Python dependencies directly from PyPI using pip,
-# so this script is only needed if you want fully offline / pinned builds.
-#
-# Prerequisites:
-#   pip install flatpak-pip-generator
-#
-# Usage:
-#   ./flatpak/generate-pip-sources.sh
-#
-# This will write a temporary requirements lock for reference.
+#!/usr/bin/env bash
+# Regenerate the pinned, offline Python source module used by flatpak-builder.
+set -Eeuo pipefail
 
-set -euo pipefail
+readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+readonly PROJECT_DIR="$(dirname -- "$SCRIPT_DIR")"
+readonly RUNTIME_VERSION="${RUNTIME_VERSION:-25.08}"
+readonly GENERATOR_VERSION="2026.5.28"
+readonly TOOL_DIR="$PROJECT_DIR/.flatpak-tools/pip-generator"
+readonly REQUIREMENTS_FILE="$SCRIPT_DIR/requirements.txt"
+readonly OUTPUT_NAME="python3-dependencies"
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+if ! command -v flatpak >/dev/null 2>&1; then
+    echo "error: flatpak is required" >&2
+    exit 1
+fi
 
-echo "Locking Python dependencies for Flatpak..."
+if ! flatpak info "org.freedesktop.Sdk//$RUNTIME_VERSION" >/dev/null 2>&1; then
+    echo "error: org.freedesktop.Sdk//$RUNTIME_VERSION is not installed" >&2
+    echo "install it with: flatpak install flathub org.freedesktop.Sdk//$RUNTIME_VERSION" >&2
+    exit 1
+fi
 
-# Freeze current installed versions for reproducible builds
-python3 -m pip freeze > "$SCRIPT_DIR/requirements-flatpak.lock"
+if ! "$TOOL_DIR/bin/python" -c "import flatpak_pip_generator" >/dev/null 2>&1; then
+    echo "Installing flatpak-pip-generator $GENERATOR_VERSION in a local tool environment..."
+    python3 -m venv "$TOOL_DIR"
+    "$TOOL_DIR/bin/python" -m pip install --disable-pip-version-check \
+        "flatpak-pip-generator==$GENERATOR_VERSION"
+fi
 
-echo "Lock file written: $SCRIPT_DIR/requirements-flatpak.lock"
-echo ""
-echo "Next steps:"
-echo "  1. Review platform dependencies in the manifest"
-echo "  2. Build with: flatpak-builder --repo=repo --force-clean build-dir $SCRIPT_DIR/io.github.hmidani_abdelilah.Media_Downloader.json"
-echo "  3. Bundle with: flatpak build-bundle repo io.github.hmidani_abdelilah.Media_Downloader.flatpak io.github.hmidani_abdelilah.Media_Downloader"
+cd "$SCRIPT_DIR/modules"
+"$TOOL_DIR/bin/python" -m flatpak_pip_generator \
+    --runtime="org.freedesktop.Sdk//$RUNTIME_VERSION" \
+    --requirements-file="$REQUIREMENTS_FILE" \
+    --output="$OUTPUT_NAME" \
+    --prefer-wheels="brotli,pillow,pycryptodomex,websockets" \
+    --wheel-arches="x86_64,aarch64"
+
+echo "Generated: $SCRIPT_DIR/modules/$OUTPUT_NAME.json"

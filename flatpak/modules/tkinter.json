@@ -1,0 +1,55 @@
+{
+  "name": "python3-tkinter",
+  "buildsystem": "simple",
+  "build-commands": [
+    "pip3 install --no-index --no-build-isolation --no-deps --prefix=${FLATPAK_DEST} ."
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/iwalton3/tkinter-standalone.git",
+      "commit": "8e78e38ef0cceb44a3a0062e1c314a4ff3f981db"
+    }
+  ],
+  "modules": [
+    {
+      "name": "tcl",
+      "buildsystem": "autotools",
+      "subdir": "unix",
+      "config-opts": [
+        "--enable-threads",
+        "--enable-shared",
+        "--disable-zipfs"
+      ],
+      "post-install": [
+        "chmod 755 /app/lib/libtcl*.so"
+      ],
+      "sources": [
+        {
+          "type": "archive",
+          "url": "https://prdownloads.sourceforge.net/tcl/tcl9.0.0-src.tar.gz",
+          "sha256": "3bfda6dbaee8e9b1eeacc1511b4e18a07a91dff82d9954cdb9c729d8bca4bbb7"
+        }
+      ]
+    },
+    {
+      "name": "tk",
+      "buildsystem": "autotools",
+      "subdir": "unix",
+      "config-opts": [
+        "--disable-zipfs"
+      ],
+      "post-install": [
+        "chmod +w /app/lib/libtcl9tk*.so",
+        "ln -sf /app/bin/wish9.0 /app/bin/wish"
+      ],
+      "sources": [
+        {
+          "type": "archive",
+          "url": "https://prdownloads.sourceforge.net/tcl/tk9.0.0-src.tar.gz",
+          "sha256": "f166e3c20773c82243f753cef4b091d05267cb7f87da64be88cb2ca5a2ba027e"
+        }
+      ]
+    }
+  ]
+}
