@@ -1,16 +1,17 @@
 # path_ffmpeg.py
 # path_ffmpeg.py
 
-import subprocess  
-import os 
-import platform 
-from utils import resource_path  
-from functools import lru_cache
+import subprocess  # استيراد مكتبة subprocess لتشغيل أوامر النظام
+import os  # استيراد مكتبة os للتعامل مع نظام الملفات
+import platform  # استيراد مكتبة platform لتحديد نظام التشغيل الحالي
+from utils import resource_path  # استيراد الدالة resource_path من ملف utils
+from functools import lru_cache # استيراد الديكور lru_cache لتخزين نتائج البحث لتسريع الأداء
 
-CURRENT_PLATFORM = platform.system() 
-FFMPEG_TIMEOUT = 5
+CURRENT_PLATFORM = platform.system()  # تحديد نظام التشغيل الحالي (Windows, Linux, Darwin)
+FFMPEG_TIMEOUT = 5 # تحديد المهلة الزمنية (بالثواني) لاختبار ffmpeg قبل اعتباره غير صالح
 
 @lru_cache(maxsize=1)
+# دالة للبحث عن مسار ffmpeg وتخزين النتيجة لتسريع البحث في المستقبل
 def scan_entire_c_drive():
     """بحث شامل في كامل القرص C عن ملف ffmpeg.exe (الحل الأخير)"""
     print("Searching for ffmpeg.exe on C: drive... Please wait.")
@@ -22,6 +23,7 @@ def scan_entire_c_drive():
             return [found_path,root]
     return None
 
+# دالة للبحث عن مسار ffmpeg وإرجاع المسار الشغال أو None
 def ffmpeg_find_path():
     """تبحث عن مسار ffmpeg وتعيد المسار الشغال أو None"""
     if CURRENT_PLATFORM == "Windows": 

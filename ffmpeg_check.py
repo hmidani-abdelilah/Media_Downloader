@@ -1,5 +1,5 @@
-import subprocess
-from path_ffmpeg import ffmpeg_find_path
+import subprocess # استيراد مكتبة subprocess لتشغيل أوامر النظام
+from path_ffmpeg import ffmpeg_find_path # استيراد دالة ffmpeg_find_path من مكتبة path_ffmpeg
 from utils import resource_path  # استيراد الدالة resource_path من ملف utils
 
 def check_ffmpeg_installed():

@@ -1,17 +1,18 @@
-import platform
-import os
-import subprocess
-import threading
-import asyncio
+import platform # استيراد مكتبة platform لتحديد نظام التشغيل الحالي
+import os # استيراد مكتبة os للتعامل مع نظام الملفات
+import subprocess # استيراد مكتبة subprocess لتشغيل أوامر النظام
+import threading # استيراد مكتبة threading لإنشاء وتشغيل خيوط متعددة
+import asyncio # استيراد مكتبة asyncio للتعامل مع البرمجة غير المتزامنة
 from utils import resource_path # لمعالجة مسارات الملفات بشكل صحيح
 
-
+# كلاس لإرسال الإشعارات
 class Notifier:
+    # دالة لإرسال إشعار عند اكتمال التحميل
     def notification(self):
         system = platform.system()
         icon_path_ico =resource_path("asset/Icon.ico")
         icon_path_png = resource_path("asset/Icon.png")
-        
+        # التحقق من نظام التشغيل الحالي وإرسال الإشعار المناسب
         if system == "Windows":
             try:
                 from winotify import Notification

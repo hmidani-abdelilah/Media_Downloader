@@ -29,7 +29,10 @@ try:
     import CTkFileDialog  # لفتح مربع حوار اختيار المجلدات
     from CTkFileDialog.Constants import DOWNLOAD_DIR # مسار مجلد المستخدم الافتراضي
 except ImportError:
+    # Fallback to Tk's native dialogs if CTkFileDialog is not available
     class _TkFileDialogFallback:
+        
+        # دالة ثابتة لتحويل خيارات مربع الحوار إلى تنسيق مناسب لمكتبة filedialog
         @staticmethod
         def _options(options):
             translated = dict(options)
@@ -40,15 +43,15 @@ except ImportError:
             translated.pop("foldercreation", None)
             translated.pop("style", None)
             return translated
-
+        # دالة ثابتة لفتح مربع حوار اختيار المجلدات باستخدام مكتبة filedialog
         @classmethod
         def askdirectory(cls, **options):
             return filedialog.askdirectory(**cls._options(options))
-
+        # دالة ثابتة لفتح مربع حوار اختيار الملفات باستخدام مكتبة filedialog
         @classmethod
         def askopenfilename(cls, **options):
             return filedialog.askopenfilename(**cls._options(options))
-
+    # تعيين CTkFileDialog إلى الفئة البديلة _TkFileDialogFallback في حالة عدم توفر مكتبة CTkFileDialog، بحيث يمكن للتطبيق الاستمرار في العمل باستخدام مربعات الحوار الأصلية من مكتبة filedialog.
     CTkFileDialog = _TkFileDialogFallback
     DOWNLOAD_DIR = str(Path.home() / "Downloads")
 from CTkMessagebox import CTkMessagebox  # لعرض رسائل منبثقة للمستخدم 
@@ -911,6 +914,7 @@ class YouTubeDownloaderApp:
 
     # دالة لبدء عملية تحديث الحزم المطلوبة للتطبيق، حيث يتم إظهار إطار التحميل وتحديث واجهة المستخدم بشكل آمن أثناء عملية التحديث التي تتم في خيط منفصل لمنع تجميد واجهة المستخدم.
     def run_update(self):
+        # التحقق مما إذا كانت عملية التحديث جارية بالفعل لمنع تشغيلها مرة أخرى في نفس الوقت
         if self._update_in_progress:
             return
         self._update_in_progress = True
@@ -928,6 +932,8 @@ class YouTubeDownloaderApp:
         try:
             # Flatpak applications are immutable. Updates must arrive through
             # the repository so yt-dlp and yt-dlp-ejs stay compatible.
+            
+            # إذا كان التطبيق يعمل داخل بيئة Flatpak، يتم عرض معلومات التحديث الخاصة بـ Flatpak بدلاً من محاولة تحديث الحزم يدويًا، حيث أن تطبيقات Flatpak غير قابلة للتغيير ويجب أن تصل التحديثات من خلال المستودع لضمان توافق yt-dlp و yt-dlp-ejs.
             if os.environ.get("FLATPAK_ID"):
                 self.root.after(0, self.show_flatpak_update_info)
                 return
@@ -935,6 +941,7 @@ class YouTubeDownloaderApp:
             # داخل AppImage لا يوجد مفسر pip قابل للكتابة. yt-dlp مُدار
             # كحزمة خارجية مستقلة داخل مجلد إعدادات المستخدم.
             if external_management_enabled():
+                # إذا كان التطبيق يعمل داخل AppImage، يتم تحديث yt-dlp باستخدام الدالة update_ytdlp()، حيث أن AppImage لا يحتوي على مفسر pip قابل للكتابة ويُدار yt-dlp كحزمة خارجية مستقلة داخل مجلد إعدادات المستخدم.
                 result = update_ytdlp()
                 self.root.after(0, self.progress_bar.set, 1)
                 if result.status == "updated":
@@ -1103,8 +1110,9 @@ class YouTubeDownloaderApp:
             ),
             icon="info"
         )
-
+    
     def update_finished(self, status):
+        # إعادة تعيين حالة التحديث بعد الانتهاء من عملية التحديث، سواء كانت ناجحة أو حدث فيها خطأ، وإظهار رسالة مناسبة للمستخدم بناءً على النتيجة.
         self._update_in_progress = False
         self.progress_bar.stop()
         self.loading_frame.pack_forget()

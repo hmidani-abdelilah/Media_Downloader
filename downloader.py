@@ -1,15 +1,15 @@
 # downloader.py
-import time
-import subprocess
-from ytdlp_manager import load_ytdlp
+import time # استيراد مكتبة الوقت
+import subprocess # استيراد مكتبة subprocess لتشغيل أوامر النظام
+from ytdlp_manager import load_ytdlp # استيراد الدالة load_ytdlp من ملف ytdlp_manager
 
 # في AppImage تُحمّل النسخة القابلة للتحديث من مجلد إعدادات المستخدم.
 # أثناء التطوير تُستخدم حزمة البيئة الافتراضية كالمعتاد.
-youtube_dl = load_ytdlp()
+youtube_dl = load_ytdlp() # تحميل مكتبة yt-dlp باستخدام الدالة load_ytdlp
 import os # استيراد مكتبة التعامل مع نظام الملفات
 import threading # استيراد مكتبة threading لدعم العمليات المتعددة
 import re # استيراد مكتبة التعبيرات النمطية للتعامل مع النصوص
-import urllib.parse
+import urllib.parse # استيراد مكتبة urllib.parse لتحليل الروابط
 from utils import resource_path # استيراد الدالة resource_path من ملف utils
 from path_ffmpeg import ffmpeg_find_path # استيراد دالة تحديد مسار ffmpeg من ملف path_ffmpeg
 from convert import compress_video, get_gpu_encoders, is_encoder_supported # استيراد دوال الضغط والترميزات من ملف convert
@@ -20,11 +20,11 @@ ffmpeg_path = ffmpeg_find_path()
 ARIA2C_PATH = resource_path("aria2/aria2c.exe")
 #cookies_path = resource_path("www.youtube.com_cookies.txt")  # أو المسار الذي تضع فيه الكوكيز
 
-DEFAULT_SUBTITLE_LANGUAGES = ("ar", "fr", "en")
+DEFAULT_SUBTITLE_LANGUAGES = ("ar", "fr", "en") # اللغات الافتراضية للترجمة: العربية والفرنسية والإنجليزية
 # YOUTUBE_SUBTITLE_DELAY = 60
-YOUTUBE_SUBTITLE_DELAY = 30
-YTDLP_JS_RUNTIMES = ("deno", "node", "quickjs")
-YTDLP_REMOTE_COMPONENTS = ("ejs:github",)
+YOUTUBE_SUBTITLE_DELAY = 30 # مدة الانتظار بالثواني قبل محاولة تحميل الترجمة من YouTube بعد انتهاء التحميل
+YTDLP_JS_RUNTIMES = ("deno", "node", "quickjs") #  قائمة محركات JavaScript المدعومة من yt-dlp
+YTDLP_REMOTE_COMPONENTS = ("ejs:github",) # قائمة المكونات البعيدة المدعومة من yt-dlp
 
 SUBTITLE_LANGUAGE_ALIASES = {
     "arabic": "ar",
@@ -40,7 +40,7 @@ SUBTITLE_LANGUAGE_ALIASES = {
     "الانجليزية": "en",
     "إنجليزي": "en",
     "انجليزي": "en",
-}
+} # قاموس يربط أسماء اللغات المختلفة برموزها القياسية لاستخدامها في تحميل الترجمات.
 
 # متغير تحكم لإيقاف التحميل
 stop_event = threading.Event()
@@ -70,7 +70,9 @@ PLAYLIST_RANGE_ERROR = (
     "or an integer greater than or equal to the start."
 )
 
+# ------------- دوال التعامل مع قوائم التشغيل --------------
 
+#  تحويل موضع فيديو في قائمة التشغيل إلى عدد صحيح موجب.
 def _normalize_playlist_index(value):
     """تحويل موضع فيديو في قائمة التشغيل إلى عدد صحيح موجب."""
     if isinstance(value, bool):
@@ -86,7 +88,7 @@ def _normalize_playlist_index(value):
 
     return index
 
-
+# تطبيع نطاق قائمة التشغيل؛ النهاية الفارغة تعني آخر فيديو.
 def normalize_playlist_range(start, end=None):
     """تطبيع نطاق شامل؛ النهاية الفارغة تعني آخر فيديو."""
     end_text = "" if end is None else str(end).strip()
@@ -101,7 +103,7 @@ def normalize_playlist_range(start, end=None):
 
     return start_index, end_index
 
-
+# دالة للتحقق مما إذا كان الرابط تابعًا لـ YouTube.
 def is_youtube_url(url):
     """التحقق من أن الرابط تابع لـ YouTube."""
     try:
@@ -119,7 +121,7 @@ def is_youtube_url(url):
         or hostname.endswith(".youtube-nocookie.com")
     )
 
-
+# دالة لتحديد صيغة التحميل بناءً على الجودة ونوع الملف.
 def get_format(quality, file_type):
     """
     تحديد صيغة التحميل بناءً على الجودة ونوع الملف
@@ -366,7 +368,7 @@ def sanitize_path(path):
     sanitized_parts = [sanitize_filename(part) for part in parts if part]
     return os.path.join(*sanitized_parts) if sanitized_parts else ""
 
-
+# ------------- دوال التعامل مع الترجمات --------------
 def _normalize_subtitle_language(language):
     """تطبيع رمز/اسم لغة الترجمة للمطابقة."""
     normalized = str(language).strip().replace("_", "-").casefold()
@@ -395,7 +397,7 @@ def parse_subtitle_languages(subtitle_languages):
 
     return languages or list(DEFAULT_SUBTITLE_LANGUAGES)
 
-
+# ------------- دوال مطابقة الترجمات --------------
 def resolve_subtitle_languages(
     subtitle_languages,
     manual_subtitles,
@@ -480,7 +482,7 @@ def parse_media_time(value):
             raise ValueError(f"صيغة الوقت غير صحيحة: {value}")
         return minutes * 60 + seconds
 
-    # HH:MM:SS
+    # HH:MM:SS 
     if re.fullmatch(r'\d+:\d{1,2}:\d{1,2}', value):
         hours, minutes, seconds = map(int, value.split(':'))
         if minutes >= 60 or seconds >= 60:
@@ -493,7 +495,7 @@ def parse_media_time(value):
         r'(?:(\d+(?:\.\d+)?)m)?'
         r'(?:(\d+(?:\.\d+)?)s)?$',
         re.IGNORECASE
-    )
+    ) # مطابقة صيغة الوقت التي تحتوي على ساعات ودقائق وثواني
     match = pattern.fullmatch(value)
 
     if match and any(match.groups()):
@@ -504,7 +506,7 @@ def parse_media_time(value):
 
     raise ValueError(f"صيغة الوقت غير مدعومة: {value}")
 
-
+# ------------- دوال التعامل مع ffprobe --------------
 def _ffprobe_path(ffmpeg_location):
     """تحديد مسار ffprobe انطلاقًا من مسار ffmpeg عند الحاجة."""
     if not ffmpeg_location or ffmpeg_location == "ffmpeg":
@@ -528,7 +530,7 @@ def _ffprobe_path(ffmpeg_location):
 
     return "ffprobe"
 
-
+# ------------- دوال التعامل مع مدة الوسائط --------------
 def get_media_duration(file_path, ffmpeg_location="ffmpeg"):
     """الحصول على مدة ملف فيديو/صوت بالثواني."""
     result = subprocess.run(
@@ -556,7 +558,7 @@ def get_media_duration(file_path, ffmpeg_location="ffmpeg"):
     except Exception:
         raise Exception("تعذر قراءة مدة الملف")
 
-
+# ------------- دوال التعامل مع الترجمات --------------
 def format_subtitle_timestamp(seconds, vtt=False):
     """تحويل الثواني إلى توقيت SRT أو WebVTT."""
     seconds = max(0.0, float(seconds))
@@ -587,7 +589,7 @@ def format_subtitle_timestamp(seconds, vtt=False):
         f"{separator}{milliseconds:03d}"
     )
 
-
+# ------------- دوال التعامل مع الترجمات --------------
 def parse_subtitle_timestamp(value):
     """تحويل توقيت SRT/VTT إلى ثوانٍ."""
     value = value.strip().replace(",", ".")
@@ -606,7 +608,7 @@ def parse_subtitle_timestamp(value):
 
     raise ValueError(f"توقيت ترجمة غير صالح: {value}")
 
-
+# ------------ دوال التعامل مع الترجمات --------------
 def shift_subtitle_file(subtitle_path, cut_start, cut_end):
     """
     تعديل توقيت SRT/VTT ليتوافق مع المقطع المقصوص.
@@ -706,7 +708,7 @@ def shift_subtitle_file(subtitle_path, cut_start, cut_end):
 
     return True
 
-
+# ------------ دوال التعامل مع الترجمات --------------
 def find_subtitle_files(media_file, directory):
     """العثور على SRT/VTT التابعة لملف الوسائط."""
     if not os.path.isdir(directory):
@@ -735,7 +737,7 @@ def find_subtitle_files(media_file, directory):
 
     return sorted(result)
 
-
+# ------------- دوال التعامل مع الترجمات --------------
 def process_cut_subtitles(
     subtitle_files,
     cut_start,
@@ -755,7 +757,7 @@ def process_cut_subtitles(
                 f"{subtitle_file}: {e}"
             )
 
-
+# ------------- دوال التعامل مع القص --------------
 def cut_downloaded_media(
     input_file,
     start_time,
@@ -1345,7 +1347,7 @@ def download_video(url, download_dir, quality, file_type, download_subtitles, pr
                             subtitle_files = find_subtitle_files(
                                 downloaded_path,
                                 final_download_dir
-                            )
+                            ) # الترجمات التي تم تنزيلها مع الفيديو
 
                         cut_file, actual_start, actual_end = cut_downloaded_media(
                             downloaded_path,
@@ -1354,7 +1356,7 @@ def download_video(url, download_dir, quality, file_type, download_subtitles, pr
                             ffmpeg_path=ffmpeg_path,
                             file_type=file_type,
                             stop_event=stop_event
-                        )
+                        ) # قص الفيديو/الصوت
 
                         if subtitle_files:
                             # print(
@@ -1364,7 +1366,7 @@ def download_video(url, download_dir, quality, file_type, download_subtitles, pr
                                 subtitle_files,
                                 actual_start,
                                 actual_end
-                            )
+                            ) # مزامنة الترجمة مع المقطع المقصوص
 
                         if (
                             os.path.exists(cut_file)
