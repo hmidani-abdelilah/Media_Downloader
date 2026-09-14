@@ -521,7 +521,7 @@ python app.py
 
 تتوفر كذلك حزم جاهزة:
 
-- [حزمة DEB](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.2.1/media-downloader_3.1.1_all.deb)
+- [حزمة DEB](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.2.1/media-downloader_3.2.1_all.deb)
 - [حزمة RPM](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.2.1/media-downloader-3.2.1-1.noarch.rpm)
 - [ملف AppImage](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.2.1/Media_Downloader-3.2.1-x86_64.AppImage)
 
