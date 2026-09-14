@@ -1,5 +1,5 @@
-media-downloader (3.1.1-1) focal; urgency=low
+media-downloader (3.2.1-1) focal; urgency=low
 
   * Initial package build fixing changelog formatting.
 
- -- Abdelilah Hmidani <hmidani.abdelilah@example.com>  Fri, 28 Aug 2026 02:00:00 +0100
+ -- Abdelilah Hmidani <hmidani.abdelilah@example.com>  Mon, 14 Sep 2026 10:55:00 +0100
