@@ -123,9 +123,9 @@ This script automates the complete setup process for Linux users:
 
 Prebuilt packages are also available:
 
-- [DEB package](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/media-downloader_3.1.0_all.deb)
-- [RPM package](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/media-downloader-3.1.0-1.noarch.rpm)
-- [AppImage](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/Media_Downloader-3.1.0-x86_64.AppImage)
+- [DEB package](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.2.1/media-downloader_3.2.1_all.deb)
+- [RPM package](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.2.1/media-downloader-3.2.1-1.noarch.rpm)
+- [AppImage](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.2.1/Media_Downloader-3.2.1-x86_64.AppImage)
 
 Ubuntu and Ubuntu-based distributions can use the PPA:
 
@@ -521,9 +521,9 @@ python app.py
 
 تتوفر كذلك حزم جاهزة:
 
-- [حزمة DEB](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/media-downloader_3.1.0_all.deb)
-- [حزمة RPM](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/media-downloader-3.1.0-1.noarch.rpm)
-- [ملف AppImage](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.1.0/Media_Downloader-3.1.0-x86_64.AppImage)
+- [حزمة DEB](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.2.1/media-downloader_3.1.1_all.deb)
+- [حزمة RPM](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.2.1/media-downloader-3.2.1-1.noarch.rpm)
+- [ملف AppImage](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.2.1/Media_Downloader-3.2.1-x86_64.AppImage)
 
 يمكن لمستخدمي Ubuntu والتوزيعات المبنية عليه استخدام PPA:
 
