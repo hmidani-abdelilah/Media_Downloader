@@ -4,6 +4,7 @@ import subprocess # استيراد مكتبة subprocess لتشغيل أوامر
 import threading # استيراد مكتبة threading لإنشاء وتشغيل خيوط متعددة
 import asyncio # استيراد مكتبة asyncio للتعامل مع البرمجة غير المتزامنة
 from utils import resource_path # لمعالجة مسارات الملفات بشكل صحيح
+from playsound3 import playsound # استيراد مكتبة playsound3 لتشغيل الأصوات
 
 # كلاس لإرسال الإشعارات
 class Notifier:
@@ -20,8 +21,10 @@ class Notifier:
                     app_id="Media Downloader",
                     title="Download Complete",
                     msg="Your video is ready!",
-                    icon=icon_path_ico
+                    icon=icon_path_ico,
+                    duration="short"
                 )
+                playsound(resource_path("./asset/notification.wav"), block=False)
                 threading.Thread(target=toast.show, daemon=True).start()
             except ImportError:
                 print("winotify n'est pas installé.")
@@ -42,7 +45,7 @@ class Notifier:
                     notifier = DesktopNotifier(app_name="Media Downloader")
                     
                     async def send_notif():
-                        await notifier.send(title="Download Complete", message="Your video is ready!")
+                        await notifier.send(title="Download Complete", message="Your video is ready!",sound=True)
                     
                     # On lance l'async de manière sécurisée
                     threading.Thread(target=lambda: asyncio.run(send_notif()), daemon=True).start()

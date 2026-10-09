@@ -10,3 +10,4 @@ arabic-reshaper
 python-bidi
 yt-dlp[default]
 aria2
+playsound3
