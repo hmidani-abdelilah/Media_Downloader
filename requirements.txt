@@ -9,5 +9,6 @@ desktop-notifier
 arabic-reshaper
 python-bidi
 yt-dlp[default]
+deno
 aria2
 playsound3
