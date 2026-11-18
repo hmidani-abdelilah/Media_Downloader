@@ -79,6 +79,7 @@ def release_metadata(
             {
                 "packagetype": "bdist_wheel",
                 "filename": f"yt_dlp-{version}-py3-none-any.whl",
+                "requires_python": requires_python,
                 "url": (
                     "https://files.pythonhosted.org/packages/test/"
                     f"yt_dlp-{version}-py3-none-any.whl"
@@ -263,6 +264,32 @@ class YtDlpManagerTests(unittest.TestCase):
 
         self.assertEqual(result.status, "offline")
         self.assertEqual(manager.active_root().name, "2026.08.01")
+
+    def test_update_falls_back_to_latest_python_compatible_release(self):
+        latest_wheel = make_wheel("2026.10.26")
+        compatible_wheel = make_wheel("2026.09.30")
+        metadata = release_metadata(
+            "2026.10.26", latest_wheel, requires_python=">=3.11"
+        )
+        compatible_release = release_metadata(
+            "2026.09.30", compatible_wheel, requires_python=">=3.10"
+        )
+        metadata["releases"] = {
+            "2026.10.26": metadata["urls"],
+            "2026.09.30": compatible_release["urls"],
+        }
+
+        manager = self.manager()
+        manager.ensure_ready(check_updates=False)
+        opener = FakeOpener(metadata, compatible_wheel)
+        manager._urlopen = opener
+
+        with mock.patch.object(ytdlp_manager.sys, "version_info", (3, 10, 0)):
+            result = manager.update()
+
+        self.assertEqual(result.status, "updated")
+        self.assertEqual(result.current_version, "2026.09.30")
+        self.assertEqual(manager.active_root().name, "2026.09.30")
 
     def test_default_config_honors_xdg(self):
         path = default_config_dir(

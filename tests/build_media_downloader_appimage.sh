@@ -3,10 +3,10 @@ set -euo pipefail
 
 APP_NAME="MediaDownloader"
 APP_ID="media-downloader"
-VERSION="3.3.1"
+VERSION="3.3.2"
 ARCH="x86_64"
 
-SOURCE_DIR="${1:-$(pwd)/Media_Downloader-3.3.1}"
+SOURCE_DIR="${1:-$(pwd)/Media_Downloader-3.3.2}"
 WORK_DIR="${PWD}/appimage-build"
 APPDIR="$WORK_DIR/${APP_NAME}.AppDir"
 OUTPUT="${PWD}/${APP_NAME}-${VERSION}-${ARCH}.AppImage"
@@ -27,7 +27,7 @@ done
 
 if [[ ! -f "$SOURCE_DIR/app.py" || ! -f "$SOURCE_DIR/requirements.txt" ]]; then
   echo "[ERROR] Source directory is invalid: $SOURCE_DIR" >&2
-  echo "Usage: $0 /path/to/Media_Downloader-3.3.1" >&2
+  echo "Usage: $0 /path/to/Media_Downloader-3.3.2" >&2
   exit 1
 fi
 

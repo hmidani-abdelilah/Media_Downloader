@@ -4,7 +4,7 @@
 [![Python](https://img.shields.io/badge/Python-3.14-blueviolet.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![MIT License](https://img.shields.io/badge/License-MIT-orange.svg?style=for-the-badge&logo=MIT)](https://github.com/hmidani-abdelilah/Media_Downloader?tab=MIT-1-ov-file)
 [![linux](https://img.shields.io/badge/linux-Distribution-FCC624.svg?style=for-the-badge&logo=linux)](#option-2-using-linux-installation-script-)
-[![Windows](https://img.shields.io/badge/Windows-OS-blue.svg?style=for-the-badge&logo=wine)](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.3.1/Media_Downloader-3.3.1-Windows.zip)
+[![Windows](https://img.shields.io/badge/Windows-OS-blue.svg?style=for-the-badge&logo=wine)](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.3.2/Media_Downloader-3.3.2-Windows.zip)
 [![Ubuntu](https://img.shields.io/badge/Ubuntu-PPA-E95420.svg?style=for-the-badge&logo=ubuntu)](https://launchpad.net/~kiraxq/+archive/ubuntu/ppa)
 [![Appimage](https://img.shields.io/badge/appimage-D39FB9.svg?style=for-the-badge&logo=appimage)](https://appimage.github.io/Media_Downloader/)
 [![Flatpak](https://img.shields.io/badge/flatpak-DA90D9.svg?style=for-the-badge&logo=flatpak)](https://github.com/hmidani-abdelilah/Media_Downloader/blob/main/build_flatpak.sh)
@@ -135,9 +135,9 @@ This script automates the complete setup process for Linux users:
 
 Prebuilt packages are also available:
 
-- [DEB package](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.3.1/media-downloader_3.3.1_all.deb)
-- [RPM package](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.3.1/media-downloader-3.3.1-1.noarch.rpm)
-- [AppImage](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.3.1/Media_Downloader-3.3.1-x86_64.AppImage)
+- [DEB package](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.3.2/media-downloader_3.3.2_all.deb)
+- [RPM package](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.3.2/media-downloader-3.3.2-1.noarch.rpm)
+- [AppImage](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.3.2/Media_Downloader-3.3.2-x86_64.AppImage)
 
 Ubuntu and Ubuntu-based distributions can use the PPA:
 
@@ -546,9 +546,9 @@ python app.py
 
 تتوفر كذلك حزم جاهزة:
 
-- [حزمة DEB](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.3.1/media-downloader_3.3.1_all.deb)
-- [حزمة RPM](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.3.1/media-downloader-3.3.1-1.noarch.rpm)
-- [ملف AppImage](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.3.1/Media_Downloader-3.3.1-x86_64.AppImage)
+- [حزمة DEB](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.3.2/media-downloader_3.3.2_all.deb)
+- [حزمة RPM](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.3.2/media-downloader-3.3.2-1.noarch.rpm)
+- [ملف AppImage](https://github.com/hmidani-abdelilah/Media_Downloader/releases/download/v3.3.2/Media_Downloader-3.3.2-x86_64.AppImage)
 
 يمكن لمستخدمي Ubuntu والتوزيعات المبنية عليه استخدام PPA:
 

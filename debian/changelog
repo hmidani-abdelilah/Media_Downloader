@@ -1,3 +1,9 @@
+media-downloader (3.3.2-1) focal; urgency=low
+
+  * Bug fixes and improvements.
+
+ -- Abdelilah Hmidani <hmidaniabdelilah92@gmail.com>  Wed, 18 Nov 2026 18:13:45 +0000
+
 media-downloader (3.3.1-1) focal; urgency=low
 
   * Added built-in browser Cookie Manager and Netscape cookie export.

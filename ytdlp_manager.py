@@ -505,21 +505,53 @@ class YtDlpManager:
         version = _safe_version(metadata.get("info", {}).get("version"))
         if not version:
             raise ValueError("PyPI returned an invalid yt-dlp version")
-        requires_python = metadata.get("info", {}).get("requires_python")
-        if not _python_requirement_allows(requires_python):
-            raise ValueError(
-                f"yt-dlp {version} does not support Python "
-                f"{sys.version_info.major}.{sys.version_info.minor}"
-            )
 
-        wheels = [
-            item
-            for item in metadata.get("urls", [])
-            if item.get("packagetype") == "bdist_wheel"
-            and item.get("filename", "").endswith("-py3-none-any.whl")
-        ]
+        def compatible_wheels(
+            files: Any, default_requires_python: Any = None
+        ) -> List[Dict[str, Any]]:
+            if not isinstance(files, list):
+                return []
+            return [
+                item
+                for item in files
+                if isinstance(item, dict)
+                and item.get("packagetype") == "bdist_wheel"
+                and isinstance(item.get("filename"), str)
+                and item.get("filename", "").endswith("-py3-none-any.whl")
+                and not item.get("yanked", False)
+                and _python_requirement_allows(
+                    item.get("requires_python") or default_requires_python
+                )
+            ]
+
+        wheels = compatible_wheels(
+            metadata.get("urls"), metadata.get("info", {}).get("requires_python")
+        )
         if not wheels:
-            raise ValueError("PyPI did not return a universal yt-dlp wheel")
+            releases = metadata.get("releases", {})
+            compatible_releases = []
+            if isinstance(releases, dict):
+                for release, files in releases.items():
+                    safe_release = _safe_version(release)
+                    if (
+                        not safe_release
+                        or _version_key(safe_release) >= _version_key(version)
+                    ):
+                        continue
+                    release_wheels = compatible_wheels(files)
+                    if release_wheels:
+                        compatible_releases.append(
+                            (_version_key(safe_release), safe_release, release_wheels)
+                        )
+            if compatible_releases:
+                _, version, wheels = max(
+                    compatible_releases, key=lambda candidate: candidate[0]
+                )
+            else:
+                raise ValueError(
+                    f"No compatible yt-dlp wheel found for Python "
+                    f"{sys.version_info.major}.{sys.version_info.minor}"
+                )
 
         wheel = wheels[0]
         wheel_url = wheel.get("url", "")
