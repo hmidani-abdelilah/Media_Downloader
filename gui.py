@@ -375,6 +375,7 @@ class CookieManagerWindow(ctk.CTkToplevel):
             save_path = CTkFileDialog.asksaveasfilename(
                 style="Mini",
                 defaultext=".txt",
+                initial_dir=DOWNLOAD_DIR,
                 filetypes=[
                     (self.lang.get("cookie_text_files", "Text files"), "*.txt"),
                     (self.lang.get("cookie_all_files", "All files"), "*.*"),

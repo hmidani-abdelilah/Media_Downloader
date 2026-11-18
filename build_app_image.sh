@@ -13,8 +13,30 @@
 set -e
 
 echo "=== 1. تثبيت أدوات النظام المطلوبة ==="
-sudo apt-get update
-sudo apt-get install -y python3-pip python3-venv appstream desktop-file-utils wget
+if [ -r /etc/os-release ]; then
+    . /etc/os-release
+else
+    echo "تعذر تحديد توزيعة Linux من /etc/os-release." >&2
+    exit 1
+fi
+
+case "${ID:-}" in
+    debian|ubuntu)
+        sudo apt-get update
+        sudo apt-get install -y \
+            python3-pip python3-venv python3-tk \
+            appstream desktop-file-utils wget
+        ;;
+    fedora)
+        sudo dnf install -y \
+            python3 python3-pip python3-tkinter \
+            appstream desktop-file-utils wget
+        ;;
+    *)
+        echo "التوزيعة غير مدعومة: ${ID:-unknown}. يدعم السكربت Debian/Ubuntu وFedora." >&2
+        exit 1
+        ;;
+esac
 
 echo "=== 2. إعداد البيئة الوهمية وتثبيت المكتبات ==="
 python3 -m venv venv
@@ -37,6 +59,7 @@ pyinstaller --noconfirm --onedir --windowed \
     --collect-all CTkFileDialog \
     --collect-all customtkinter \
     --collect-all yt_dlp \
+    --collect-data certifi \
     --add-data "$YTDLP_SEED_DIR:ytdlp_seed" \
     --add-data "languages:languages" \
     --collect-submodules PIL \

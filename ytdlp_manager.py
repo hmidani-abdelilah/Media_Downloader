@@ -41,6 +41,7 @@ import json # استراد مكتبة json لتوفير وظائف التعام�
 import os # استراد مكتبة os لتوفير وظائف التعامل مع نظام التشغيل
 import re # استراد مكتبة re لتوفير وظائف التعامل مع التعبيرات النمطية
 import shutil # استراد مكتبة shutil لتوفير وظائف التعامل مع الملفات والمجلدات
+import ssl
 import stat # استراد مكتبة stat لتوفير وظائف التعامل مع خصائص الملفات
 import sys # استراد مكتبة sys لتوفير وظائف التعامل مع نظام بايثون والبيئة المحيطة
 import tempfile # استراد مكتبة tempfile لتوفير وظائف إنشاء ملفات ومجلدات مؤقتة
@@ -52,6 +53,8 @@ from dataclasses import dataclass # استراد dataclass من مكتبة datac
 from pathlib import Path # استراد Path من مكتبة pathlib لتوفير وظائف التعامل مع مسارات الملفات والمجلدات
 from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple # استراد أنواع البيانات من مكتبة typing لتوفير دعم التوضيح النوعي للمتغيرات والدوال
 
+import certifi
+
 
 PYPI_JSON_URL = "https://pypi.org/pypi/yt-dlp/json" # عنوان URL لواجهة برمجة التطبيقات الخاصة بـ PyPI للحصول على بيانات JSON الخاصة بحزمة yt-dlp
 DEFAULT_CHECK_INTERVAL = 24 * 60 * 60 # الفاصل الزمني الافتراضي للتحقق من التحديثات (24 ساعة)
@@ -61,6 +64,14 @@ MAX_METADATA_BYTES = 2 * 1024 * 1024 # الحد الأقصى لحجم بيانا
 MAX_WHEEL_BYTES = 50 * 1024 * 1024 # الحد الأقصى لحجم ملف wheel الذي يمكن تنزيله من PyPI (50 ميجابايت)
 MAX_EXTRACTED_BYTES = 150 * 1024 * 1024 # الحد الأقصى لحجم البيانات المستخرجة (150 ميجابايت)
 STATE_SCHEMA = 1 # رقم إصدار مخطط البيانات المستخدم في ملف الحالة لتتبع حالة التحديثات والإصدارات
+
+
+def _urlopen_with_certifi(request: Any, timeout: int) -> Any:
+    """Open HTTPS requests using the bundled Mozilla CA certificate store."""
+
+    context = ssl.create_default_context(cafile=certifi.where())
+    return urllib.request.urlopen(request, timeout=timeout, context=context)
+
 
 # خطأ يُرفع عندما لا يكون هناك yt-dlp خارجي أو مُدمج قابل للاستخدام
 class YtDlpUnavailableError(RuntimeError):
@@ -262,7 +273,7 @@ class YtDlpManager:
         self,
         config_dir: Optional[Path] = None,
         seed_package: Optional[Path] = None,
-        urlopen: Callable[..., Any] = urllib.request.urlopen,
+        urlopen: Callable[..., Any] = _urlopen_with_certifi,
         clock: Callable[[], float] = time.time,
         check_interval: int = DEFAULT_CHECK_INTERVAL,
         network_timeout: int = DEFAULT_NETWORK_TIMEOUT,

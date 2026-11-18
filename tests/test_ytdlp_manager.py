@@ -2,6 +2,7 @@ import hashlib
 import io
 import json
 import os
+import ssl
 import sys
 import tempfile
 import unittest
@@ -160,6 +161,32 @@ class YtDlpManagerTests(unittest.TestCase):
         self.assertEqual(result.status, "offline")
         self.assertEqual(result.current_version, "2026.08.01")
         self.assertEqual(manager.active_root().name, "2026.08.01")
+
+    def test_default_urlopen_uses_certifi_ca_bundle(self):
+        request = ytdlp_manager.urllib.request.Request(
+            "https://pypi.org/pypi/yt-dlp/json"
+        )
+        response = FakeResponse(b"ok")
+        with (
+            mock.patch(
+                "ytdlp_manager.urllib.request.urlopen", return_value=response
+            ) as urlopen,
+            mock.patch(
+                "ytdlp_manager.ssl.create_default_context",
+                wraps=ssl.create_default_context,
+            ) as create_context,
+        ):
+            result = ytdlp_manager._urlopen_with_certifi(request, timeout=5)
+
+        self.assertIs(result, response)
+        create_context.assert_called_once_with(
+            cafile=ytdlp_manager.certifi.where()
+        )
+        context = urlopen.call_args.kwargs["context"]
+        self.assertIsInstance(context, ssl.SSLContext)
+        self.assertEqual(context.verify_mode, ssl.CERT_REQUIRED)
+        self.assertTrue(context.check_hostname)
+        self.assertTrue(context.get_ca_certs())
 
     def test_bad_checksum_never_replaces_working_version(self):
         manager = self.manager()

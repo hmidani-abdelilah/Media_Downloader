@@ -67,7 +67,7 @@
   </recommends>
 
   <releases>
-    <release version="3.3.0" date="2026-11-18">
+    <release version="3.3.1" date="2026-11-18">
       <description>
         <p>Added a built-in Cookie Manager, browser cookie extraction and export, and complete localization updates for menus and dialogs.</p>
       </description>

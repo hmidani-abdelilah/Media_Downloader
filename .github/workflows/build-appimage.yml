@@ -42,7 +42,7 @@ jobs:
           if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
             VERSION="${GITHUB_REF_NAME#v}"
           else
-            VERSION="3.3.0-${GITHUB_SHA::7}"
+            VERSION="3.3.1-${GITHUB_SHA::7}"
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Building version: $VERSION"
@@ -69,6 +69,7 @@ jobs:
             --collect-all CTkFileDialog \
             --collect-all customtkinter \
             --collect-all yt_dlp \
+            --collect-data certifi \
             --add-data "build/ytdlp_seed:ytdlp_seed" \
             --add-data "languages:languages" \
             --collect-submodules PIL \

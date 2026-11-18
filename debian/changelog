@@ -1,4 +1,4 @@
-media-downloader (3.3.0-1) focal; urgency=low
+media-downloader (3.3.1-1) focal; urgency=low
 
   * Added built-in browser Cookie Manager and Netscape cookie export.
   * Added complete localization updates for menus and dialogs.

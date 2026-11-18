@@ -9,6 +9,7 @@ desktop-notifier
 arabic-reshaper
 python-bidi
 yt-dlp[default]
+certifi
 deno
 aria2
 playsound3
