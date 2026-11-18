@@ -1,3 +1,11 @@
+media-downloader (3.3.0-1) focal; urgency=low
+
+  * Added built-in browser Cookie Manager and Netscape cookie export.
+  * Added complete localization updates for menus and dialogs.
+  * Improved update and download status messages.
+
+ -- Abdelilah Hmidani <hmidaniabdelilah92@gmail.com>  Wed, 18 Nov 2026 11:37:23 +0000
+
 media-downloader (3.2.2-1) focal; urgency=low
 
   * Initial package build fixing changelog formatting.

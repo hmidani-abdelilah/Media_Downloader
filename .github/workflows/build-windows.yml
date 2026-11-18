@@ -4,7 +4,7 @@ on:
   workflow_dispatch: # يتيح لك تشغيل البناء يدوياً من موقع GitHub
   push:
     tags:
-      - 'v*' # سيعمل تلقائياً عند نشر أي إصدار يحمل تاغ مثل v3.0.0
+      - 'v*' # سيعمل تلقائياً عند نشر أي إصدار يحمل تاغ مثل v3.3.0
 
 permissions:
   contents: write
@@ -40,7 +40,7 @@ jobs:
           if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
             VERSION="${GITHUB_REF_NAME#v}"
           else
-            VERSION="3.0.0"
+            VERSION="3.3.0"
           fi
           
           # الدخول لمجلد التجميع وضغط المخرجات عبر PowerShell المدمج في بيئة bash للـ Actions

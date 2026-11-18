@@ -55,7 +55,7 @@ EOF
 echo "[*] إنشاء ملف الـ control الأساسي للحزمة..."
 cat << 'EOF' > "$PKG_DIR"/DEBIAN/control
 Package: media-downloader
-Version: 3.0.0
+Version: 3.3.0
 Architecture: all
 Maintainer: Abdelilah Hmidani <hmidani.abdelilah@example.com>
 Depends: python3, python3-pip, python3-venv, ffmpeg, aria2
