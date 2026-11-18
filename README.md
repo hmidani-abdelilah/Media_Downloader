@@ -38,9 +38,14 @@ A graphical application for downloading videos and audio from YouTube and other 
 - Checks for **FFmpeg** and **Aria2c** availability (local or system)
 - Supports **Aria2c** as external downloader for faster downloads
 - Cookies file support for private/protected videos
-- Export cookies from browser use [Get cookies LOCALLY](https://chromewebstore.google.com/detail/cclelndahbckbenkjhflpdbgdldlbecc?utm_source=item-share-cb)
+- Built-in **Cookie Manager** to detect installed browsers, extract cookies, merge them into one Netscape `cookies.txt` file, or save one file per browser
+- Supported browser cookie sources: Firefox, Chrome, Chromium, Brave, Edge, Opera, Vivaldi, and Safari (Safari on macOS)
+- Export cookies from browsers directly; browser extensions are not required
+- Manual cookies file support remains available for private/protected videos
+- Browser extension alternative: [Get cookies LOCALLY](https://chromewebstore.google.com/detail/cclelndahbckbenkjhflpdbgdldlbecc?utm_source=item-share-cb)
 - **Drag-and-drop URL support** - Simply drag URLs into the input field
-- Context menu for URL input (cut, paste, clear)
+- Localized context menu for the URL input (cut, paste, clear)
+- Localized menu bar and dropdown options, with English, Arabic, and French labels updated while switching languages
 - Notification on download completion
 - Automatic external yt-dlp updates in AppImage builds
 - Option to shutdown computer after download
@@ -52,6 +57,13 @@ Compression support:
 - After a video is downloaded the app can optionally compress/re-encode it using FFmpeg (CRF + preset, encoder selection).
 - Compression runs as a separate post-download step so the UI shows a "Compressing video..." state.
 - The Stop button cancels both downloading and any ongoing FFmpeg compression (requires FFmpeg on the system).
+
+#### Cookie Manager
+
+Open **Options → Export Cookies** to scan installed browsers. Select one or more
+browsers, then choose to merge every extracted cookie set into a single
+`cookies.txt` file or save a separate Netscape-format file for each browser.
+The generated files can be used for private or login-restricted downloads.
 
 ### 🧰 Requirements
 
@@ -371,6 +383,7 @@ Media_Downloader/
 ├── app.py                         # Application entry point
 ├── gui.py                         # Main window and user interactions
 ├── downloader.py                  # Aria2c/yt-dlp download and playlist logic
+├── cookies_exporter.py             # Browser cookie detection and Netscape export
 ├── ytdlp_manager.py               # Writable yt-dlp seed, updates, and rollback for AppImage
 ├── convert.py                     # FFmpeg conversion and compression helpers
 ├── ffmpeg_check.py                # FFmpeg availability checks
@@ -434,10 +447,15 @@ Media_Downloader/
 - إمكانية قص الفيديو أو الصوت بتحديد وقت البداية والنهاية، مع ضبط توقيت الترجمة ليتوافق مع المقطع
 - يتحقق من وجود برنامج **FFmpeg** و **Aria2c** (محلي أو من النظام)
 - دعم التحميل السريع عبر **Aria2c**
-- دعم ملفات الكوكيز للفيديوهات الخاصة أو المحمية 
-- لإستخراج ملف الكوكيز من المتصفح استخدم [Get cookies LOCALLY](https://chromewebstore.google.com/detail/cclelndahbckbenkjhflpdbgdldlbecc?utm_source=item-share-cb)
+- دعم ملفات الكوكيز للفيديوهات الخاصة أو المحمية
+- يتضمن التطبيق **مدير كوكيز** للكشف عن المتصفحات المثبتة واستخراج الكوكيز ودمجها في ملف Netscape واحد أو حفظ ملف لكل متصفح
+- المتصفحات المدعومة: Firefox وChrome وChromium وBrave وEdge وOpera وVivaldi وSafari (على macOS)
+- يمكن تصدير الكوكيز من المتصفح مباشرة داخل التطبيق دون الحاجة إلى إضافة متصفح
+- يبقى دعم اختيار ملف الكوكيز يدويًا متاحًا للفيديوهات الخاصة أو المحمية
+- بديل يدوي عبر إضافة المتصفح: [Get cookies LOCALLY](https://chromewebstore.google.com/detail/cclelndahbckbenkjhflpdbgdldlbecc?utm_source=item-share-cb)
 - **دعم السحب والإفلات للروابط** - يمكنك ببساطة سحب الروابط إلى حقل الإدخال
-- قائمة سياق لحقل الرابط (قص، لصق، مسح)
+- قائمة سياق مترجمة لحقل الرابط (قص، لصق، مسح)
+- شريط القوائم والقوائم المنسدلة مترجم بالكامل، ويتغير النص إلى العربية أو الإنجليزية أو الفرنسية عند تبديل اللغة
 - إشعارات عند اكتمال التحميل
 - تحديث تلقائي لنسخة yt-dlp الخارجية في إصدار AppImage
 - خيار إغلاق الحاسوب بعد التحميل
@@ -448,6 +466,13 @@ Media_Downloader/
 - بعد تحميل الفيديو، يمكن للتطبيق اختياريًا ضغط/إعادة ترميز الفيديو باستخدام FFmpeg (قيمة CRF + الإعداد المسبق، واختيار الترميز).
 - يعمل الضغط كخطوة منفصلة بعد التحميل لذلك تعرض واجهة المستخدم حالة "Compressing video...".
 - زر الإيقاف يُلغي كلاً من التحميل وأي عملية ضغط FFmpeg جارية (يتطلب توفر FFmpeg على النظام).
+
+#### مدير الكوكيز
+
+افتح **خيارات ← تصدير الكوكيز** للكشف عن المتصفحات المثبتة. حدّد متصفحًا واحدًا
+أو أكثر، ثم اختر دمج كل الكوكيز المستخرجة في ملف `cookies.txt` واحد أو حفظ ملف
+بتنسيق Netscape منفصل لكل متصفح. يمكن استخدام الملفات الناتجة مع التحميلات
+الخاصة أو التي تتطلب تسجيل الدخول.
 
 ### 🧰 المتطلبات
 
@@ -751,6 +776,7 @@ Media_Downloader/
 ├── app.py                         # نقطة تشغيل التطبيق
 ├── gui.py                         # النافذة الرئيسية وتفاعلات المستخدم
 ├── downloader.py                  # منطق التحميل وقوائم التشغيل عبر yt-dlp وAria2c
+├── cookies_exporter.py             # اكتشاف متصفحات الكوكيز وتصديرها بصيغة Netscape
 ├── ytdlp_manager.py               # نسخ yt-dlp الخارجية وتحديثها والرجوع الآمن في AppImage
 ├── convert.py                     # أدوات التحويل والضغط عبر FFmpeg
 ├── ffmpeg_check.py                # التحقق من توفر FFmpeg
