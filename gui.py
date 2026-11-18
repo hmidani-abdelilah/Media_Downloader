@@ -39,6 +39,9 @@ except ImportError:
             initial_dir = translated.pop("initial_dir", None)
             if initial_dir:
                 translated["initialdir"] = initial_dir
+            defaultext = translated.pop("defaultext", None)
+            if defaultext:
+                translated["defaultextension"] = defaultext
             translated.pop("autocomplete", None)
             translated.pop("foldercreation", None)
             translated.pop("style", None)
@@ -51,6 +54,10 @@ except ImportError:
         @classmethod
         def askopenfilename(cls, **options):
             return filedialog.askopenfilename(**cls._options(options))
+        # دالة ثابتة لفتح مربع حوار حفظ الملفات باستخدام مكتبة filedialog
+        @classmethod
+        def asksaveasfilename(cls, **options):
+            return filedialog.asksaveasfilename(**cls._options(options))
     # تعيين CTkFileDialog إلى الفئة البديلة _TkFileDialogFallback في حالة عدم توفر مكتبة CTkFileDialog، بحيث يمكن للتطبيق الاستمرار في العمل باستخدام مربعات الحوار الأصلية من مكتبة filedialog.
     CTkFileDialog = _TkFileDialogFallback
     DOWNLOAD_DIR = str(Path.home() / "Downloads")
@@ -73,11 +80,387 @@ from notification import Notifier # لإرسال إشعارات عند اكتم�
 # from pystray import Icon, Menu, MenuItem # System Tray
 import platform # للحصول على معلومات حول نظام التشغيل
 from tkinterdnd2 import TkinterDnD, DND_TEXT # لدعم سحب وإفلات الروابط في حقل الإدخال
+from cookies_exporter import * # استيراد المتصفحات المدعومة ووظائف التحقق من التثبيت وتحويل ملفات الكوكيز
+
 
 
 # pyinstaller --onefile --windowed --add-data=languages;languages --add-data=asset/Icon.ico;asset --add-data=aria2;aria2 --add-data=ffmpeg;ffmpeg --icon=asset/Icon.ico app.py -n MediaDownloader.exe
 # pyinstaller --onedir --windowed --add-data "languages;languages" --add-data "asset/Icon.ico;asset" --add-data "aria2;aria2" --add-data "ffmpeg;ffmpeg" --icon "asset/Icon.ico" -n MediaDownloader app.py
 # pyinstaller --onedir --windowed --collect-all typeguard --collect-all CTkFileDialog --add-data=languages;languages --add-data=asset/Icon.ico;asset  --icon=asset/Icon.ico -n MediaDownloader app.py
+
+# ===========================================================================
+# Cookie Manager Window
+# ===========================================================================
+class CookieManagerWindow(ctk.CTkToplevel):
+    """
+    A separate window that lets the user:
+      • See all supported browsers, with installed ones pre-checked.
+      • Select one or more browsers to extract cookies from.
+      • Choose to merge all cookies into one file OR save a separate file per browser.
+      • Run the extraction in a background thread with live status updates.
+    """
+
+    def __init__(self, parent, lang,reshape_arabic):
+        super().__init__(parent)
+        self.lang = lang
+        self.reshape_arabic = reshape_arabic
+        self.title(self.reshape_arabic(self.lang.get("cookie_manager_title", "Cookie Manager")))
+        self._build_ui()
+        self.update_idletasks()
+
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        width = min(self.winfo_reqwidth() + 20, screen_width - 40)
+        height = min(self.winfo_reqheight() + 20, screen_height - 80)
+        x = (screen_width - width) // 2
+        y = (screen_height - height) // 2
+        self.geometry(f"{width}x{height}+{x}+{y}")
+        self.resizable(True, True)
+        self.grab_set()   # modal
+
+        self._running = False
+
+    # ------------------------------------------------------------------
+    # UI construction
+    # ------------------------------------------------------------------
+    def _build_ui(self):
+        pad = {"padx": 10, "pady": 5}
+
+        # ── Browser selection ──────────────────────────────────────────
+        frm_browsers = self._create_section(
+            self, self.lang.get("select_browsers", "Select browsers to extract cookies from")
+        )
+        frm_browsers.grid(row=0, column=0, columnspan=2, sticky="ew", **pad)
+        frm_browsers.grid_columnconfigure((0, 1), weight=1)
+
+        self._browser_vars = {}   # key → BooleanVar
+        self._browser_status = {} # key → StringVar  (shows count / error)
+
+        for i, b in enumerate(BROWSERS):
+            row, column = divmod(i, 2)
+            installed = is_browser_installed(b)
+            var = ctk.BooleanVar(value=installed)
+            self._browser_vars[b["key"]] = var
+
+            browser_card = ctk.CTkFrame(
+                frm_browsers,
+                corner_radius=8,
+                fg_color=("gray90", "gray17"),
+            )
+            browser_card.grid(
+                row=row + 1, column=column, sticky="ew", padx=6, pady=4
+            )
+            browser_card.grid_columnconfigure(0, weight=1)
+
+            cb = ctk.CTkCheckBox(browser_card, text=b["name"], variable=var)
+            cb.grid(row=0, column=0, sticky="w", padx=(10, 4), pady=8)
+            if not installed:
+                cb.configure(state="disabled")
+
+            status_var = ctk.StringVar(
+                value=self.lang.get("cookie_browser_installed", "Installed ✓")
+                if installed
+                else self.lang.get("cookie_browser_not_found", "Not found")
+            )
+            self._browser_status[b["key"]] = status_var
+            lbl = ctk.CTkLabel(
+                browser_card,
+                textvariable=status_var,
+                text_color="#2a7a2a" if installed else "#888888",
+                width=85,
+                anchor="w",
+            )
+            lbl.grid(row=0, column=1, sticky="e", padx=(4, 10))
+            self._browser_status[b["key"] + "_lbl"] = lbl
+
+        # ── Options ───────────────────────────────────────────────────
+        frm_opts = self._create_section(
+            self, self.lang.get("export_options", "Export options")
+        )
+        frm_opts.grid(row=1, column=0, columnspan=2, sticky="ew", **pad)
+
+        self._merge_var = ctk.BooleanVar(value=False)
+        ctk.CTkCheckBox(
+            frm_opts,
+            text=self.lang.get(
+                "cookie_merge_browsers", "Merge all browsers into a single file"
+            ),
+            variable=self._merge_var,
+        ).grid(row=1, column=0, sticky="w", padx=8, pady=4)
+
+        # ── Log ───────────────────────────────────────────────────────
+        frm_log = self._create_section(self, self.lang.get("log", "Log"))
+        frm_log.grid(row=2, column=0, columnspan=2, sticky="nsew", **pad)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(2, weight=1)
+        frm_log.grid_columnconfigure(0, weight=1)
+        frm_log.grid_rowconfigure(1, weight=1)
+
+        self._log = ctk.CTkTextbox(frm_log, height=140, width=360, state="disabled")
+        scroll = ctk.CTkScrollbar(frm_log, command=self._log.yview)
+        self._log.configure(yscrollcommand=scroll.set)
+        self._log.grid(row=1, column=0, sticky="nsew")
+        scroll.grid(row=1, column=1, sticky="ns")
+
+        # ── Buttons ───────────────────────────────────────────────────
+        frm_btns = ctk.CTkFrame(self)
+        frm_btns.grid(row=3, column=0, columnspan=2, pady=(0, 10))
+
+        self._btn_extract = ctk.CTkButton(
+            frm_btns,
+            text=self.lang.get("cookie_extract_button", "Extract Cookies"),
+            command=self._start_extraction,
+        )
+        self._btn_extract.grid(row=0, column=0, padx=6)
+
+        ctk.CTkButton(
+            frm_btns,
+            text=self.lang.get("close", "Close"),
+            command=self.destroy,
+        ).grid(row=0, column=1, padx=6)
+
+    def _create_section(self, parent, title):
+        frame = ctk.CTkFrame(parent, border_width=1)
+        ctk.CTkLabel(frame, text=title).grid(
+            row=0, column=0, columnspan=2, sticky="w", padx=8, pady=(4, 2)
+        )
+        return frame
+
+    # ------------------------------------------------------------------
+    # Logging helpers (thread-safe)
+    # ------------------------------------------------------------------
+    def _log_write(self, msg: str, color: str = "black"):
+        def _do():
+            self._log.configure(state="normal")
+            self._log.insert(tk.END, msg + "\n", color)
+            self._log.tag_config(color, foreground=color)
+            self._log.see(tk.END)
+            self._log.configure(state="disabled")
+        self.after(0, _do)
+
+    def _set_browser_status(self, key: str, text: str, color: str):
+        def _do():
+            self._browser_status[key].set(text)
+            lbl = self._browser_status.get(key + "_lbl")
+            if lbl:
+                lbl.configure(text_color=color)
+        self.after(0, _do)
+
+    # ------------------------------------------------------------------
+    # Extraction logic
+    # ------------------------------------------------------------------
+    def _start_extraction(self):
+        selected = [
+            b for b in BROWSERS
+            if self._browser_vars.get(b["key"], ctk.BooleanVar()).get()
+        ]
+        if not selected:
+            CTkMessagebox(
+                master=self,
+                title=self.lang.get("cookie_no_browser_title", "No browser selected"),
+                message=self.lang.get(
+                    "cookie_no_browser_message",
+                    "Please select at least one browser.",
+                ),
+                icon="warning",
+            )
+            return
+
+        self._btn_extract.configure(state="disabled")
+        self._log_write(
+            self.lang.get(
+                "cookie_extraction_start",
+                "Starting extraction from {0} browser(s)…",
+            ).format(len(selected)),
+            "blue",
+        )
+
+        merge = self._merge_var.get()
+
+        thread = threading.Thread(
+            target=self._run_extraction,
+            args=(selected, merge),
+            daemon=True,
+        )
+        thread.start()
+
+    def _run_extraction(self, selected: list, merge: bool):
+        """Background thread: extract cookies from each selected browser."""
+        all_cookies = []          # used only when merge=True
+        results = []              # (browser_name, cookies_list)  — per-browser
+
+        for b in selected:
+            key  = b["key"]
+            name = b["name"]
+            extracting = self.lang.get("cookie_status_extracting", "Extracting…")
+            self._log_write(
+                self.lang.get("cookie_browser_extracting", "[{0}] {1}").format(
+                    name, extracting
+                ),
+                "blue",
+            )
+            self._set_browser_status(key, extracting, "#e08000")
+            try:
+                cookies = extract_cookies_from_browser(key)
+                if not cookies:
+                    raise ValueError(
+                        self.lang.get(
+                            "cookie_no_cookies_profile",
+                            "No cookies found in profile",
+                        )
+                    )
+
+                results.append((name, cookies))
+                all_cookies.extend(cookies)
+                self._log_write(
+                    self.lang.get(
+                        "cookie_browser_cookies_found",
+                        "[{0}] ✓ {1} cookies found",
+                    ).format(name, len(cookies)),
+                    "#2a7a2a",
+                )
+                self._set_browser_status(
+                    key,
+                    self.lang.get(
+                        "cookie_status_cookie_count", "✓ {0} cookies"
+                    ).format(len(cookies)),
+                    "#2a7a2a",
+                )
+
+            except Exception as e:
+                msg = str(e).splitlines()[0]   # first line only — keep it short
+                self._log_write(
+                    self.lang.get(
+                        "cookie_browser_failed", "[{0}] ✗ {1}"
+                    ).format(name, msg),
+                    "red",
+                )
+                self._set_browser_status(
+                    key,
+                    self.lang.get("cookie_status_error", "✗ Error"),
+                    "red",
+                )
+
+        if not results:
+            self._log_write(
+                self.lang.get(
+                    "cookie_none_extracted",
+                    "No cookies extracted from any browser.",
+                ),
+                "red",
+            )
+            self.after(0, lambda: self._btn_extract.configure(state="normal"))
+            return
+
+        # ── Save ──────────────────────────────────────────────────────
+        if merge:
+            self._save_merged(all_cookies, results)
+        else:
+            self._save_separate(results)
+
+        self.after(0, lambda: self._btn_extract.configure(state="normal"))
+
+    def _save_merged(self, all_cookies: list, results: list):
+        """Save all cookies into one file."""
+        names = " + ".join(n for n, _ in results)
+        total = len(all_cookies)
+        self._log_write(
+            self.lang.get(
+                "cookie_merging", "Merging {0} cookies from: {1}"
+            ).format(total, names),
+            "blue",
+        )
+
+        def _ask_and_save():
+            save_path = CTkFileDialog.asksaveasfilename(
+                style="Mini",
+                defaultext=".txt",
+                filetypes=[
+                    (self.lang.get("cookie_text_files", "Text files"), "*.txt"),
+                    (self.lang.get("cookie_all_files", "All files"), "*.*"),
+                ],
+                title=self.lang.get(
+                    "cookie_save_merged_title",
+                    "Save merged cookies ({0} total)",
+                ).format(total),
+            )
+            if not save_path:
+                self._log_write(
+                    self.lang.get("cookie_save_cancelled", "Save cancelled."),
+                    "#888888",
+                )
+                return
+
+            with open(save_path, "w", encoding="utf-8") as f:
+                f.write(cookies_to_netscape(all_cookies))
+
+            self._log_write(
+                self.lang.get(
+                    "cookie_merged_saved", "✓ Saved {0} cookies → {1}"
+                ).format(total, save_path),
+                "#2a7a2a",
+            )
+            CTkMessagebox(
+                master=self,
+                title=self.lang.get("success", "Success"),
+                message=self.lang.get(
+                    "cookie_merged_success",
+                    "Exported {0} cookies from {1} browser(s) to:\n{2}",
+                ).format(total, len(results), save_path),
+                icon="info",
+            )
+
+        self.after(0, _ask_and_save)
+
+    def _save_separate(self, results: list):
+        """Save a separate .txt file for each browser."""
+        def _ask_and_save():
+            # Ask for a folder
+            folder = CTkFileDialog.askdirectory(
+                style="Mini",
+                title=self.lang.get(
+                    "cookie_choose_folder", "Choose folder to save cookie files"
+                ),
+            )
+            if not folder:
+                self._log_write(
+                    self.lang.get("cookie_save_cancelled", "Save cancelled."),
+                    "#888888",
+                )
+                return
+
+            saved = []
+            for browser_name, cookies in results:
+                filename = f"cookies_{browser_name.lower()}.txt"
+                path = os.path.join(folder, filename)
+                with open(path, "w", encoding="utf-8") as f:
+                    f.write(cookies_to_netscape(cookies))
+                self._log_write(
+                    self.lang.get(
+                        "cookie_browser_saved", "✓ {0}: {1} cookies → {2}"
+                    ).format(browser_name, len(cookies), path),
+                    "#2a7a2a",
+                )
+                saved.append(
+                    self.lang.get(
+                        "cookie_browser_saved_summary",
+                        "{0}: {1} cookies → {2}",
+                    ).format(browser_name, len(cookies), filename)
+                )
+
+            CTkMessagebox(
+                master=self,
+                title=self.lang.get("success", "Success"),
+                message=self.lang.get(
+                    "cookie_separate_success",
+                    "Files saved to: {0}\n\n{1}",
+                ).format(folder, "\n".join(saved)),
+                icon="info",
+            )
+
+        self.after(0, _ask_and_save)
+
+
 
 # الفئة الرئيسية لتطبيق تحميل فيديوهات يوتيوب مع واجهة مستخدم رسومية
 class YouTubeDownloaderApp:
@@ -113,21 +496,51 @@ class YouTubeDownloaderApp:
         self.file_button = self.menu_bar.add_cascade(self.lang.get("options", "Options")) # إضافة زر "خيارات" إلى شريط القائمة
         self.edit_button = self.menu_bar.add_cascade(self.lang.get("edit", "Edit")) # إضافة زر "تحرير" إلى شريط القائمة 
         # اضافة زر "مساعدة" إلى شريط القائمة وربطه بدالة show_help لعرض رسالة مساعدة للمستخدم
-        self.menu_bar.add_cascade(self.lang.get("help", "Help"), command=self.show_help) # إضافة زر "مساعدة" إلى شريط القائمة وربطه بدالة show_help
+        self.help_button = self.menu_bar.add_cascade(
+            self.lang.get("help", "Help"),
+            command=self.show_help
+        ) # إضافة زر "مساعدة" إلى شريط القائمة وربطه بدالة show_help
         
         
         # Create dropdown content
         # إنشاء قائمة منسدلة (Dropdown menu) مرتبطة بزر "خيارات" لعرض خيارات إضافية مثل "التحقق من التحديثات" و "الخروج"
         self.dropdown = CustomDropdownMenu(widget=self.file_button)
-        self.dropdown.add_option(option=self.lang.get("check_updates", "Check for Updates"), command=self.run_update)
+        self.open_dir_option = self.dropdown.add_option(
+            option=self.lang.get("open_dir_download", "Open Download Folder"),
+            command=self.open_download_folder
+        )
+        self.export_cookies_option = self.dropdown.add_option(
+            option=self.lang.get("export_cookies", "Export Cookies"),
+            command=self.export_cookies
+        )
         self.dropdown.add_separator()
-        self.dropdown.add_option(option=self.lang.get("exit", "Exit"), command=self.root.destroy)
+        self.check_updates_option = self.dropdown.add_option(
+            option=self.lang.get("check_updates", "Check for Updates"),
+            command=self.run_update
+        )
+        self.dropdown.add_separator()
+        self.exit_option = self.dropdown.add_option(
+            option=self.lang.get("exit", "Exit"),
+            command=self.root.destroy
+        )
         # انشاء قائمة منسدلة (Dropdown menu) مرتبطة بزر "تحرير" لعرض خيارات إضافية مثل "قص" و "لصق" و "مسح"
         self.edit_dropdown = CustomDropdownMenu(widget=self.edit_button)
-        self.edit_dropdown.add_option(option=self.lang.get("cut", "Cut"), command=self.copy_to_clipboard, accelerator="Ctrl+C")
-        self.edit_dropdown.add_option(option=self.lang.get("paste", "Paste"), command=self.paste, accelerator="Ctrl+V")
+        self.edit_cut_option = self.edit_dropdown.add_option(
+            option=self.lang.get("cut", "Cut"),
+            command=self.copy_to_clipboard,
+            accelerator="Ctrl+C"
+        )
+        self.edit_paste_option = self.edit_dropdown.add_option(
+            option=self.lang.get("paste", "Paste"),
+            command=self.paste,
+            accelerator="Ctrl+V"
+        )
         self.edit_dropdown.add_separator()
-        self.edit_dropdown.add_option(option=self.lang.get("clear", "Clear"), command=self.clear_url, accelerator="Delete")
+        self.edit_clear_option = self.edit_dropdown.add_option(
+            option=self.lang.get("clear", "Clear"),
+            command=self.clear_url,
+            accelerator="Delete"
+        )
         # ربط المفاتيح لتكبير الشاشة والخروج من ملء الشاشة
         self.root.bind("<F11>", self.toggle_fullscreen) # ربط مفتاح F11 لتبديل وضع ملء الشاشة
         self.root.bind("<Escape>", self.exit_fullscreen) # ربط مفتاح Escape للخروج من وضع ملء الشاشة
@@ -154,9 +567,30 @@ class YouTubeDownloaderApp:
         # ربط حدث إغلاق النافذة بدالة مخصصة للتعامل مع إغلاق التطبيق بشكل صحيح خاصة أثناء وجود عملية تحميل جارية
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
     
+    # فتح مجلد التحميل 
+    def open_download_folder(self):
+        """
+        فتح مجلد التحميل باستخدام مستعرض الملفات الافتراضي للنظام
+        """
+        if os.path.exists(self.save_dir):
+            if platform.system() == "Windows":
+                os.startfile(self.save_dir)  # فتح المجلد على Windows
+            elif platform.system() == "Darwin":  # macOS
+                subprocess.run(["open", self.save_dir])  # فتح المجلد على macOS
+            else:  # Linux and other OS
+                subprocess.run(["xdg-open", self.save_dir])  # فتح المجلد على Linux
+        else:
+            CTkMessagebox(title=self.lang.get("error", "Error"), message=self.lang.get("folder_not_found", "Download folder not found."), icon="error")
+
+    # دالة لتصدير ملفات الكوكيز من المتصفحات المدعومة إلى تنسيق Netscape، بحيث يمكن استخدامها مع yt-dlp لتحميل الفيديوهات التي تتطلب تسجيل الدخول.
+    def export_cookies(self):
+        CookieManagerWindow(self.root, self.lang,self.reshape_arabic)  # فتح نافذة إدارة الكوكيز
     # دالة لإرسال إشعار عند اكتمال التحميل بناءً على نظام التشغيل المستخدم
     def notification(self):
         system = platform.system()
+        title = self.lang.get("download_complete", "Download Complete")
+        message = self.lang.get("video_ready", "Your video is ready!")
+        open_folder_label = self.lang.get("open_folder", "Open Folder")
 
         if system == "Windows":
             from winotify import Notification # Notifications حقيقية ديال Windows pip install winotify
@@ -164,12 +598,12 @@ class YouTubeDownloaderApp:
                 icon_path = os.path.abspath("asset/Icon.ico")
                 toast = Notification(
                     app_id="Media Downloader",
-                    title="Download Complete",
-                    msg="Your video is ready!",
+                    title=title,
+                    msg=message,
                     icon=icon_path
                 )
                 toast.set_audio("Notification.Default", loop=False)
-                toast.add_actions(label="Open Folder", launch=f"explorer.exe {self.save_dir}")
+                toast.add_actions(label=open_folder_label, launch=f"explorer.exe {self.save_dir}")
                 toast.show()
             threading.Thread(target=show).start()
 
@@ -192,8 +626,8 @@ class YouTubeDownloaderApp:
                 for i in range(0, 101, 10):
                     subprocess.run([
                         "notify-send",
-                        "Download Complete",
-                        "Your video is ready!",
+                        title,
+                        message,
                         "-i", os.path.abspath("asset/Icon.png"),
                         "-h", f"int:value:{i}",
                         "-r", "9999"  # replace نفس notification
@@ -206,8 +640,8 @@ class YouTubeDownloaderApp:
                 notifier = DesktopNotifier(app_name="Media Downloader")
                 async def main():
                     await notifier.send(
-                        title="Download Complete",
-                        message="Your video is ready!",
+                        title=title,
+                        message=message,
                         sound=DEFAULT_SOUND,
                         urgency=Urgency.Normal
                         )
@@ -221,32 +655,89 @@ class YouTubeDownloaderApp:
         """
         # help_message = self.lang.get("help_message", "To use this application, enter the media URL, select your desired options, and click the Download button.\nGPU Encoding [ libx264: CPU-based H.264 encoder; best compatibility and quality-to-size ratio but high CPU usage\nlibx265: CPU-based HEVC (H.265) encoder; '50%' better compression than x264 but much slower to encode\nhevc_vaapi: Linux hardware-accelerated HEVC encoder for Intel/AMD GPUs; extremely fast with low CPU impact\nh264_vaapi: Linux hardware-accelerated H.264 encoder for Intel/AMD GPUs; standard for fast Linux video processing\nhevc_qsv: Intel Quick Sync HEVC encoder for Windows/Linux; optimized for Intel iGPUs to provide fast 4K encoding\nh264_qsv: Intel Quick Sync H.264 encoder; high-speed hardware encoding for Intel systems with good stability ] \n[ CRF : Constant Rate Factor between 0-51 \n CRF 0: Lossless (huge files) \n CRF 18: Visually transparent (indistinguishable from source) \n CRF 23: Default (great balance) \n CRF 28: Good for web/mobile (small files, slight quality loss) \n CRF 30-35: You will start seeing 'blocking' (pixelated squares) in dark areas or fast-moving scenes. Fine details (like hair or grass) will look blurry \n CRF 40+: The video becomes very 'muddy.' Colors might look washed out, and the image will look significantly worse than the original  ]\n[ ultrafast: Minimal compression, largest file size, nearly zero CPU impact; best for instant local recording \n superfast: Very low compression, large file size, extremely fast encoding for older hardware \n veryfast: Good balance for live streaming; low CPU usage with acceptable file size \n faster: Slightly better compression than veryfast; ideal for fast downloads on mid-range CPUs \n fast: Slightly better than medium; a good trade-off between encoding speed and file weight \n medium (default): The standard balance; recommended for most general video encoding tasks \n slow: High compression, smaller file size, requires significant CPU power; best for high-quality archiving \n slower: Very high compression, tiny file size, very slow encoding; used for professional master files \n veryslow: Maximum compression, smallest possible file size, extremely slow; only for perfectionists with powerful CPUs ] For more information, visit our GitHub page.\nhttps://github.com/hmidani-abdelilah/Media_Downloader")
         # CTkMessagebox(title=self.lang.get("help", "Help"), message=help_message, icon="info") # عرض رسالة منبثقة للمساعدة
-        help_message = self.lang.get("help_message", 
-                                        "To use this application, enter the media URL, select your options, and click Download.\n\n"
-                                        "--- ENCODERS ---\n"
-                                        "• libx264: CPU-based H.264; Best compatibility/quality.\n"
-                                        "• libx265: CPU-based HEVC; 50% better compression (slower).\n"
-                                        "• hevc_vaapi: Linux hardware HEVC (Intel/AMD); Very fast.\n"
-                                        "• h264_vaapi: Linux hardware H.264 (Intel/AMD); Very fast.\n"
-                                        "• hevc_qsv: Intel Quick Sync HEVC; Optimized for Intel iGPUs.\n"
-                                        "• h264_qsv: Intel Quick Sync H.264; Fast and stable.\n\n"
-                                        "--- QUALITY (CRF: 0-51) ---\n"
-                                        "• 0: Lossless (Huge files).\n"
-                                        "• 18: Visually transparent (High quality).\n"
-                                        "• 23: Default (Great balance).\n"
-                                        "• 28: Acceptable (Small files, mobile use).\n"
-                                        "• 30-35: Visible pixelation (Blurry details).\n"
-                                        "• 40+: Very poor quality (Muddy image).\n\n"
-                                        "--- PRESETS (Speed vs Compression) ---\n"
-                                        "• ultrafast/superfast: Instant encoding, very large files.\n"
-                                        "• veryfast/faster: Good for live streaming or mid-range CPUs.\n"
-                                        "• medium: Default standard balance.\n"
-                                        "• slow/slower: High compression, small files (Needs high CPU).\n"
-                                        "• veryslow: Best compression, extremely slow.\n\n"
-                                        "For more info: https://github.com/hmidani-abdelilah/Media_Downloader"
-                                            )
+        help_message = self.lang.get(
+            "help_message", "Help content is unavailable."
+        ).replace("\\n", "\n")
+        title = self.reshape_arabic(self.lang.get("help", "Help"))
+        help_window = ctk.CTkToplevel(self.root)
+        help_window.title(title)
+        help_window.transient(self.root)
 
-        CTkMessagebox(title=self.lang.get("help", "Help"), message=help_message, icon="info")
+        screen_width = help_window.winfo_screenwidth()
+        screen_height = help_window.winfo_screenheight()
+        width = min(860, screen_width - 40)
+        height = min(720, screen_height - 80)
+        content_width = max(220, width - 64)
+        content_height = max(200, height - 140)
+        x = (screen_width - width) // 2
+        y = (screen_height - height) // 2
+        help_window.geometry(f"{width}x{height}+{x}+{y}")
+        help_window.minsize(min(560, width), min(420, height))
+        help_window.grid_columnconfigure(0, weight=1)
+        help_window.grid_rowconfigure(1, weight=1)
+
+        ctk.CTkLabel(
+            help_window,
+            text=self.reshape_arabic(title),
+            font=ctk.CTkFont(size=20, weight="bold"),
+        ).grid(row=0, column=0, sticky="w", padx=20, pady=(16, 8))
+
+        content = ctk.CTkFrame(help_window, fg_color="transparent")
+        content.grid(row=1, column=0, sticky="nsew", padx=16, pady=8)
+        content.grid_columnconfigure(0, weight=1)
+        content.grid_rowconfigure(0, weight=1)
+
+        help_text = ctk.CTkTextbox(
+            content,
+            wrap="word",
+            width=content_width,
+            height=content_height,
+            font=ctk.CTkFont(size=13),
+        )
+        help_text.grid(row=0, column=0, sticky="nsew")
+        scrollbar = ctk.CTkScrollbar(content, command=help_text.yview)
+        scrollbar.grid(row=0, column=1, sticky="ns")
+        help_text.configure(yscrollcommand=scrollbar.set)
+
+        text_justify = "right" if self.lang_code == "ar" else "left"
+        help_text.tag_config(
+            "section",
+            foreground="#1f6feb",
+            justify=text_justify,
+            spacing1=12,
+            spacing3=4,
+        )
+        help_text.tag_config("body", justify=text_justify)
+        help_text.tag_config(
+            "bullet",
+            justify=text_justify,
+            lmargin1=12,
+            lmargin2=28,
+            spacing1=2,
+        )
+
+        for line in help_message.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("---") and stripped.endswith("---"):
+                help_text.insert(
+                    "end", stripped.strip("- ").strip() + "\n", "section"
+                )
+            elif stripped.startswith("•"):
+                help_text.insert("end", line + "\n", "bullet")
+            else:
+                help_text.insert("end", line + "\n", "body")
+        help_text.configure(state="disabled")
+
+        footer = ctk.CTkFrame(help_window, fg_color="transparent")
+        footer.grid(row=2, column=0, sticky="e", padx=16, pady=(4, 14))
+        ctk.CTkButton(
+            footer,
+            text=self.lang.get("close", "Close"),
+            command=help_window.destroy,
+        ).grid(row=0, column=0)
+
+        help_window.grab_set()
+        help_window.focus_set()
    
 
     # دالة تحديت الوضع تلقائي ان كانت system 
@@ -311,7 +802,9 @@ class YouTubeDownloaderApp:
             # ✅ إعادة تشكيل النصوص العربية على Linux فقط
             if lang_code == "ar" :
                 lang_data = {
-                    key: self.reshape_arabic(value) if isinstance(value, str) else value
+                    key: self.reshape_arabic(
+                        value.replace("\\n", "\n") if key == "help_message" else value
+                    ) if isinstance(value, str) else value
                     for key, value in lang_data.items()
                 }
             
@@ -388,7 +881,10 @@ class YouTubeDownloaderApp:
         # Loading Frame (Hidden by default)
         # إنشاء إطار تحميل (Loading Frame) يحتوي على رسالة للمستخدم وشريط تقدم، ويتم إخفاؤه افتراضيًا ويظهر فقط أثناء تحديث الحزم أو أثناء عمليات التحميل التي تستغرق وقتًا طويلاً لإعلام المستخدم بأن التطبيق يعمل على مهمة ما.
         self.loading_frame = ctk.CTkFrame(self.root) # إنشاء إطار تحميل (Loading Frame) يحتوي على رسالة للمستخدم وشريط تقدم، ويتم إخفاؤه افتراضيًا ويظهر فقط أثناء تحديث الحزم أو أثناء عمليات التحميل التي تستغرق وقتًا طويلاً لإعلام المستخدم بأن التطبيق يعمل على مهمة ما.
-        self.loading_label = ctk.CTkLabel(self.loading_frame, text="Updating dependencies, please wait...") # رسالة للمستخدم تظهر أثناء تحديث الحزم أو أثناء عمليات التحميل التي تستغرق وقتًا طويلاً لإعلام المستخدم بأن التطبيق يعمل على مهمة ما.
+        self.loading_label = ctk.CTkLabel(
+            self.loading_frame,
+            text=self.lang.get("updating_dependencies", "Updating dependencies, please wait...")
+        ) # رسالة للمستخدم تظهر أثناء تحديث الحزم أو أثناء عمليات التحميل التي تستغرق وقتًا طويلاً لإعلام المستخدم بأن التطبيق يعمل على مهمة ما.
         self.loading_label.pack(pady=5)
         self.current_package_label = ctk.CTkLabel(self.loading_frame, text="") # رسالة تظهر اسم الحزمة الحالية التي يتم تحديثها أثناء عملية تحديث الحزم، لتوفير معلومات أكثر تفصيلاً للمستخدم حول تقدم التحديث. يتم تحديث نص هذه الرسالة ديناميكيًا أثناء عملية التحديث لعرض اسم الحزمة التي يتم تثبيتها أو تحديثها حاليًا.
         self.current_package_label.pack(pady=2)
@@ -465,12 +961,24 @@ class YouTubeDownloaderApp:
         self.menu = ContextMenu(self.url_frame)
 
         # إضافة عنصر "قص" إلى القائمة وربطه بالدالة copy_to_clipboard
-        self.menu.add_option(option=self.lang.get("cut", "Cut"),command=self.copy_to_clipboard , accelerator="Ctrl+C")  # إضافة أمر "قص" للقائمة
+        self.cut_menu_option = self.menu.add_option(
+            option=self.lang.get("cut", "Cut"),
+            command=self.copy_to_clipboard,
+            accelerator="Ctrl+C"
+        )
         # إضافة عنصر "لصق" إلى القائمة وربطه بالدالة paste
-        self.menu.add_option(option=self.lang.get("paste", "Paste"), command=self.paste , accelerator="Ctrl+V")  # إضافة أمر "لصق" للقائمة
+        self.paste_menu_option = self.menu.add_option(
+            option=self.lang.get("paste", "Paste"),
+            command=self.paste,
+            accelerator="Ctrl+V"
+        )
         self.menu.add_separator()
         # إضافة عنصر "مسح" الى القائمة و ربطه بالدالة clear_url
-        self.menu.add_option(option=self.lang.get("clear", "clear"),command=self.clear_url , accelerator="Delete")   # إضافة أمر "مسح" للقائمة
+        self.clear_menu_option = self.menu.add_option(
+            option=self.lang.get("clear", "Clear"),
+            command=self.clear_url,
+            accelerator="Delete"
+        )
         # ربط حدث النقر بزر الفأرة الأيمن (الزر رقم 3) بالحقل لعرض القائمة
         #self.url_entry.bind("<Button-3>", self.show_menu)
 
@@ -487,7 +995,10 @@ class YouTubeDownloaderApp:
         self.settings_frame.pack(fill="x", padx=20, pady=10) # تعبئة العرض بالكامل مع حواف
         
         # إعدادات نوع الملف
-        self.filetype_label = ctk.CTkLabel(self.settings_frame, text="Format:") # تسمية إعدادات نوع الملف
+        self.filetype_label = ctk.CTkLabel(
+            self.settings_frame,
+            text=self.lang.get("format", "Format:")
+        ) # تسمية إعدادات نوع الملف
         self.filetype_label.grid(row=0, column=0, padx=5, pady=5) # وضع في الشبكة
         
         self.file_type = ctk.StringVar(value="best") # متغير لتخزين نوع الملف المختار
@@ -500,7 +1011,10 @@ class YouTubeDownloaderApp:
         self.type_menu.grid(row=0, column=1, padx=5, pady=5) # وضع في الشبكة
         
         # إعدادات الجودة
-        self.quality_label = ctk.CTkLabel(self.settings_frame, text="Quality:")
+        self.quality_label = ctk.CTkLabel(
+            self.settings_frame,
+            text=self.lang.get("quality", "Quality:")
+        )
         self.quality_label.grid(row=0, column=2, padx=5, pady=5)
         
         self.quality = ctk.StringVar(value="Medium (720)") # متغير لتخزين مستوى الجودة المختار
@@ -860,12 +1374,31 @@ class YouTubeDownloaderApp:
         self.lang = self.load_language(lang_code) # تحميل ملف اللغة الجديد
         
         # تحديث نصوص جميع عناصر الواجهة بالترجمة الجديدة
+        self.loading_label.configure(
+            text=self.lang.get("updating_dependencies", "Updating dependencies, please wait...")
+        )
+        self.file_button.configure(text=self.lang.get("options", "Options"))
+        self.edit_button.configure(text=self.lang.get("edit", "Edit"))
+        self.help_button.configure(text=self.lang.get("help", "Help"))
+        self.open_dir_option.configure(
+            option=self.lang.get("open_dir_download", "Open Download Folder")
+        )
+        self.export_cookies_option.configure(
+            option=self.lang.get("export_cookies", "Export Cookies")
+        )
+        self.check_updates_option.configure(
+            option=self.lang.get("check_updates", "Check for Updates")
+        )
+        self.exit_option.configure(option=self.lang.get("exit", "Exit"))
+        self.edit_cut_option.configure(option=self.lang.get("cut", "Cut"))
+        self.edit_paste_option.configure(option=self.lang.get("paste", "Paste"))
+        self.edit_clear_option.configure(option=self.lang.get("clear", "Clear"))
         self.title_label.configure(text=self.lang.get("title", "Media Downloader",)) # تحديث عنوان التطبيق
         self.url_entry.configure(placeholder_text=self.lang.get("enter_url", "Enter Media URL")) # تحديث نص الحقل
         self.clear_button.configure(text=self.lang.get("clear", "Clear")) # تحديث نص زر المسح
-        self.menu.configure(option=self.lang.get("cut", "Cut")) # تحديث نص أمر "قص" في القائمة
-        self.menu.configure(option=self.lang.get("paste", "Paste")) # تحديث نص أمر "لصق" في القائمة
-        self.menu.configure(option=self.lang.get("clearing", "Clear")) # تحديث نص أمر "مسح" في القائمة
+        self.cut_menu_option.configure(option=self.lang.get("cut", "Cut"))
+        self.paste_menu_option.configure(option=self.lang.get("paste", "Paste"))
+        self.clear_menu_option.configure(option=self.lang.get("clear", "Clear"))
         self.download_button.configure(text=self.lang.get("download", "Download")) # تحديث نص زر التحميل
         self.sub_checkbox.configure(text=self.lang.get("download_subtitles", "Download Subtitles")) # تحديث نص مربع اختيار الترجمة
         self.aria2_checkbox.configure(text=self.lang.get("use_aria2", "Download with aria2")) # تحديث نص مربع اختيار Aria2c
@@ -1002,7 +1535,10 @@ class YouTubeDownloaderApp:
                     0,
                     lambda name=pkg_name, i=index: 
                     self.current_package_label.configure(
-                        text=f"Updating: {name} ({i}/{total_packages})"
+                        text=self.lang.get(
+                            "updating_package",
+                            "Updating: {0} ({1}/{2})"
+                        ).format(name, i, total_packages)
                     )
                 )
                 # تنفيذ أمر تحديث الحزمة باستخدام pip
@@ -1056,7 +1592,7 @@ class YouTubeDownloaderApp:
         # إذا كانت هناك حزم تم تحديثها، عرض قائمة الحزم المحدثة مع خيار إعادة تشغيل التطبيق لتطبيق التغييرات
         if upgraded:
             # يوجد تحديثات
-            message = "Updated Packages:\n\n" + "\n".join(upgraded)
+            message = self.lang.get("updated_packages", "Updated Packages:\n\n") + "\n".join(upgraded)
             restart_now_label = self.lang.get("restart_now", "Restart Now")
 
             msg = CTkMessagebox(
@@ -1133,7 +1669,8 @@ class YouTubeDownloaderApp:
                 option_1=self.lang.get("close_app", "Close App")
             )
             # إذا اختار المستخدم إغلاق التطبيق، يتم إغلاق التطبيق. وإلا، لا يتم فعل أي شيء والسماح له بإعادة التشغيل يدويًا في وقت لاحق.
-            if msg.get() == "Close App":
+            close_app_label = self.lang.get("close_app", "Close App")
+            if msg.get() == close_app_label:
                 self.root.destroy()
 
     
@@ -1251,7 +1788,10 @@ class YouTubeDownloaderApp:
                 # schedule UI update on main thread
                 self.directory_label.configure(text=self.lang.get("directory", "Directory:") + f" {self.save_dir}")
             except Exception as e:
-                CTkMessagebox(title="Error", message=f"Invalid directory: {e}")
+                CTkMessagebox(
+                    title=self.lang.get("error", "Error"),
+                    message=self.lang.get("invalid_directory", "Invalid directory:") + f" {e}"
+                )
 
     # دالة لفتح مربع حوار لاختيار مجلف cookies
     def select_file(self):
@@ -1286,7 +1826,10 @@ class YouTubeDownloaderApp:
 
             except Exception as e:
                 # عرض رسالة خطأ في واجهة المستخدم مع تفاصيل الخطأ الذي حدث أثناء التحقق من الملف الذي تم اختياره
-                CTkMessagebox(title="Error", message=f"Invalid file: {e}")
+                CTkMessagebox(
+                    title=self.lang.get("error", "Error"),
+                    message=self.lang.get("invalid_file", "Invalid file:") + f" {e}"
+                )
 
     # دالة للتحقق من صحة الرابط المدخل ودعمه من قبل التطبيق، حيث يتم التحقق من أن الرابط يبدأ بأنماط URL شائعة (http://، https://، www.) وأنه يحتوي على نطاق صالح بعد التحليل باستخدام urllib.parse، مع التعامل مع أي استثناءات قد تحدث أثناء عملية التحقق وإرجاع False في حالة وجود أي خطأ.
     def validate_url(self, url):
